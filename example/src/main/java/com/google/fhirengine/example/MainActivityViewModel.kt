@@ -16,38 +16,13 @@
 
 package com.google.fhirengine.example
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import com.google.fhirengine.FhirEngine
-import com.google.fhirengine.sync.SyncConfiguration
-import com.google.fhirengine.sync.SyncData
-import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.ResourceType
 
 class MainActivityViewModel(
   private val fhirEngine: FhirEngine
-) : ViewModel() {
-
-    init {
-        requestPatients()
-    }
-
-    private fun requestPatients() {
-        viewModelScope.launch {
-            val syncData = listOf(
-                SyncData(
-                    resourceType = ResourceType.Patient,
-                    params = mapOf("address-country" to "United States")
-                )
-            )
-            val syncConfig = SyncConfiguration(syncData = syncData)
-            val result = fhirEngine.sync(syncConfig)
-            Log.d("MainActivityViewModel", "sync result: $result")
-        }
-    }
-}
+) : ViewModel()
 
 class MainActivityViewModelFactory(
   private val fhirEngine: FhirEngine
