@@ -19,20 +19,12 @@ package com.google.android.fhir.datacapture.views
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.fhir.datacapture.QuestionnaireResponseRecorder
-import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 
 interface QuestionnaireItemViewHolderFactory {
-    fun create(
-      parent: ViewGroup,
-      questionnaireResponseRecorder: QuestionnaireResponseRecorder
-    ): QuestionnaireItemViewHolder
+    fun create(parent: ViewGroup): QuestionnaireItemViewHolder
 }
 
-/** The [RecyclerView.ViewHolder] for [QuestionnaireItemComponent]. */
-abstract class QuestionnaireItemViewHolder(
-  itemView: View,
-  val questionnaireResponseRecorder: QuestionnaireResponseRecorder
-) : RecyclerView.ViewHolder(itemView) {
-    abstract fun bind(questionnaireItemComponent: QuestionnaireItemComponent)
+/** The [RecyclerView.ViewHolder] for [QuestionnaireItemViewItem]. */
+abstract class QuestionnaireItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    abstract fun bind(questionnaireItemViewItem: QuestionnaireItemViewItem)
 }
