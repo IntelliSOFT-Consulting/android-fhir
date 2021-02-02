@@ -23,7 +23,6 @@ import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.android.fhir.datacapture.R
-import com.google.android.fhir.datacapture.views.QuestionnaireItemDatePickerViewHolderFactory.NUMBER_OF_MICROSECONDS_PER_SECOND
 import com.google.android.material.textfield.TextInputLayout
 import com.google.common.truth.Truth.assertThat
 import com.google.fhir.r4.core.Date
@@ -44,7 +43,7 @@ class QuestionnaireItemDatePickerViewHolderFactoryInstrumentedTest {
     @Before
     fun setUp() {
         context = ContextThemeWrapper(
-            InstrumentationRegistry.getInstrumentation().getTargetContext(),
+            InstrumentationRegistry.getInstrumentation().targetContext,
             R.style.Theme_MaterialComponents
         )
         parent = FrameLayout(context)
@@ -52,7 +51,7 @@ class QuestionnaireItemDatePickerViewHolderFactoryInstrumentedTest {
     }
 
     @Test
-    fun shouldSetTextViewText() {
+    fun shouldSetTextInputLayoutHint() {
         viewHolder.bind(
             QuestionnaireItemViewItem(
                 Questionnaire.Item.newBuilder().apply {
@@ -62,8 +61,9 @@ class QuestionnaireItemDatePickerViewHolderFactoryInstrumentedTest {
             )
         )
 
-        assertThat(viewHolder.itemView.findViewById<TextInputLayout>(R.id.textInputLayout).hint)
-            .isEqualTo("Question?")
+        assertThat(
+            viewHolder.itemView.findViewById<TextInputLayout>(R.id.textInputLayout).hint
+        ).isEqualTo("Question?")
     }
 
     @Test
@@ -79,8 +79,8 @@ class QuestionnaireItemDatePickerViewHolderFactoryInstrumentedTest {
         )
 
         assertThat(
-            viewHolder.itemView.findViewById<TextView>(R.id.textInputEditText).text.toString())
-            .isEqualTo("")
+            viewHolder.itemView.findViewById<TextView>(R.id.textInputEditText).text.toString()
+        ).isEqualTo("")
     }
 
     @Test
@@ -111,7 +111,7 @@ class QuestionnaireItemDatePickerViewHolderFactoryInstrumentedTest {
         )
 
         assertThat(
-            viewHolder.itemView.findViewById<TextView>(R.id.textInputEditText).text.toString())
-            .isEqualTo("2020-01-01")
+            viewHolder.itemView.findViewById<TextView>(R.id.textInputEditText).text.toString()
+        ).isEqualTo("2020-01-01")
     }
 }
