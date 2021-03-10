@@ -27,7 +27,7 @@ internal data class TokenIndex(
     /** The path of the code index, e.g. "Observation.code". */
     val path: String,
     /** The system of the code index, e.g. "http://openmrs.org/concepts". */
-    val system: String,
+    val system: String?,
     /** The value of the code index, e.g. "1427AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA". */
     val value: String
 )
