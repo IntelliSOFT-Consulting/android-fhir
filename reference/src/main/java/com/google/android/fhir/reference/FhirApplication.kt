@@ -16,15 +16,15 @@
 
 package com.google.android.fhir.reference
 
-import android.app.Application
 import android.content.Context
 import androidx.work.Constraints
 import ca.uhn.fhir.context.FhirContext
+import com.google.android.fhir.CoreApplication
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.FhirEngineBuilder
-import com.google.android.fhir.reference.api.HapiFhirService.Companion.create
-import com.google.android.fhir.reference.data.FhirPeriodicSyncWorker
-import com.google.android.fhir.reference.data.HapiFhirResourceDataSource
+import com.google.android.fhir.api.HapiFhirService.Companion.create
+import com.google.android.fhir.FhirPeriodicSyncWorker
+import com.google.android.fhir.HapiFhirResourceDataSource
 import com.google.android.fhir.sync.FhirDataSource
 import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.RepeatInterval
@@ -34,12 +34,12 @@ import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import org.hl7.fhir.r4.model.ResourceType
 
-class FhirApplication : Application() {
+class FhirApplication : CoreApplication() {
 
   // only initiate the FhirEngine when used for the first time, not when the app is created
-  private val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
+  override val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
 
-  private fun constructFhirEngine(): FhirEngine {
+  override fun constructFhirEngine(): FhirEngine {
     val parser = FhirContext.forR4().newJsonParser()
     val service = create(parser)
     val params = mutableMapOf("address-city" to "NAIROBI")
@@ -60,7 +60,6 @@ class FhirApplication : Application() {
   }
 
   companion object {
-    @JvmStatic
     fun fhirEngine(context: Context) = (context.applicationContext as FhirApplication).fhirEngine
   }
 }
