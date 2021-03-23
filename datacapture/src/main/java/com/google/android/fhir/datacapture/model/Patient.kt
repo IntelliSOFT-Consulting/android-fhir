@@ -30,4 +30,11 @@ class Patient : org.hl7.fhir.r4.model.Patient() {
     }
     return this
   }
+
+  fun addTelecom(t: ContactPoint?): Patient {
+    if (t == null) return this
+    if (telecom == null) telecom = mutableListOf<org.hl7.fhir.r4.model.ContactPoint>()
+    telecom.add(t)
+    return this
+  }
 }
