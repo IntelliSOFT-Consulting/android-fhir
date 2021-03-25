@@ -1,6 +1,6 @@
 ---
 name:  Code-Health
-about: Can include issues related to Refactoring, Improving Testing, Infrastructure, Documentation or related. 
+about: Issues related to Refactoring, Improving Testing, Infrastructure, Documentation or related. 
 
 ---
 
