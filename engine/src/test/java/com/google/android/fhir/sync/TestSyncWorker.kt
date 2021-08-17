@@ -18,10 +18,8 @@ package com.google.android.fhir.sync
 
 import android.content.Context
 import androidx.work.WorkerParameters
-import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.resource.TestingUtils
 import org.hl7.fhir.r4.model.ResourceType
-import org.mockito.kotlin.mock
 
 class TestSyncWorker(appContext: Context, workerParams: WorkerParameters) :
   FhirSyncWorker(appContext, workerParams) {
@@ -30,5 +28,5 @@ class TestSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
   override fun getDataSource() = TestingUtils.TestDataSourceImpl
 
-  override fun getFhirEngine() = mock<FhirEngine>()
+  override fun getFhirEngine() = TestingUtils.TestFhirEngineImpl
 }
