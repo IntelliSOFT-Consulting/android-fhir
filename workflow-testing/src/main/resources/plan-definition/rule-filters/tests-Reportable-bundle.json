@@ -916,12 +916,12 @@
               "id": "reportable-encounter",
               "status": "finished",
               "class": {
-                  "code": "OBSENC",
-                  "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-                  "display": "observation encounter"
+                "code": "OBSENC",
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                "display": "observation encounter"
               },
               "period": {
-                  "start": "2018-03-07"
+                "start": "2018-03-07"
               }
             }
           },
