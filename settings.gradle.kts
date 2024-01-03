@@ -53,6 +53,8 @@ include(":document")
 
 include(":demo")
 
+include(":use-case")
+
 include(":engine")
 
 include(":knowledge")
