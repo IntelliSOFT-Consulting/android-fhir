@@ -41,17 +41,30 @@ class ForgotPasswordActivity : AppCompatActivity() {
             btnSubmit.setOnClickListener {
 
                 val emailAddress = etEmail.text.toString()
+                val idNumber = etNational.text.toString()
+                if (idNumber.isEmpty()) {
+                    nationalLayout.error = "Please enter National ID"
+                    etNational.requestFocus()
+                    return@setOnClickListener
+                }
+
                 if (emailAddress.isEmpty()) {
-                    emailLayout.error = "Please enter Username"
+                    emailLayout.error = "Please enter Email Address"
                     etEmail.requestFocus()
                     return@setOnClickListener
                 }
 
+                if (!Patterns.EMAIL_ADDRESS.matcher(emailAddress).matches()) {
+                    emailLayout.error = "Please enter a valid Email Address"
+                    etEmail.requestFocus()
+                    return@setOnClickListener
+                }
 
+                binding.emailLayout.error = null
+                binding.nationalLayout.error = null
 
-                binding.emailLayout.error = null 
                 val payload = DbResetPasswordData(
-                    idNumber = emailAddress,
+                    idNumber = idNumber,
                     email = emailAddress
                 )
                 CoroutineScope(Dispatchers.Main).launch {
@@ -66,7 +79,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
                     CoroutineScope(Dispatchers.IO + job).launch {
                         FormatterClass().saveSharedPref(
                             "idNumber",
-                            emailAddress,
+                            idNumber,
                             this@ForgotPasswordActivity
                         )
                         val pairReturn = retrofitCallsAuthentication

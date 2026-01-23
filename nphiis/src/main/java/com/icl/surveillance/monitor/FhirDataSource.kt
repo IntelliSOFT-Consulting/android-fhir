@@ -4,6 +4,7 @@ import com.icl.surveillance.utils.Constants.BASE_URL
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -15,39 +16,40 @@ interface FhirDataSource {
     @Headers("Content-Type: application/json")
     suspend fun createPatient(
         @Path("id") id: String,
-        @Body payload: RequestBody
+        @Body payload: RequestBody, @Header("Authorization") token: String,
     ): Response<Any>
 
     @PUT("Observation/{id}")
     @Headers("Content-Type: application/json")
     suspend fun createObservation(
         @Path("id") id: String,
-        @Body payload: RequestBody
+        @Body payload: RequestBody, @Header("Authorization") token: String,
     ): Response<Any>
 
     @PUT("Encounter/{id}")
     @Headers("Content-Type: application/json")
     suspend fun createEncounter(
         @Path("id") id: String,
-        @Body payload: RequestBody
+        @Body payload: RequestBody, @Header("Authorization") token: String,
     ): Response<Any>
 
     @PUT("QuestionnaireResponse/{id}")
     @Headers("Content-Type: application/json")
     suspend fun createQuestionnaireResponse(
         @Path("id") id: String,
-        @Body payload: RequestBody
+        @Body payload: RequestBody, @Header("Authorization") token: String,
     ): Response<Any>
 
     @PUT("MeasureReport/{id}")
     suspend fun createMeasureReport(
         @Path("id") id: String,
-        @Body payload: RequestBody
+        @Body payload: RequestBody, @Header("Authorization") token: String,
     ): Response<Any>
 
     @POST(BASE_URL)
     @Headers("Content-Type: application/json")
     suspend fun sendBundleToServer(
-        @Body payload: RequestBody
+        @Body payload: RequestBody,
+        @Header("Authorization") token: String,
     ): Response<LocalBundleResponse>
 }

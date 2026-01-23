@@ -30,14 +30,14 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         val engine = FhirApplication.fhirEngine(applicationContext)
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-//        val facilityIds = getRespectiveFilteredResourcesSuspend(applicationContext, engine)
+        val facilityIds = getRespectiveFilteredResourcesSuspend(applicationContext, engine)
 //        println("All Respective IDs expected $facilityIds")
         val manager = TimestampBasedDownloadWorkManagerImpl(
             dataStore = FhirApplication.dataStore(applicationContext),
             context = applicationContext,
             fhirEngine = engine,
             scope = scope,
-//            urls = facilityIds
+            urls = facilityIds
         )
 
         return manager
@@ -153,6 +153,7 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     facilityIds.addAll(allFacilityIds)
                 }
             }
+
             LocationLevel.NATIONAL -> {
                 val counties = fhirEngine.search<Location> { }
                 val countyIds = counties.map { it.resource.logicalId }
@@ -171,7 +172,7 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         val storedRole = formatter.getSharedPref("practitionerRole", context)
         val userRole = UserRole.fromAny(storedRole ?: "")
         val urls = mutableListOf<String>()
-        
+
 
         when (userRole) {
             UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
@@ -214,7 +215,19 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                 }
             }
 
-            else -> {}
+            else -> {
+                urls.addAll(
+                    listOf(
+                        "Patient?_sort=_lastUpdated",
+                        "Encounter?_sort=_lastUpdated",
+                        "QuestionnaireResponse?_sort=_lastUpdated",
+                        "MeasureReport?_sort=_lastUpdated",
+                        "Observation?_sort=_lastUpdated",
+                        "Specimen?_sort=_lastUpdated",
+                        "Location?_sort=-_lastUpdated",
+                    )
+                )
+            }
         }
 
         return LinkedList(urls)
@@ -229,6 +242,6 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
             methodForCreate = HttpCreateMethod.PUT,
             methodForUpdate = HttpUpdateMethod.PATCH,
             squash = true,
-            bundleSize = 300,
+            bundleSize = 500,
         )
 }

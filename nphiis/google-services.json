@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "775151638897",
+    "project_id": "surveillance-nphiis",
+    "storage_bucket": "surveillance-nphiis.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775151638897:android:d32d12a88ced219e527ed0",
+        "android_client_info": {
+          "package_name": "com.icl.nphi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB9liHbPj6HwwOUW4veZC6Ii3hiPbwlE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775151638897:android:ebdf6269fa8643a9527ed0",
+        "android_client_info": {
+          "package_name": "com.icl.surveillance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB9liHbPj6HwwOUW4veZC6Ii3hiPbwlE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

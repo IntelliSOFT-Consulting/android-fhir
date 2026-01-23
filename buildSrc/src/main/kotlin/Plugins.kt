@@ -16,31 +16,37 @@
 
 object Plugins {
 
-  object BuildPlugins {
-    const val fladle = "com.osacky.fladle"
-    const val ruler = "com.spotify.ruler"
-    const val spotless = "com.diffplug.spotless"
-  }
+    object BuildPlugins {
+        const val fladle = "com.osacky.fladle"
+        const val ruler = "com.spotify.ruler"
+        const val spotless = "com.diffplug.spotless"
+    }
 
-  // classpath plugins
-  const val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
-  const val benchmarkGradlePlugin =
-    "androidx.benchmark:benchmark-gradle-plugin:${Versions.benchmarkPlugin}"
-  const val kotlinGradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
-  const val kotlinComposePlugin =
-    "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:${Versions.kotlin}"
-  const val kotlinSerializationPlugin =
-    "org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:${Versions.kotlin}"
-  const val navSafeArgsGradlePlugin = "androidx.navigation:navigation-safe-args-gradle-plugin:2.6.0"
-  const val rulerGradlePlugin = "com.spotify.ruler:ruler-gradle-plugin:1.2.1"
-  const val flankGradlePlugin = "com.osacky.flank.gradle:fladle:0.17.4"
-  const val kspGradlePlugin =
-    "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${Versions.kspPlugin}"
+    // classpath plugins
+    const val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
+    const val benchmarkGradlePlugin =
+        "androidx.benchmark:benchmark-gradle-plugin:${Versions.benchmarkPlugin}"
+    const val kotlinGradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
+    const val kotlinComposePlugin =
+        "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:${Versions.kotlin}"
+    const val kotlinSerializationPlugin =
+        "org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:${Versions.kotlin}"
+    const val navSafeArgsGradlePlugin =
+        "androidx.navigation:navigation-safe-args-gradle-plugin:2.6.0"
+    const val rulerGradlePlugin = "com.spotify.ruler:ruler-gradle-plugin:1.2.1"
+    const val flankGradlePlugin = "com.osacky.flank.gradle:fladle:0.17.4"
+    const val kspGradlePlugin =
+        "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${Versions.kspPlugin}"
+    const val googleServices =
+        "com.google.gms:google-services:4.4.2"
 
-  object Versions {
-    const val androidGradlePlugin = "8.9.2"
-    const val benchmarkPlugin = "1.4.0-rc01"
-    const val kspPlugin = "2.2.20-2.0.4"
-    const val kotlin = "2.2.20"
-  }
+    const val firebaseCrashlytics =
+        "com.google.firebase:firebase-crashlytics-gradle:3.0.2"
+
+    object Versions {
+        const val androidGradlePlugin = "8.9.2"
+        const val benchmarkPlugin = "1.4.0-rc01"
+        const val kspPlugin = "2.2.20-2.0.4"
+        const val kotlin = "2.2.20"
+    }
 }
