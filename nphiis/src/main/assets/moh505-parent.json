@@ -1,0 +1,3591 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "countyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "countyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a3-sub-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    }
+  ],
+  "title": "MOH 505 - Health Facility Weekly Reporting Form",
+  "status": "draft",
+  "item": [
+    {
+      "item": [
+        {
+          "type": "display",
+          "linkId": "546255966914",
+          "text": "Hospital/Facility Location"
+        },
+        {
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "linkId": "a4-county",
+          "text": "County ",
+          "required": true
+        },
+        {
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%countyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "linkId": "a3-sub-county",
+          "text": "Sub County ",
+          "required": true
+        },
+        {
+          "type": "reference",
+          "linkId": "819943434",
+          "text": "Ward ",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%selectedSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "reference",
+          "linkId": "819946803677",
+          "text": "Health Facility",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%selectedWardName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "438862163919",
+          "text": "Type of health facility",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Private",
+                "display": "Private"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Public",
+                "display": "Public"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Faith Based",
+                "display": "Faith Based"
+              }
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "linkId": "728034137219",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "text": "Week Ending Date"
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "306799299376",
+      "text": "Reporting Site Information"
+    },
+    {
+      "item": [
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "745196148424",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "AEFI",
+                "display": "AEFI"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "745196148424",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AEFI"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "745196148424",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AEFI"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "745196148424",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AEFI"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "745196148424",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AEFI"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "acute-jaundice",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Acute Jaundice",
+                "display": "Acute Jaundice"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-jaundice-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "acute-jaundice",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Jaundice"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-jaundice-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "acute-jaundice",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Jaundice"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-jaundice-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "acute-jaundice",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Jaundice"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-jaundice-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "acute-jaundice",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Jaundice"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "acute-malnutrition",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Acute Malnutrition",
+                "display": "Acute Malnutrition"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-malnutrition-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "acute-malnutrition",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Malnutrition"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-malnutrition-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "acute-malnutrition",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Malnutrition"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-malnutrition-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "acute-malnutrition",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Malnutrition"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "acute-malnutrition-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "acute-malnutrition",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Acute Malnutrition"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "afp-poliomyelitis",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "AFP (Poliomyelitis)",
+                "display": "AFP (Poliomyelitis)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "afp-poliomyelitis-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "afp-poliomyelitis",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AFP (Poliomyelitis)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "afp-poliomyelitis-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "afp-poliomyelitis",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AFP (Poliomyelitis)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "afp-poliomyelitis-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "afp-poliomyelitis",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AFP (Poliomyelitis)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "afp-poliomyelitis-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "afp-poliomyelitis",
+              "operator": "=",
+              "answerCoding": {
+                "code": "AFP (Poliomyelitis)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "anthrax",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Anthrax",
+                "display": "Anthrax"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "anthrax-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "anthrax",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Anthrax"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "anthrax-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "anthrax",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Anthrax"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "anthrax-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "anthrax",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Anthrax"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "anthrax-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "anthrax",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Anthrax"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "cholera",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Cholera",
+                "display": "Cholera"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "cholera-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "cholera",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Cholera"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "cholera-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "cholera",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Cholera"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "cholera-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "cholera",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Cholera"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "cholera-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "cholera",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Cholera"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "chikungunya",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Chikungunya",
+                "display": "Chikungunya"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "chikungunya-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "chikungunya",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Chikungunya"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "chikungunya-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "chikungunya",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Chikungunya"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "chikungunya-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "chikungunya",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Chikungunya"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "chikungunya-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "chikungunya",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Chikungunya"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "covid-19",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "COVID-19",
+                "display": "COVID-19"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "covid-19-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "covid-19",
+              "operator": "=",
+              "answerCoding": {
+                "code": "COVID-19"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "covid-19-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "covid-19",
+              "operator": "=",
+              "answerCoding": {
+                "code": "COVID-19"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "covid-19-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "covid-19",
+              "operator": "=",
+              "answerCoding": {
+                "code": "COVID-19"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "covid-19-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "covid-19",
+              "operator": "=",
+              "answerCoding": {
+                "code": "COVID-19"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "dengue",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Dengue",
+                "display": "Dengue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dengue-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "dengue",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dengue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dengue-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "dengue",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dengue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dengue-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "dengue",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dengue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dengue-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "dengue",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dengue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "dysentery-bacillary",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Dysentery (Bacillary)",
+                "display": "Dysentery (Bacillary)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-bacillary-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "dysentery-bacillary",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dysentery (Bacillary)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-bacillary-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "dysentery-bacillary",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dysentery (Bacillary)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-bacillary-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "dysentery-bacillary",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dysentery (Bacillary)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-bacillary-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "dysentery-bacillary",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Dysentery (Bacillary)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "guinea-worm-disease",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Guinea Worm Disease",
+                "display": "Guinea Worm Disease"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "guinea-worm-disease-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "guinea-worm-disease",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Guinea Worm Disease"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "guinea-worm-disease-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "guinea-worm-disease",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Guinea Worm Disease"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "guinea-worm-disease-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "guinea-worm-disease",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Guinea Worm Disease"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "guinea-worm-disease-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "guinea-worm-disease",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Guinea Worm Disease"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "measles",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Measles",
+                "display": "Measles"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "measles-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "measles",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Measles"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "measles-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "measles",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Measles"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "measles-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "measles",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Measles"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "measles-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "measles",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Measles"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "suspected-malaria",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Suspected Malaria",
+                "display": "Suspected Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "suspected-malaria-under5-cases",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "suspected-malaria",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "suspected-malaria-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "suspected-malaria",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "suspected-malaria-over5-cases",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "suspected-malaria",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "suspected-malaria-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "suspected-malaria",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "deaths-due-to-malaria",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Deaths due to Malaria",
+                "display": "Deaths due to Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "deaths-due-to-malaria-under5-deaths",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "deaths-due-to-malaria",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Deaths due to Malaria"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "912271576972",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Bacterial Meningitis",
+                "display": "Bacterial Meningitis"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "871055915491",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "912271576972",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Bacterial Meningitis",
+                "display": "Bacterial Meningitis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "388760057096",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "912271576972",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Bacterial Meningitis",
+                "display": "Bacterial Meningitis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "483347883552",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "912271576972",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Bacterial Meningitis",
+                "display": "Bacterial Meningitis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "983942974596",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "912271576972",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Bacterial Meningitis",
+                "display": "Bacterial Meningitis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "475346107884",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Neonatal deaths",
+                "display": "Neonatal deaths"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "584270141338",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "475346107884",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Neonatal deaths",
+                "display": "Neonatal deaths"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "328118347844",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Neonatal Tetanus",
+                "display": "Neonatal Tetanus"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "535840524666",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "328118347844",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Neonatal Tetanus",
+                "display": "Neonatal Tetanus"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "703609548617",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "328118347844",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Neonatal Tetanus",
+                "display": "Neonatal Tetanus"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "579664664652",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Onchocerciasis",
+                "display": "Onchocerciasis"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "327509292099",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "579664664652",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Onchocerciasis",
+                "display": "Onchocerciasis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "928912977066",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "579664664652",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Onchocerciasis",
+                "display": "Onchocerciasis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "456099214566",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "579664664652",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Onchocerciasis",
+                "display": "Onchocerciasis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "749207004486",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "579664664652",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Onchocerciasis",
+                "display": "Onchocerciasis"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "308989393594",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Plague",
+                "display": "Plague"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "861185632766",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "308989393594",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Plague",
+                "display": "Plague"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "527963568905",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "308989393594",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Plague",
+                "display": "Plague"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "522287058576",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "308989393594",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Plague",
+                "display": "Plague"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "767020876711",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "308989393594",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Plague",
+                "display": "Plague"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "530042020681",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Rabies",
+                "display": "Rabies"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "429458582182",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "530042020681",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rabies",
+                "display": "Rabies"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "905150141868",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "530042020681",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rabies",
+                "display": "Rabies"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "387904256180",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "530042020681",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rabies",
+                "display": "Rabies"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "562965993138",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "530042020681",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rabies",
+                "display": "Rabies"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "275577537077",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Rift Valley Fever",
+                "display": "Rift Valley Fever"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "323838584718",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "275577537077",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rift Valley Fever",
+                "display": "Rift Valley Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "648517764763",
+          "text": "< 5 years - Death",
+          "enableWhen": [
+            {
+              "question": "275577537077",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rift Valley Fever",
+                "display": "Rift Valley Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "744618342377",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "275577537077",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rift Valley Fever",
+                "display": "Rift Valley Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "633791890892",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "275577537077",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Rift Valley Fever",
+                "display": "Rift Valley Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "190531820152",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "SARI (Cluster \u22653 cases)",
+                "display": "SARI (Cluster \u22653 cases)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "187421454190",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "190531820152",
+              "operator": "=",
+              "answerCoding": {
+                "code": "SARI (Cluster \u22653 cases)",
+                "display": "SARI (Cluster \u22653 cases)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "913264965600",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "190531820152",
+              "operator": "=",
+              "answerCoding": {
+                "code": "SARI (Cluster \u22653 cases)",
+                "display": "SARI (Cluster \u22653 cases)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "457868958971",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "190531820152",
+              "operator": "=",
+              "answerCoding": {
+                "code": "SARI (Cluster \u22653 cases)",
+                "display": "SARI (Cluster \u22653 cases)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "707780066440",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "190531820152",
+              "operator": "=",
+              "answerCoding": {
+                "code": "SARI (Cluster \u22653 cases)",
+                "display": "SARI (Cluster \u22653 cases)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "247259460116",
+          "repeats": true,
+          "text": "",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Suspected MDR/XDR TB",
+                "display": "Suspected MDR/XDR TB"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "405042028703",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "247259460116",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected MDR/XDR TB",
+                "display": "Suspected MDR/XDR TB"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "353646489103",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "247259460116",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected MDR/XDR TB",
+                "display": "Suspected MDR/XDR TB"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "814159240132",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "247259460116",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected MDR/XDR TB",
+                "display": "Suspected MDR/XDR TB"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "300851141211",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "247259460116",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Suspected MDR/XDR TB",
+                "display": "Suspected MDR/XDR TB"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "999646592522",
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "typhoid-01",
+                "display": "Typhoid"
+              }
+            }
+          ],
+          "text": ""
+        },
+        {
+          "type": "integer",
+          "linkId": "644607660026",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "999646592522",
+              "operator": "=",
+              "answerCoding": {
+                "code": "typhoid-01",
+                "display": "Typhoid"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "852318756537",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "999646592522",
+              "operator": "=",
+              "answerCoding": {
+                "code": "typhoid-01",
+                "display": "Typhoid"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "154498634367",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "999646592522",
+              "operator": "=",
+              "answerCoding": {
+                "code": "typhoid-01",
+                "display": "Typhoid"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "834781032739",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "999646592522",
+              "operator": "=",
+              "answerCoding": {
+                "code": "typhoid-01",
+                "display": "Typhoid"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "253208219241",
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "vhf-001",
+                "display": "VHF"
+              }
+            }
+          ],
+          "text": ""
+        },
+        {
+          "type": "integer",
+          "linkId": "174646115502",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "253208219241",
+              "operator": "=",
+              "answerCoding": {
+                "code": "vhf-001",
+                "display": "VHF"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "938639360599",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "253208219241",
+              "operator": "=",
+              "answerCoding": {
+                "code": "vhf-001",
+                "display": "VHF"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "348108803545",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "253208219241",
+              "operator": "=",
+              "answerCoding": {
+                "code": "vhf-001",
+                "display": "VHF"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "225148682326",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "253208219241",
+              "operator": "=",
+              "answerCoding": {
+                "code": "vhf-001",
+                "display": "VHF"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "927616098552",
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yellow-fever-01",
+                "display": "Yellow Fever"
+              }
+            }
+          ],
+          "text": ""
+        },
+        {
+          "type": "integer",
+          "linkId": "233263428018",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "927616098552",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yellow-fever-01",
+                "display": "Yellow Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "106909693192",
+          "text": "< 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "927616098552",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yellow-fever-01",
+                "display": "Yellow Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "548126975266",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "927616098552",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yellow-fever-01",
+                "display": "Yellow Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "987655215954",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "927616098552",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yellow-fever-01",
+                "display": "Yellow Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "751930533175",
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "zika-001",
+                "display": "Zika Virus"
+              }
+            }
+          ],
+          "text": ""
+        },
+        {
+          "type": "integer",
+          "linkId": "420006947029",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "751930533175",
+              "operator": "=",
+              "answerCoding": {
+                "code": "zika-001",
+                "display": "Zika Virus"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "986642803777",
+          "text": "< 5 years - Death",
+          "enableWhen": [
+            {
+              "question": "751930533175",
+              "operator": "=",
+              "answerCoding": {
+                "code": "zika-001",
+                "display": "Zika Virus"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "920507828586",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "751930533175",
+              "operator": "=",
+              "answerCoding": {
+                "code": "zika-001",
+                "display": "Zika Virus"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "309011706825",
+          "text": "\u2265 5 years - Death",
+          "enableWhen": [
+            {
+              "question": "751930533175",
+              "operator": "=",
+              "answerCoding": {
+                "code": "zika-001",
+                "display": "Zika Virus"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "373223788626",
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "others-Specify-01",
+                "display": "Others (Specify)"
+              }
+            }
+          ],
+          "text": ""
+        },
+        {
+          "type": "integer",
+          "linkId": "585220688263",
+          "text": "< 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "373223788626",
+              "operator": "=",
+              "answerCoding": {
+                "code": "others-Specify-01",
+                "display": "Others (Specify)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "732578632850",
+          "text": "< 5 years - Death",
+          "enableWhen": [
+            {
+              "question": "373223788626",
+              "operator": "=",
+              "answerCoding": {
+                "code": "others-Specify-01",
+                "display": "Others (Specify)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "493210056237",
+          "text": "\u2265 5 years - Cases",
+          "enableWhen": [
+            {
+              "question": "373223788626",
+              "operator": "=",
+              "answerCoding": {
+                "code": "others-Specify-01",
+                "display": "Others (Specify)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "683538126910",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "373223788626",
+              "operator": "=",
+              "answerCoding": {
+                "code": "others-Specify-01",
+                "display": "Others (Specify)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "deaths-due-to-malaria-over5-deaths",
+          "text": "\u2265 5 years - Deaths",
+          "enableWhen": [
+            {
+              "question": "deaths-due-to-malaria",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Deaths due to Malaria"
+              }
+            }
+          ]
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "306799299",
+      "text": "Diseases, Conditions or Events Information"
+    },
+    {
+      "item": [
+        {
+          "type": "integer",
+          "linkId": "malaria-tested-under-5",
+          "text": "Malaria Microscopy Tested < 5 years",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "malaria-tested-over-5",
+          "text": "Malaria Microscopy Tested \u2265 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "malaria-positive-under-5",
+          "text": "Malaria Microscopy Positive < 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "malaria-positive-over-5",
+          "text": "Malaria Microscopy Positive \u2265 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "malaria-total-tested",
+          "text": "Malaria Microscopy Total Tested",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "malaria-mrdt-under-5",
+          "text": "Malaria mRDT < 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "malaria-mrdt-over-5",
+          "text": "Malaria mRDT \u2265 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-tested-under-5",
+          "text": "Dysentery Tested < 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-tested-over-5",
+          "text": "Dysentery Tested \u2265 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "dysentery-positive-shigella",
+          "text": "Dysentery Positive (S. dysenteriae)",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-csf-no",
+          "text": "Bacterial Meningitis No CSF",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-csf-contaminated",
+          "text": "Bacterial Meningitis No contaminated",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-tested-positive",
+          "text": "Bacterial Meningitis Tested +ve",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nm",
+          "text": "Bacterial Meningitis +ve Nm",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-spneum",
+          "text": "Bacterial Meningitis +ve S. Pneum",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-hib",
+          "text": "Bacterial Meningitis +ve Hib",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-sagalactiae",
+          "text": "Bacterial Meningitis +ve S. agalactiae",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-csf-subtyped",
+          "text": "Bacterial Meningitis No of CSF Sub-Typed",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nma",
+          "text": "Bacterial Meningitis +ve Nm A",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nmb",
+          "text": "Bacterial Meningitis +ve Nm B",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nmc",
+          "text": "Bacterial Meningitis +ve Nm C",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nmw",
+          "text": "Bacterial Meningitis +ve Nm W",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nmx",
+          "text": "Bacterial Meningitis +ve Nm X",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "bacterial-meningitis-positive-nmy",
+          "text": "Bacterial Meningitis +ve Nm Y",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "tuberculosis-mdr-xdr-tested-under-5",
+          "text": "Tuberculosis (MDR/XDR) Tested < 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "tuberculosis-mdr-xdr-tested-over-5",
+          "text": "Tuberculosis (MDR/XDR) Tested \u2265 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "tuberculosis-mdr-xdr-positive",
+          "text": "Tuberculosis (MDR/XDR) Positive",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "typhoid-tested-under-5",
+          "text": "Typhoid Tested < 5 years",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99
+            }
+          ],
+          "linkId": "typhoid-tested-over-5",
+          "text": "Typhoid Tested \u2265 5 years",
+          "required": true
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "3067992989898",
+      "text": "Laboratory Surveillance"
+    }
+  ]
+}

@@ -1,0 +1,1104 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "Rumor Tracking Tool",
+  "status": "draft",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "startDate",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='date-from').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "countyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a3-sub-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedFacilityName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    }
+  ],
+  "item": [
+    {
+      "item": [
+        {
+          "linkId": "a4-county",
+          "text": "County",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a3-sub-county",
+          "type": "reference",
+          "text": "Sub County",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientCountyName}}"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a2-ward",
+          "type": "reference",
+          "text": "Ward",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "871818396498",
+          "text": "Village/Community Health unit",
+          "required": true
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "735623392446",
+      "text": "Administrative Details"
+    },
+    {
+      "item": [
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "683805917262",
+          "text": "Reporting Cadre",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "communitypromoter",
+                "display": "Community Health Promoter"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "communityleader",
+                "display": "Community Leader"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "religiousleader",
+                "display": "Religious Leader"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "animal-ds-reporter",
+                "display": "Community Animal Disease Reporter"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "traditionalhealer",
+                "display": "Traditional Healer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "JournalistNewsReporter",
+                "display": "Journalist/News Reporter"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hcw",
+                "display": "Health Care Worker"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dss-surv-officer",
+                "display": "Disease Surveillance Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hpo",
+                "display": "Health Promotion Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "c-hlth-fperson",
+                "display": "Community Health Strategy Focal Person"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "c-hlth-assistant",
+                "display": "Community Health Assistant"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "otherReportingCdre",
+                "display": "Others (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "223529605110",
+          "text": "Other Cadre(Specify)",
+          "enableWhen": [
+            {
+              "question": "683805917262",
+              "operator": "=",
+              "answerCoding": {
+                "code": "otherReportingCdre",
+                "display": "Others (Specify)"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "683805917111",
+          "text": "Agency",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "GOK",
+                "display": "GOK"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kenya Red Cross",
+                "display": "Kenya Red Cross"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Other(specify)",
+                "display": "Other(specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "22311605110",
+          "text": "Specify Agency",
+          "enableWhen": [
+            {
+              "question": "683805917111",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Other(specify)",
+                "display": "Other(specify)"
+              }
+            }
+          ],
+          "required": true
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "145437239629",
+      "text": "Reporter Information"
+    },
+    {
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "104925460221",
+      "text": "Community Insights",
+      "item": [
+        {
+          "type": "string",
+          "linkId": "765331413106",
+          "text": "Report of Harmful Practice Likely to Affect Health",
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "560083852118",
+          "text": "Report of Negative Comments, Rumors, Misinformation, Disinformation on Health Interventions shared in the community",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "linkId": "217867281789",
+          "text": "Source of Message",
+          "repeats": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check Box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Community",
+                "display": "Community"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Community Influence",
+                "display": "Community Influence e.g. Chief, Teacher, Religious leader"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Social Media",
+                "display": "Social Media"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Mass Media",
+                "display": "Mass Media"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Print Media (Specify)",
+                "display": "Print Media (Specify)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Person-to-Person",
+                "display": "Person-to-Person"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Other (Specify)",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "701956366417",
+          "text": "Social Media",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "facebook",
+                "display": "Facebook"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "whatsapp",
+                "display": "WhatsApp"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "twitter",
+                "display": "X(Twitter)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tiktok",
+                "display": "TikTok"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "others",
+                "display": "Other(Specify)"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "217867281789",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Social Media",
+                "display": "Social Media"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "979067790514",
+          "text": "Other Social Media (Specify)",
+          "enableWhen": [
+            {
+              "question": "701956366417",
+              "operator": "=",
+              "answerCoding": {
+                "code": "others",
+                "display": "Other(Specify)"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "626104365539",
+          "text": "Mass Media",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "radio-station",
+                "display": "Radio Station"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tv-station",
+                "display": "TV Station"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "otherspecify",
+                "display": "Other (Specify)"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "217867281789",
+              "operator": "=",
+              "answerCoding": {
+                "code": "Mass Media",
+                "display": "Mass Media"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "803387665675",
+          "text": "Radio Station (Specify Name)",
+          "enableWhen": [
+            {
+              "question": "626104365539",
+              "operator": "=",
+              "answerCoding": {
+                "code": "radio-station",
+                "display": "Radio Station"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "334025067430",
+          "text": "TV Station (Specify Name)",
+          "enableWhen": [
+            {
+              "question": "626104365539",
+              "operator": "=",
+              "answerCoding": {
+                "code": "tv-station",
+                "display": "TV Station"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "704187583781",
+          "text": "Other Mass Media (Specify)",
+          "enableWhen": [
+            {
+              "question": "626104365539",
+              "operator": "=",
+              "answerCoding": {
+                "code": "otherspecify",
+                "display": "Other (Specify)"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "330042491643",
+          "text": "What did you do with the message?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "frwd-authorities",
+                "display": "Forwarded to authorities (National, County, Sub County)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "frwd-rlves",
+                "display": "Forwarded to Friends and Relatives"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "shr-chp",
+                "display": "Shared with Community Health Promoter"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "shr-cdr",
+                "display": "Shared with Community Disease Reporter"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "shr-hcw",
+                "display": "Shared with Health Care Worker"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "shr-cl",
+                "display": "Shared with Community Leader"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "did-nothing",
+                "display": "Did Nothing"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "otherspecify",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "572081717574",
+          "text": "Specify what you did with the message? ",
+          "enableWhen": [
+            {
+              "question": "330042491643",
+              "operator": "=",
+              "answerCoding": {
+                "code": "otherspecify",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "linkId": "808764633907",
+          "text": "Did you trust the source of the message?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "305405975161",
+          "text": "if yes, why?",
+          "enableWhen": [
+            {
+              "question": "808764633907",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "reason-no",
+          "text": "if no, why?",
+          "enableWhen": [
+            {
+              "question": "808764633907",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "719281771251",
+          "text": "Reason for Trust",
+          "enableWhen": [
+            {
+              "question": "808764633907",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "801665079239",
+          "text": "Additional Observations/Comments",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "735623392446",
+          "text": "Was Rumour Investigated?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigator-name",
+          "text": "Name of Investigator",
+          "type": "display",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigator-name-first",
+          "text": "First Name",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigator-name-middle",
+          "text": "Middle Name",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigator-name-surname",
+          "text": "Surname Name",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigator-phone",
+          "text": "Phone Number of Investigator",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigator-role",
+          "text": "Function/Role of Investigator",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "investigation-period",
+          "text": "Date of the investigation (from – to)",
+          "type": "display",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "date-from",
+          "text": "From",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "date-to",
+          "text": "To",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "activities",
+          "text": "Main activities carried out (places visited, persons met, etc.)",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "results",
+          "text": "Results of the investigation",
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "confirmed",
+                "display": "Confirmed Case of Disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "imported",
+                "display": "Imported Case"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rumour",
+                "display": "Rumour"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "rumour-diagnosis",
+          "text": "Diagnosis",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "conclusion",
+          "text": "Conclusion/recommendations (action taken or directives given)",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "735623392446",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

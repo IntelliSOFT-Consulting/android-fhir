@@ -1,0 +1,163 @@
+<resources>
+    <string name="app_name">NPHIIS </string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Cases List</string>
+    <string name="title_notifications">Profile</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_client">Add Case</string>
+    <string name="search_patient_by">Filter Cases By:</string>
+    <string name="given_name">Given Name</string>
+    <string name="family_name">Family Name</string>
+    <string name="new_case_description">New Case</string>
+    <string name="message_no_datetime">N/A</string>
+    <string name="moh502">Immediate Notifiable Diseases Reporting Tool</string>
+    <string name="contact_tracing">Contact Tracing Forms</string>
+    <string name="moh505">IDSR Weekly Epidemic Monitoring Tool</string>
+    <string name="social_form">Social Investigation Form</string>
+    <string name="rumor_tracking">Social Listening and Rumor Tracking Tool</string>
+    <string name="hello">Hello,</string>
+    <string name="john_mdoe">John Mdoe</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="username">Username</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="last_sync_timestamp">Last sync time: %1$s</string>
+    <string name="current_status">Current sync status: %1$s</string>
+    <string name="cancel_questionnaire_message">Are you sure you want to cancel?</string>
+    <string name="lab_results_not_captured">Lab results not captured</string>
+    <string name="patient_name">Patient Name</string>
+    <string name="epid">Search for case</string>
+    <string name="please_select_an_option_below_to_proceed">Please select an option below to proceed.</string>
+    <string name="case_selection">Case Selection!</string>
+    <string name="select_reported_disease">Select reported disease</string>
+    <string name="measles">Measles</string>
+    <string name="afp">AFP</string>
+    <string name="vl_forms">Visceral Leishmaniasis (Kala-azar) Case Management Form</string>
+    <string name="monthly">IDSR Monthly Reporting Tool</string>
+    <string name="no_stool_specimen_results_available">No Stool specimen results available</string>
+    <string name="add_form">Add Form</string>
+    <string name="no_final_laboratory_results_available">No Final Laboratory Results available</string>
+    <string name="no_contact_information_available">No Contact Information available</string>
+    <string name="no_treatment_information_available">No Treatment information available</string>
+    <string name="no_follow_up_information_available">No Follow Up information available</string>
+    <string name="national_public_health_nintelligence_ninformation_nsystem_nphiis">National Public Health\nIntelligence\nInformation\nSystem (NPHIIS)</string>
+    <string name="notifiable">Notifiable Diseases</string>
+    <string name="mass">Mass Immunization</string>
+    <string name="case_management">Case Management</string>
+    <string name="social">RCCE Tools</string>
+    <string name="surveys">Assessments/Surveys</string>
+    <string name="monthly_reported">Monthly Reportable\nDiseases</string>
+    <string name="weekly_reported">Weekly Reportable\nDiseases</string>
+    <string name="immediate_reportable">Immediate\nReportable Diseases</string>
+    <string name="polio">Polio Immunization (OPV)</string>
+    <string name="measles_imm">Measles Immunization</string>
+    <string name="cholera">Cholera Immunization</string>
+    <string name="social_inv">Social Investigation Form</string>
+    <string name="social_inv_parent">RCCE Tools</string>
+    <string name="rumor_tool">Rumor Tracking Tool</string>
+    <string name="vl_form">Visceral Leishmaniasis Case Management Form</string>
+    <string name="no_itd_laboratory_results_available">No ITD Lab Information available</string>
+    <string name="title_activity_landing">LandingActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="last_sync_status">Last sync status: %1$s</string>
+    <string name="last_sync_status_na">Last sync status: Not available</string>
+    <string name="moh505_form">MOH 505</string>
+    <string name="county_sub_county">County/Sub County Coordination Assessment</string>
+    <string name="community_tool">Community Questionnaire</string>
+    <string name="mpox">Mpox Immunization</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="lorem_ipsum">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
+        volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
+        dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad
+        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend
+        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,
+        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n
+        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus
+        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed
+        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada
+        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,
+        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor
+        bibendum, vel congue leo egestas.\n\n
+        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit
+        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,
+        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer
+        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at
+        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,
+        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque
+        est.\n\n
+        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.
+        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui
+        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In
+        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,
+        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra
+        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a
+        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus
+        convallis.\n\n
+        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et
+        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa
+        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,
+        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper
+        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus
+        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
+        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
+    </string>
+    <string name="tally">Summary Sheet</string>
+    <string name="supervisor">Supervisor Checklist</string>
+    <string name="mpox_register">Mpox Register</string>
+    <string name="edit">Edit</string>
+    <string name="cases">Cases</string>
+    <string name="_0">0</string>
+    <string name="add_new_measles_case">Add new measles case</string>
+    <string name="app_storage">App Storage</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="clear_app_data">Clear App Data</string>
+    <string name="account">Account</string>
+    <string name="logout">Logout</string>
+    <string name="level_sub_county">Level: Sub-county</string>
+    <string name="_254_712_345_678">+254 712 345 678</string>
+    <string name="jane_doe_example_com">jane.doe@example.com</string>
+    <string name="jane_doe">Jane Doe</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="no_notifications">No notifications</string>
+    <string name="no_notifications_yet">No notifications yet</string>
+    <string name="you_re_all_caught_up">You\'re all caught up.</string>
+    <string name="nav_resources">Resources</string>
+    <string name="sync_pending">Pending Sync</string>
+    <string name="sync_syncing">Syncing…</string>
+    <string name="sync_failed">Sync Failed</string>
+    <string name="sync_success">Synced</string>
+    <string name="retry">Retry</string>
+    <string name="upload_all_bundles">Upload All Bundles</string>
+    <string name="close">Close</string>
+    <string name="upload_all_pending_resources_from_all_types_as_a_single_bundle">Upload all pending resources from all types as a single bundle</string>
+    <string name="upload_all_resource_types">Upload All Resource Types</string>
+    <string name="upload_options">Upload Options</string>
+    <string name="upload_current_resource_type">Upload Current Resource Type</string>
+    <string name="upload_all_resources_of_the_selected_type_as_a_single_bundle">Upload all resources of the selected type as a single bundle</string>
+    <string name="preparing_sync">Preparing sync...</string>
+    <string name="personal_information">Personal Information</string>
+    <string name="data_management">Data Management</string>
+    <string name="sync_data">Sync Data</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="forgot_password_label">Forgot Password</string>
+    <string name="coming_soon">Coming Soon</string>
+    <string name="this_feature_is_currently_under_development_and_will_be_available_in_a_future_update">This feature is currently under development and will be available in a future update.</string>
+    <string name="okay">Okay</string>
+</resources>

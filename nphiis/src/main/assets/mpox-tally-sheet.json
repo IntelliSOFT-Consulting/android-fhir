@@ -1,0 +1,2799 @@
+{
+  "resourceType": "Questionnaire",
+  "status": "active",
+  "extension": [
+    {
+      "extension": [
+        {
+          "url": "name",
+          "valueCoding": {
+            "system": "http://hl7.org/fhir/uv/sdc/CodeSystem/launchContext",
+            "code": "patient"
+          }
+        },
+        {
+          "url": "type",
+          "valueCode": "Patient"
+        }
+      ],
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext"
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "countyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a3-sub-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedFacilityName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_county').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedRole",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_role').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_sub_county').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedWard",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_ward').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedFacility",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_facility').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedCountyNameCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyNameCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardNameCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedCountyNameSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999_sub_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyNameSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642_sub_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardNameSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434_sub_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode",
+      "valueCode": "prior-edit"
+    }
+  ],
+  "item": [
+    {
+      "item": [
+        {
+          "linkId": "294367770999",
+          "text": "County ",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "reference",
+          "linkId": "819946803642",
+          "text": "Subcounty ",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%countyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "reference",
+          "linkId": "819943434",
+          "text": "Ward ",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%selectedSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "village",
+          "text": "Village",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "team_no",
+          "text": "Team No",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "team_type",
+          "text": "Team type",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "static",
+                "display": "Static"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "temporary_fixed",
+                "display": "Temporary  Fixed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "mobile_sites",
+                "display": "Mobile sites"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "campaign_day",
+          "text": "Campaign Day",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "1",
+                "display": "Day 1"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "2",
+                "display": "Day 2"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "3",
+                "display": "Day 3"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "4",
+                "display": "Day 4"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "5",
+                "display": "Day 5"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "6",
+                "display": "Day 6"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "7",
+                "display": "Day 7"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "8",
+                "display": "Day 8"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "9",
+                "display": "Day 9"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "10",
+                "display": "Day 10"
+              }
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "linkId": "728034137219",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd-mm-yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "text": "Date"
+        },
+        {
+          "linkId": "supervisor_name",
+          "text": "Supervisor Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "supervisor_level",
+          "text": "Supervisor Level",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "display": "National",
+                "code": "National"
+              }
+            },
+            {
+              "valueCoding": {
+                "display": "County",
+                "code": "County"
+              }
+            },
+            {
+              "valueCoding": {
+                "display": "Sub County",
+                "code": "Sub County"
+              }
+            },
+            {
+              "valueCoding": {
+                "display": "Partner",
+                "code": "Partner"
+              }
+            }
+          ]
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "151479012557",
+      "text": "Reporting Site"
+    },
+    {
+      "linkId": "target_population",
+      "type": "group",
+      "text": "Number Reached",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "hcw_18_39_reported",
+          "text": "Were any healthcare workers aged 18–39 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_18_39_male",
+          "text": "Number of male healthcare workers aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "hcw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_18_39_female",
+          "text": "Number of female healthcare workers aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "hcw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_18_39_male_no",
+          "text": "Number of male healthcare workers aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "hcw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_18_39_female_no",
+          "text": "Number of female healthcare workers aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "hcw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_40_59_reported",
+          "text": "Were any healthcare workers aged 40–59 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_40_59_male",
+          "text": "Number of male healthcare workers aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "hcw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_40_59_female",
+          "text": "Number of female healthcare workers aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "hcw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_40_59_male_no",
+          "text": "Number of male healthcare workers aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "hcw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_40_59_female_no",
+          "text": "Number of female healthcare workers aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "hcw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_60_plus_reported",
+          "text": "Were any healthcare workers aged 60+ years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_60_plus_male",
+          "text": "Number of male healthcare workers aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "hcw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_60_plus_female",
+          "text": "Number of female healthcare workers aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "hcw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_60_plus_male_no",
+          "text": "Number of male healthcare workers aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "hcw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "hcw_60_plus_female_no",
+          "text": "Number of female healthcare workers aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "hcw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+
+        {
+          "linkId": "sw_under_18_reported",
+          "text": "Were any sex workers aged under 18 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_under_18_male",
+          "text": "Number of male sex workers under 18 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_under_18_female",
+          "text": "Number of female sex workers aged under 18 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_under_18_male_no",
+          "text": "Number of male sex workers aged under 18 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_under_18_female_no",
+          "text": "Number of female sex workers aged under 18 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+
+
+        {
+          "linkId": "sw_18_39_reported",
+          "text": "Were any sex workers aged 18–39 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_18_39_male",
+          "text": "Number of male sex workers aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_18_39_female",
+          "text": "Number of female sex workers aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_18_39_male_no",
+          "text": "Number of male sex workers aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_18_39_female_no",
+          "text": "Number of female sex workers aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_40_59_reported",
+          "text": "Were any sex workers aged 40–59 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_40_59_male",
+          "text": "Number of male sex workers aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_40_59_female",
+          "text": "Number of female sex workers aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_40_59_male_no",
+          "text": "Number of male sex workers aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_40_59_female_no",
+          "text": "Number of female sex workers aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_60_plus_reported",
+          "text": "Were any sex workers aged 60+ years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_60_plus_male",
+          "text": "Number of male sex workers aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_60_plus_female",
+          "text": "Number of female sex workers aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "sw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_60_plus_male_no",
+          "text": "Number of male sex workers aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "sw_60_plus_female_no",
+          "text": "Number of female sex workers aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "sw_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_18_39_reported",
+          "text": "Were any truck drivers aged 18–39 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_18_39_male",
+          "text": "Number of male truck drivers aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "td_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_18_39_female",
+          "text": "Number of female truck drivers aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "td_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_18_39_male_no",
+          "text": "Number of male truck drivers aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "td_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_18_39_female_no",
+          "text": "Number of female truck drivers aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "td_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_40_59_reported",
+          "text": "Were any truck drivers aged 40–59 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_40_59_male",
+          "text": "Number of male truck drivers aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "td_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_40_59_female",
+          "text": "Number of female truck drivers aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "td_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_40_59_male_no",
+          "text": "Number of male truck drivers aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "td_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_40_59_female_no",
+          "text": "Number of female truck drivers aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "td_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_60_plus_reported",
+          "text": "Were any truck drivers aged 60+ years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_60_plus_male",
+          "text": "Number of male truck drivers aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "td_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_60_plus_female",
+          "text": "Number of female truck drivers aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "td_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_60_plus_male_no",
+          "text": "Number of male truck drivers aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "td_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "td_60_plus_female_no",
+          "text": "Number of female truck drivers aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "td_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_18_39_reported",
+          "text": "Were any others aged 18–39 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_18_39_male",
+          "text": "Number of male others aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "others_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_18_39_female",
+          "text": "Number of female others aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "others_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_18_39_male_no",
+          "text": "Number of male others aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "others_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_18_39_female_no",
+          "text": "Number of female others aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "others_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_40_59_reported",
+          "text": "Were any others aged 40–59 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_40_59_male",
+          "text": "Number of male others aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "others_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_40_59_female",
+          "text": "Number of female others aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "others_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_40_59_male_no",
+          "text": "Number of male others aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "others_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_40_59_female_no",
+          "text": "Number of female others aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "others_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_60_plus_reported",
+          "text": "Were any others aged 60+ years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_60_plus_male",
+          "text": "Number of male others aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "others_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_60_plus_female",
+          "text": "Number of female others aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "others_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_60_plus_male_no",
+          "text": "Number of male others aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "others_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "others_60_plus_female_no",
+          "text": "Number of female others aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "others_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_under_18_reported",
+          "text": "Were any contacts aged under 18 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_under_18_male",
+          "text": "Number of male contacts aged under 18 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_under_18_female",
+          "text": "Number of female contacts aged under 18 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_under_18_male_no",
+          "text": "Number of male contacts aged under 18 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_under_18_female_no",
+          "text": "Number of female contacts aged under 18 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_under_18_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_18_39_reported",
+          "text": "Were any contacts aged 18–39 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_18_39_male",
+          "text": "Number of male contacts aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_18_39_female",
+          "text": "Number of female contacts aged 18–39 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_18_39_male_no",
+          "text": "Number of male contacts aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_18_39_female_no",
+          "text": "Number of female contacts aged 18–39 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_18_39_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_40_59_reported",
+          "text": "Were any contacts aged 40–59 years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_40_59_male",
+          "text": "Number of male contacts aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_40_59_female",
+          "text": "Number of female contacts aged 40–59 years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_40_59_male_no",
+          "text": "Number of male contacts aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_40_59_female_no",
+          "text": "Number of female contacts aged 40–59 years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_40_59_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_60_plus_reported",
+          "text": "Were any contacts aged 60+ years reported?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_60_plus_male",
+          "text": "Number of male contacts aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_60_plus_female",
+          "text": "Number of female contacts aged 60+ years reported",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "contact_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_60_plus_male_no",
+          "text": "Number of male contacts aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "contact_60_plus_female_no",
+          "text": "Number of female contacts aged 60+ years reported",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueInteger": 0
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "contact_60_plus_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "utilization_aefi_mpox_surveilance",
+      "type": "group",
+      "text": "Vaccine Utilization, AEFI and Mpox Surveillance",
+      "item": [
+        {
+          "linkId": "vaccine_received",
+          "type": "integer",
+          "text": "Number of doses of vaccine received",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 9999
+            }
+          ]
+        },
+        {
+          "linkId": "vaccine_used",
+          "type": "integer",
+          "text": "Number of vaccine doses used",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 9999
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "constraint-1"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "vaccine_used <= vaccine_received"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value <= %resource.descendants().where(linkId='vaccine_received').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Doses used cannot be more than the doses received"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vaccine_remaining",
+          "type": "integer",
+          "text": "Number of vaccine doses remaining",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 9999
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "constraint-1"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "vaccine_used <= vaccine_received"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value <= %resource.descendants().where(linkId='vaccine_received').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Doses used cannot be more than the doses received"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "aefi",
+          "type": "display",
+          "text": "AEFI"
+        },
+        {
+          "linkId": "aefi_yes_no",
+          "type": "choice",
+          "text": "Reported AEFI?",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "aefi_count",
+          "type": "integer",
+          "text": "Number of vaccinee with reported AEFI",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 9999
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "constraint-1"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "aefi_count <= vaccine_used"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value <= %resource.descendants().where(linkId='vaccine_used').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "AEFI count cannot be more than the doses used"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "aefi_yes_no",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "surveilance",
+          "type": "display",
+          "text": "Surveilance"
+        },
+        {
+          "linkId": "mpox_suspected_case_count",
+          "type": "integer",
+          "text": "No. of Mpox Suspected Case detected",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 9999
+            }
+          ]
+        },
+        {
+          "linkId": "rumour_tracking",
+          "type": "display",
+          "text": "Rumour Tracking"
+        },
+        {
+          "linkId": "rumour_reported",
+          "type": "choice",
+          "text": "Were any rumours reported",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "rumour_details",
+          "type": "string",
+          "text": "What was the rumour about",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "rumour_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "rumour_escalated",
+          "type": "choice",
+          "text": "Were they escalated",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "rumour_reported",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

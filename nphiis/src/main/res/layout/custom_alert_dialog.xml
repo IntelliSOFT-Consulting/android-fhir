@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/customTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Custom Title"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/customMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="This is a custom message." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/measlesButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/purple_500"
+        android:text="Measles Case"
+        android:textColor="@color/white"
+        app:icon="@drawable/eye"
+        app:iconGravity="start"
+        app:iconPadding="1dp"
+        app:iconSize="40dp"
+        app:iconTint="@color/white" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/afpButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/purple_500"
+        android:text="AFP Case"
+        android:textColor="@color/white"
+        app:icon="@drawable/eye"
+        app:iconGravity="start"
+        app:iconPadding="1dp"
+        app:iconSize="40dp"
+        app:iconTint="@color/white" />
+
+</LinearLayout>

@@ -1,0 +1,532 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VL Case Lab Information",
+  "status": "draft",
+  "item": [
+    {
+      "item": [
+        {
+          "type": "string",
+          "linkId": "428237064956",
+          "text": "IP No",
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "272556667885",
+          "text": "Hospital Ward",
+          "required": true
+        },
+        {
+          "type": "date",
+          "linkId": "885705999856",
+          "text": "Date of Admission",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "linkId": "150613899880",
+          "text": "Date Leishmaniasis Treatment Started",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "733604782646",
+          "text": "Treatment Regimen",
+          "required": true,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "reg-001",
+                "display": "Combination (SSG + Paramomycin)(17 days)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "reg-002",
+                "display": "Pentostam (SSG) (30 days)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "reg-003",
+                "display": "Glucantime"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "reg-004",
+                "display": "Liposomal Amphotericin B (6-10 days)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "reg-005",
+                "display": "Other (Specify)."
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "498949031326",
+          "text": "Other Treatment Regimen ( Specify)",
+          "enableWhen": [
+            {
+              "question": "733604782646",
+              "operator": "=",
+              "answerCoding": {
+                "code": "reg-005",
+                "display": "Other (Specify)."
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "decimal",
+          "linkId": "regimen-dosage",
+          "text": "Treatment Regimen Dosage",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "175945763878",
+          "text": "Number of Treatment Days",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "trtemnt-001",
+                "display": "6-10 Days"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "trtemnt-002",
+                "display": "17 Days"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "trtemnt-003",
+                "display": "30 Days"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "trtemnt-004",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "integer",
+          "linkId": "686824046139",
+          "text": "Number of treatment days (Specify)",
+          "enableWhen": [
+            {
+              "question": "175945763878",
+              "operator": "=",
+              "answerCoding": {
+                "code": "trtemnt-004",
+                "display": "Other (Specify)"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "linkId": "723427815459",
+          "text": "Was Treatment Completed?",
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "342763225855",
+          "text": "Reason for Incomplete Treatment",
+          "enableWhen": [
+            {
+              "question": "723427815459",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "708058904265",
+          "text": "Initial Treatment Outcome",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "outcome-001",
+                "display": "Initial cure"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "outcome-002",
+                "display": "Probable non-response"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "outcome-003",
+                "display": "Confirmed non-response"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "outcome-004",
+                "display": "Default"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "outcome-005",
+                "display": "Death"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "131738268669",
+          "text": "Cause of Death",
+          "enableWhen": [
+            {
+              "question": "708058904265",
+              "operator": "=",
+              "answerCoding": {
+                "code": "outcome-005",
+                "display": "Death"
+              }
+            }
+          ],
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "death-cause-001",
+                "display": "Unknown"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-002",
+                "display": "VL"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-003",
+                "display": "HIV"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-004",
+                "display": "Other disease "
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-005",
+                "display": "SAE"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-006",
+                "display": "Non-medical condition"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "linkId": "884379481934",
+          "text": "Was there any reported severe adverse event of drug(s) used?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "560909523868",
+          "text": "Input Name(s) of Drug Causing Adverse Event",
+          "enableWhen": [
+            {
+              "question": "884379481934",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "396444399071",
+          "text": "Indicate Description of Severe Adverse Event ",
+          "enableWhen": [
+            {
+              "question": "884379481934",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "linkId": "904748389038",
+          "text": "Any other condition(s) treated during Initial VL treatment?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "922498480736",
+          "text": "Name of Other Condition",
+          "enableWhen": [
+            {
+              "question": "904748389038",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "required": true
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "782742635664",
+      "text": "Treatment/Hospitilazation"
+    }
+  ]
+}

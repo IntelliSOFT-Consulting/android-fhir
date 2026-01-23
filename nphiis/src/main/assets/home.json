@@ -1,0 +1,53 @@
+{
+  "home": {
+    "layout": "grid",
+    "columns": 2,
+    "sections": [
+      {
+        "title": "Surveillance",
+        "items": [
+          {
+            "id": "moh_505",
+            "type": "card",
+            "label": "MOH 505",
+            "icon": "virus",
+            "action": {
+              "type": "nav",
+              "route": "addClientFragment",
+              "args": {
+                "QUESTIONNAIRE_FILE_PATH_KEY": "moh505.json"
+              }
+            }
+          },
+          {
+            "id": "immediate",
+            "type": "card",
+            "label": "Immediate Reportable",
+            "icon": "searching",
+            "action": { "type": "nav", "route": "childFragment" }
+          }
+        ]
+      },
+      {
+        "title": "Resources",
+        "items": [
+          {
+            "id": "guidelines",
+            "type": "card",
+            "label": "Guidelines",
+            "icon": "book",
+            "action": { "type": "web", "url": "https://www.health.go.ke" }
+          }
+        ]
+      }
+    ]
+  },
+  "navigation": {
+    "iconMap": {
+      "virus": "@drawable/virus",
+      "searching": "@drawable/searching",
+      "book": "@drawable/ic_book"
+    }
+  }
+}
+

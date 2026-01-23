@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="purple_200">#007AFF</color>
+    <color name="purple_500">#007AFF</color>
+    <color name="purple_700">#007AFF</color>
+    <color name="teal_200">#375713</color>
+    <color name="teal_700">#1E6821</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="gray">#BDBDBD</color>
+    <color name="red">#FA0C0C</color>
+    <color name="discarded">#8DFF8D</color>
+    <color name="compatible">#007AFF</color>
+    <color name="pending">#C1BCAE</color>
+    <color name="blue">#007AFF</color>
+    <color name="green">#4CAF50</color>
+    <color name="activeTabBackground">#E0F7FA</color>
+    <color name="activeTabBorder">#0288D1</color>
+    <color name="inactiveTabBackground">#FFFFFF</color>
+    <color name="inactiveTabBorder">#BDBDBD</color>
+    <color name="activeTabText">#0288D1</color>
+    <color name="inactiveTabText">#757575</color>
+    <color name="activeTabPressed">#3700B3</color>
+    <!-- Sync Status Colors -->
+    <color name="sync_pending">#73EFD0</color>
+    <color name="sync_syncing">#2196F3</color>
+    <color name="sync_failed">#F44336</color>
+    <color name="sync_success">#4CAF50</color>
+    <color name="material_outline">#1F000000</color>
+    <color name="spinner_border">#E0E0E0</color>
+    <color name="button_text_light">#000000</color>
+    <color name="button_outline_light">#79747E</color>
+    <color name="button_text_dark">#FFFFFF</color>
+    <color name="button_outline_dark">#938F99</color>
+
+    <color name="snackbar_success">#4CAF50</color> <!-- Green -->
+    <color name="snackbar_error">#F44336</color>   <!-- Red -->
+    <color name="snackbar_text">#FFFFFF</color>    <!-- White -->
+    <color name="snackbar_warning">#FF9800</color> <!-- Orange -->
+</resources>

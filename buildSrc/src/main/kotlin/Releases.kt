@@ -92,6 +92,11 @@ object Releases {
     const val versionCode = 1
     const val versionName = "1.0"
   }
+  object Surveillance {
+    const val applicationId = "com.icl.nphi"
+    const val versionCode = 1
+    const val versionName = "1.0"
+  }
 
   object Catalog {
     const val applicationId = "com.google.android.fhir.catalog"

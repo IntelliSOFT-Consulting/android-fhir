@@ -55,6 +55,8 @@ include(":document")
 
 include(":demo")
 
+include(":nphiis")
+
 include(":engine")
 
 include(":knowledge")
