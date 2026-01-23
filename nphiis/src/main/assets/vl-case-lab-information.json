@@ -1,0 +1,502 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VL Case Lab Information",
+  "status": "draft",
+  "item": [
+    {
+      "item": [
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "262857834508",
+          "text": "HIV Status",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Not Done",
+                "display": "Not Done"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "286501145394",
+          "text": "Rapid Diagnostic Test (rK 39) Result",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "notdone",
+                "display": "Not done"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "inconclusive",
+                "display": "Inconclusive"
+              }
+            }
+          ]
+        },
+        {
+          "type": "decimal",
+          "linkId": "728272640347",
+          "text": "Haemoglobin Level (g/dL)",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "839711142610",
+          "text": "DAT Result",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "dt-results-001",
+                "display": "Not Done"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dt-results-002",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dt-results-003",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dt-results-004",
+                "display": "Borderline"
+              }
+            }
+          ]
+        },
+        {
+          "type": "decimal",
+          "linkId": "521591954015",
+          "text": "Titre",
+          "enableWhen": [
+            {
+              "question": "839711142610",
+              "operator": "=",
+              "answerCoding": {
+                "code": "dt-results-002",
+                "display": "Positive"
+              }
+            },
+            {
+              "question": "839711142610",
+              "operator": "=",
+              "answerCoding": {
+                "code": "dt-results-003",
+                "display": "Negative"
+              }
+            },
+            {
+              "question": "839711142610",
+              "operator": "=",
+              "answerCoding": {
+                "code": "dt-results-004",
+                "display": "Borderline"
+              }
+            }
+          ],
+          "enableBehavior": "any",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "501687416648",
+          "text": "Tissue Aspiration Type",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "tis-asp-001",
+                "display": "Not done"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tis-asp-002",
+                "display": "Bone Marrow"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tis-asp-003",
+                "display": "Lymph Node"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tis-asp-004",
+                "display": "Spleen"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "108406555539",
+          "text": "Splenic/Bone Marrow Aspirate Result",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "notdone",
+                "display": "Not done"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "320819009291",
+          "text": "Microscopy Results",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "notdone",
+                "display": "Not done"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "625317757173",
+          "text": "Microscopy Grading",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "micro-grd-001",
+                "display": "1+: 1-10/1000 fields"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "micro-grd-002",
+                "display": "2+: 1-10/100 fields"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "micro-grd-003",
+                "display": "3+: 1-10/10 fields"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "micro-grd-004",
+                "display": "4+: 1-10/1 fields"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "micro-grd-005",
+                "display": "5+: >10-100/1 fields"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "micro-grd-006",
+                "display": "6+: >100/1 fields"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "655245793432",
+          "text": "Final Diagnosis / Patient Category",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "diag-cat-001",
+                "display": "Primary VL"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diag-cat-002",
+                "display": "Relapse"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diag-cat-003",
+                "display": "PKDL"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diag-cat-004",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "843481153132",
+          "text": "Specify Diagnosis",
+          "enableWhen": [
+            {
+              "question": "655245793432",
+              "operator": "=",
+              "answerCoding": {
+                "code": "diag-cat-004",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "404917028358",
+          "text": "Method of Diagnosis",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "RDT",
+                "display": "RDT"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "DAT",
+                "display": "DAT"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Microscopy",
+                "display": "Microscopy"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Clinical Examination",
+                "display": "Clinical Examination"
+              }
+            }
+          ]
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "868001487252",
+      "text": "Laboratory Information"
+    }
+  ]
+}

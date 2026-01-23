@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.icl.surveillance.ui.home.HomeFragment"
+        android:label=""
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_navigation_home_to_childFragment"
+            app:destination="@id/childFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.icl.surveillance.ui.patients.PatientsFragment"
+        android:label=""
+        tools:layout="@layout/fragment_patient_list">
+        <action
+            android:id="@+id/action_navigation_dashboard_to_fullCaseDetailsActivity"
+            app:destination="@id/fullCaseDetailsActivity" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="com.icl.surveillance.ui.profile.ProfileFragment"
+        android:label=""
+        tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/addClientFragment"
+        android:name="com.icl.surveillance.clients.AddClientFragment"
+        android:label="Add Client"
+        tools:layout="@layout/fragment_add_client" />
+    <activity
+        android:id="@+id/clientDetailsActivity"
+        android:name="com.icl.surveillance.ui.patients.ClientDetailsActivity"
+        android:label=""
+        tools:layout="@layout/activity_client_details" />
+    <fragment
+        android:id="@+id/singleCaseFragment"
+        android:name="com.icl.surveillance.ui.home.SingleCaseFragment"
+        android:label=""
+        tools:layout="@layout/fragment_single_case">
+        <action
+            android:id="@+id/action_singleCaseFragment_to_addClientFragment"
+            app:destination="@id/addClientFragment" />
+        <action
+            android:id="@+id/action_singleCaseFragment_to_navigation_dashboard"
+            app:destination="@id/navigation_dashboard" />
+        <action
+            android:id="@+id/action_singleCaseFragment_to_caseSelectionFragment"
+            app:destination="@id/caseSelectionFragment" />
+    </fragment>
+    <activity
+        android:id="@+id/fullCaseDetailsActivity"
+        android:name="com.icl.surveillance.ui.patients.FullCaseDetailsActivity"
+        android:label=""
+        tools:layout="@layout/activity_full_case_details" />
+    <fragment
+        android:id="@+id/caseSelectionFragment"
+        android:name="com.icl.surveillance.ui.home.CaseSelectionFragment"
+        android:label=""
+        tools:layout="@layout/fragment_case_selection" />
+    <fragment
+        android:id="@+id/childFragment"
+        android:name="com.icl.surveillance.ui.home.ChildFragment"
+        android:label=""
+        tools:layout="@layout/fragment_child">
+        <action
+            android:id="@+id/action_childFragment_to_singleCaseFragment"
+            app:destination="@id/singleCaseFragment" />
+        <action
+            android:id="@+id/action_childFragment_to_caseSelectionFragment"
+            app:destination="@id/caseSelectionFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_resources"
+        android:name="com.icl.surveillance.monitor.ResourceListFragment"
+        android:label="Resource List"
+        tools:layout="@layout/fragment_resource_list" />
+</navigation>

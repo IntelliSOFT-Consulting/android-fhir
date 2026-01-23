@@ -1,0 +1,1486 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "0",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:42.251+00:00",
+          "source": "#OnlI3LPgpFinc8KN"
+        },
+        "name": "Kenya",
+        "type": [ {
+          "coding": [ {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "COUNTRY",
+            "display": "Country"
+          } ]
+        } ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/0"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "1",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:43.425+00:00",
+          "source": "#LwAT9Mwlk0XBuvx5"
+        },
+        "name": "MOMBASA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "2",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:44.568+00:00",
+          "source": "#g1cbrL1LteoQ6Wfc"
+        },
+        "name": "KWALE",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "3",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:45.715+00:00",
+          "source": "#uCgrYTESp9RZZuKB"
+        },
+        "name": "KILIFI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/3"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "4",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:46.871+00:00",
+          "source": "#MUQsIfbZvwfMLHg2"
+        },
+        "name": "TANA RIVER",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/4"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "5",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:48.041+00:00",
+          "source": "#fuvL4vpSjnh0RzAU"
+        },
+        "name": "LAMU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/5"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "6",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:49.169+00:00",
+          "source": "#CA0DTbGVxbBRHMvJ"
+        },
+        "name": "TAITA TAVETA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/6"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "7",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:50.293+00:00",
+          "source": "#NYYnoo7zIxVym3vU"
+        },
+        "name": "GARISSA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/7"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "8",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:51.424+00:00",
+          "source": "#R8KoWXoh6WrPZfOV"
+        },
+        "name": "WAJIR",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/8"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "9",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:52.566+00:00",
+          "source": "#vjsq5KPQaaWpQKxY"
+        },
+        "name": "MANDERA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/9"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "10",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:53.691+00:00",
+          "source": "#IUqQ6PnyyKQAZyFt"
+        },
+        "name": "MARSABIT",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/10"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "11",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:54.788+00:00",
+          "source": "#dzK3MU0DgGv61lZL"
+        },
+        "name": "ISIOLO",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/11"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "12",
+        "meta": {
+          "versionId": "5",
+          "lastUpdated": "2024-04-12T06:17:25.975+00:00",
+          "source": "#5yUNOGfwcfL4FdkP"
+        },
+        "name": "MERU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/12"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "13",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:57.062+00:00",
+          "source": "#rwffEYISfghn5YjO"
+        },
+        "name": "THARAKA-NITHI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/13"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "14",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:58.233+00:00",
+          "source": "#JuJzVqNTOc3mKnlT"
+        },
+        "name": "EMBU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/14"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "15",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:38:59.379+00:00",
+          "source": "#quLqmYpoyOsRDZN9"
+        },
+        "name": "KITUI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/15"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "16",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:00.538+00:00",
+          "source": "#Ld52WapdMMdHbcKd"
+        },
+        "name": "MACHAKOS",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/16"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "17",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:01.665+00:00",
+          "source": "#jQlZwxaGQFOtS2UF"
+        },
+        "name": "MAKUENI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/17"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "18",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:02.834+00:00",
+          "source": "#s9GSD3e1ozTPpxZ5"
+        },
+        "name": "NYANDARUA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/18"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "19",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:03.995+00:00",
+          "source": "#VfnfvjGpdAF7YyDu"
+        },
+        "name": "NYERI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/19"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "20",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:05.157+00:00",
+          "source": "#RsGwBHjexfXU6rw1"
+        },
+        "name": "KIRINYAGA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/20"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "21",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:06.277+00:00",
+          "source": "#YEbe77JZ7drkCRnU"
+        },
+        "name": "MURANG'A",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/21"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "22",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:07.426+00:00",
+          "source": "#oDdGAyG2IcotSf1y"
+        },
+        "name": "KIAMBU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/22"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "23",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:09.020+00:00",
+          "source": "#rdm7Zcry86miU5Ve"
+        },
+        "name": "TURKANA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/23"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "24",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:10.173+00:00",
+          "source": "#pSxnblAyMtqk2pQP"
+        },
+        "name": "WEST POKOT",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/24"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "25",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:11.326+00:00",
+          "source": "#PMB9HjGMBocntv70"
+        },
+        "name": "SAMBURU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/25"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "26",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:12.512+00:00",
+          "source": "#oYWnIrPBAFGClm8L"
+        },
+        "name": "TRANS NZOIA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/26"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "27",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:13.649+00:00",
+          "source": "#9i0EIMS4uQpbOt0z"
+        },
+        "name": "UASIN GISHU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/27"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "28",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:15.251+00:00",
+          "source": "#dQrmigUQhuJ1IR6r"
+        },
+        "name": "ELGEYO MARAKWET",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/28"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "29",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:16.414+00:00",
+          "source": "#uUlLnCnPvxiTL3qW"
+        },
+        "name": "NANDI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/29"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "30",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:17.579+00:00",
+          "source": "#lbajvYy6U5zoSFgm"
+        },
+        "name": "BARINGO",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/30"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "31",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:18.710+00:00",
+          "source": "#P9CkoQdmLnzbEXKh"
+        },
+        "name": "LAIKIPIA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/31"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "32",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:19.826+00:00",
+          "source": "#WDRo2VxeFxMeSuSk"
+        },
+        "name": "NAKURU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/32"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "33",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:20.985+00:00",
+          "source": "#9R4X1krADnWo1u6N"
+        },
+        "name": "NAROK",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/33"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "34",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:22.136+00:00",
+          "source": "#ytwzRnuFN3puRemv"
+        },
+        "name": "KAJIADO",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/34"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "35",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:23.262+00:00",
+          "source": "#a6BWv4OqOzSzyUHK"
+        },
+        "name": "KERICHO",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/35"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "36",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:24.451+00:00",
+          "source": "#xkqTskvef24Tgd4E"
+        },
+        "name": "BOMET",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/36"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "37",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:25.573+00:00",
+          "source": "#W8iQXTXaYGlFYsSu"
+        },
+        "name": "KAKAMEGA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/37"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "38",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:26.723+00:00",
+          "source": "#7CBrXKa7jWwTGzuN"
+        },
+        "name": "VIHIGA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/38"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "39",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:27.846+00:00",
+          "source": "#roQhdBsTlvknt3ct"
+        },
+        "name": "BUNGOMA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/39"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "40",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:28.966+00:00",
+          "source": "#uHkNTCAhdcNgIoJN"
+        },
+        "name": "BUSIA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/40"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "41",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:30.119+00:00",
+          "source": "#YEH2QetqThKRU7VS"
+        },
+        "name": "SIAYA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/41"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "42",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:31.241+00:00",
+          "source": "#tzMytGtGdqAmsoKC"
+        },
+        "name": "KISUMU",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/42"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "43",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:32.369+00:00",
+          "source": "#S2czqotX36ZqMZGW"
+        },
+        "name": "HOMA BAY",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/43"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "44",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:33.499+00:00",
+          "source": "#syK17uwMbtP2IGyZ"
+        },
+        "name": "MIGORI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/44"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "45",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:34.628+00:00",
+          "source": "#LsDUXszSl0vRd0Dl"
+        },
+        "name": "KISII",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/45"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "46",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:35.778+00:00",
+          "source": "#1n1RaaMJKbN1OkoX"
+        },
+        "name": "NYAMIRA",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/46"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Location",
+        "id": "47",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2024-03-11T14:39:36.915+00:00",
+          "source": "#0zNq7VhlS4UiVXrI"
+        },
+        "name": "NAIROBI",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                "code": "COUNTY",
+                "display": "County"
+              }
+            ]
+          }
+        ],
+        "partOf": {
+          "reference": "Location/0",
+          "display": "Kenya"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Location/47"
+      }
+    }
+  ]
+}

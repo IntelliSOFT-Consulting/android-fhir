@@ -1,0 +1,247 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VL Case Lab Information",
+  "status": "draft",
+  "item": [
+    {
+      "item": [
+        {
+          "type": "date",
+          "linkId": "598716788113",
+          "text": "Date of Follow-up Examination",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "854349915390",
+          "text": "Final Treatment Outcome",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "treatment-out-001",
+                "display": "Final (definitive)cure"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "treatment-out-002",
+                "display": "Relapse"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "treatment-out-003",
+                "display": "Death"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "treatment-out-004",
+                "display": "Lost to follow up"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "207948215604",
+          "text": "Cause of Death at Follow-up",
+          "enableWhen": [
+            {
+              "question": "854349915390",
+              "operator": "=",
+              "answerCoding": {
+                "code": "treatment-out-003",
+                "display": "Death"
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "death-cause-001",
+                "display": "Unknown"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-002",
+                "display": "VL"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-003",
+                "display": "HIV"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-004",
+                "display": "Non medical condition"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-005",
+                "display": "SAE"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death-cause-006",
+                "display": "Other disease (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "linkId": "598808996682",
+          "text": "Any Signs or Symptoms of PKDL?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "601245092289",
+          "text": "Remarks/Notes"
+        },
+        {
+          "type": "string",
+          "linkId": "183599052402",
+          "text": "Clinician's Name (Follow-up)"
+        },
+        {
+          "type": "date",
+          "linkId": "864740040168",
+          "text": "Clinician's Date (Follow-up)",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "962832844710",
+          "text": "Clinician's Signature (Follow-up)"
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "768949210140",
+      "text": "Six (6) Months Follow Up Examination"
+    }
+  ]
+}

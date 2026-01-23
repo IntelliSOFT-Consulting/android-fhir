@@ -1,0 +1,661 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "Contact Tracing",
+  "status": "draft",
+  "item": [
+    {
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "347593631406",
+      "text": "Contact Tracing Form",
+      "item": [
+        {
+          "type": "string",
+          "linkId": "164606342597",
+          "text": "CHP/CHW/Volunteer’s name",
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "753384665566",
+          "text": "Address"
+        },
+        {
+          "type": "string",
+          "linkId": "671050690353",
+          "text": "Town"
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "481616148653",
+          "text": "Sub County",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "kmfl-047",
+                "display": "Nairobi"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "901497560724",
+          "text": "County",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop Down"
+                  }
+                ],
+                "text": "Drop Down"
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Baringo",
+                "display": "Baringo"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Bomet",
+                "display": "Bomet"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Bungoma",
+                "display": "Bungoma"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Busia",
+                "display": "Busia"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Elgeyo-Marakwet",
+                "display": "Elgeyo-Marakwet"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Embu",
+                "display": "Embu"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Garissa",
+                "display": "Garissa"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Homa Bay",
+                "display": "Homa Bay"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Isiolo",
+                "display": "Isiolo"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kajiado",
+                "display": "Kajiado"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kakamega",
+                "display": "Kakamega"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kericho",
+                "display": "Kericho"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kiambu",
+                "display": "Kiambu"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kilifi",
+                "display": "Kilifi"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kirinyaga",
+                "display": "Kirinyaga"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kisii",
+                "display": "Kisii"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kisumu",
+                "display": "Kisumu"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kitui",
+                "display": "Kitui"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Kwale",
+                "display": "Kwale"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Laikipia",
+                "display": "Laikipia"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Lamu",
+                "display": "Lamu"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Machakos",
+                "display": "Machakos"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Makueni",
+                "display": "Makueni"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Mandera",
+                "display": "Mandera"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Marsabit",
+                "display": "Marsabit"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Meru",
+                "display": "Meru"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Migori",
+                "display": "Migori"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Mombasa",
+                "display": "Mombasa"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Murang’a",
+                "display": "Murang’a"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Nairobi",
+                "display": "Nairobi"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Nakuru",
+                "display": "Nakuru"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Nandi",
+                "display": "Nandi"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Narok",
+                "display": "Narok"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Nyamira",
+                "display": "Nyamira"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Nyandarua",
+                "display": "Nyandarua"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Nyeri",
+                "display": "Nyeri"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Samburu",
+                "display": "Samburu"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Siaya",
+                "display": "Siaya"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Taita-Taveta",
+                "display": "Taita-Taveta"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Tana River",
+                "display": "Tana River"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Tharaka-Nithi",
+                "display": "Tharaka-Nithi"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Trans Nzoia",
+                "display": "Trans Nzoia"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Turkana",
+                "display": "Turkana"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Uasin Gishu",
+                "display": "Uasin Gishu"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Vihiga",
+                "display": "Vihiga"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Wajir",
+                "display": "Wajir"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "West Pokot",
+                "display": "West Pokot"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "linkId": "214005359034",
+          "text": "CN"
+        },
+        {
+          "type": "string",
+          "linkId": "733943196657",
+          "text": "First Name ",
+          "required": true
+        },
+        {
+          "type": "string",
+          "linkId": "408807293350",
+          "text": "Family Name",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "linkId": "401041093887",
+          "text": "Age",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "579859715507",
+          "text": "Sex",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "female",
+                "display": "Female"
+              }
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "linkId": "754355064455",
+          "text": "Date of First Contact",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "375093584911",
+          "text": "Day of Follow up",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "1",
+                "display": "1"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "2",
+                "display": "2"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "3",
+                "display": "3"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "4",
+                "display": "4"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "5",
+                "display": "5"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "6",
+                "display": "6"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "7",
+                "display": "7"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "8",
+                "display": "8"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "9",
+                "display": "9"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "10",
+                "display": "10"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "11",
+                "display": "11"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "12",
+                "display": "12"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "13",
+                "display": "13"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "14",
+                "display": "14"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "15",
+                "display": "15"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "16",
+                "display": "16"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "17",
+                "display": "17"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "18",
+                "display": "18"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "19",
+                "display": "19"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "20",
+                "display": "20"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "21",
+                "display": "21"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "815574572080",
+          "text": "Has contact developed fever or bleeding?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "643976388800",
+          "text": "Has contact died?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

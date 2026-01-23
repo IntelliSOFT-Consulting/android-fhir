@@ -1,0 +1,15 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Active item -->
+    <item android:state_checked="true">
+        <layer-list>
+            <!-- Top indicator -->
+            <item android:height="4dp" android:drawable="@color/purple_200" android:gravity="top" /> <!-- your highlight color -->
+
+            <!-- Background below the indicator -->
+            <item android:drawable="@color/white" android:top="4dp" />
+        </layer-list>
+    </item>
+
+    <!-- Inactive item -->
+    <item android:drawable="@color/white" />
+</selector>

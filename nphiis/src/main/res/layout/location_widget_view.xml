@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.fhir.datacapture.views.HeaderView
+        android:id="@+id/header"
+        style="?attr/questionnaireGroupTypeHeaderStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/item_margin_horizontal"
+        android:layout_marginTop="@dimen/item_margin_vertical" />
+
+    <com.google.android.fhir.datacapture.views.MediaView
+        android:id="@+id/item_media"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/gps_widget_button"
+        style="@style/Questionnaire.LocationWidgetButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/item_margin_horizontal"
+        android:layout_marginVertical="@dimen/item_margin_vertical" />
+
+</LinearLayout>

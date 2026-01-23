@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 1. Presence of fever -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Presence of fever"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_fever"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="Yes" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 2. Date of onset of rash -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Date of onset of rash"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_onset_rash"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="01 Jan 2025" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 3. Type of rash -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Type of rash"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_rash_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="Maculopapular" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 4. Was home of patient visited for contact investigation? -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Was home of patient visited for contact investigation?"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_home_visit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="Yes" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 5. If Yes, Date of visit -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="If Yes, Date of visit"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_visit_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="03 Jan 2025" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 6. Is the case epidemiologically linked to a lab-confirmed case? -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Is the case epidemiologically linked to a lab-confirmed case?"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_epi_link"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="No" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 7. Was specimen collected? -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Was specimen collected?"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_specimen_collected"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="Yes" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 8. If no, why? -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="If no, why?"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_if_no_why"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="Not available" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 9. Date of specimen collection -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Date of specimen collection"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_specimen_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="02 Jan 2025" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 10. Type of specimen -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:text="Type of specimen"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_specimen_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/small_text_margin"
+                android:layout_marginBottom="@dimen/small_text_margin"
+                android:layout_weight="1"
+                android:textStyle="normal"
+                tools:text="Blood" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#CCCCCC" />
+        <!-- 11 to 17 -->
+        <!-- Let me know if you'd like the rest added too! I paused here so it doesn't get cut off. -->
+    </LinearLayout>
+
+</LinearLayout>

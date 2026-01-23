@@ -1,0 +1,705 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "rcce-social-investigation-part-a",
+  "title": "RCCE Social Investigation Form - Part A: County/Subcounty Interface",
+  "status": "active",
+  "subjectType": [
+    "Patient"
+  ],
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "countyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedFacilityName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    }
+  ],
+  "item": [
+    {
+      "item": [
+        {
+          "linkId": "294367770999",
+          "text": "County ",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "reference",
+          "linkId": "819946803642",
+          "text": "Subcounty ",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%countyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "reference",
+          "linkId": "819943434",
+          "text": "Ward ",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%selectedSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "151479012557",
+      "text": "Reporting Site"
+    },
+    {
+      "linkId": "county-subcounty-assessment",
+      "text": "County/Subcounty Level Assessment",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "rcce-focal-point",
+          "text": "Do you have RCCE Focal point at this level?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ]
+        },
+        {
+          "linkId": "functional-subcommittee",
+          "text": "Do you have a functional RCCE sub-committee?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ]
+        },
+        {
+          "linkId": "subcommittee-members",
+          "text": "Who are the members of the RCCE subcommittee team?",
+          "type": "choice",
+          "repeats": true,
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "CHMT",
+                "display": "Members of CHMT"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "HPO",
+                "display": "Health Promotion Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "SO",
+                "display": "Surveillance Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "CS",
+                "display": "Community Strategy"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "EPI",
+                "display": "EPI Logistician"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "PHO",
+                "display": "Public Health Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "NO",
+                "display": "Nursing Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "EPIST",
+                "display": "Epidemiologist"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "MO",
+                "display": "Medical Officer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "OTHER",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "subcommittee-members-specify",
+          "text": "Specify other subcommittee member",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "subcommittee-members",
+              "operator": "=",
+              "answerCoding": {
+                "code": "OTHER"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "government-sectors",
+          "text": "Government sectors",
+          "type": "choice",
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "MOH",
+                "display": "Ministry of Health"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "DISASTER",
+                "display": "County Disaster Program"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "LIVESTOCK",
+                "display": "Ministry of Livestock"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "ENV",
+                "display": "Ministry of Environment"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "EDU",
+                "display": "Ministry of Education"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "WATER",
+                "display": "Ministry of Water"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "INTERIOR",
+                "display": "Ministry of Interior and Security"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "OTHER",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "government-sectors-specify",
+          "text": "Specify other government sector",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "government-sectors",
+              "operator": "=",
+              "answerCoding": {
+                "code": "OTHER"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "partners",
+          "text": "Partners (Specify)",
+          "type": "string"
+        },
+        {
+          "linkId": "private-sector",
+          "text": "Private sector (Specify)",
+          "type": "string"
+        },
+        {
+          "linkId": "others",
+          "text": "Others (Specify)",
+          "type": "string"
+        },
+        {
+          "linkId": "meeting-frequency",
+          "text": "How often do you meet?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "weekly",
+                "display": "Once a week"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "bimonthly",
+                "display": "Bi-monthly"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "monthly",
+                "display": "Monthly"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "quarterly",
+                "display": "Quarterly"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rarely",
+                "display": "Rarely"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "when-necessary",
+                "display": "When necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "meeting-frequency-specify",
+          "text": "Specify other meeting frequency",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "meeting-frequency",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "meeting-minutes",
+          "text": "Please share or verify minutes of the last RCCE coordination meeting?",
+          "type": "string"
+        },
+        {
+          "linkId": "rcce-contingency-plan",
+          "text": "Do you have a RCCE contingency plan for ongoing outbreak?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "rcce-contingency-plan-specify",
+          "text": "Specify if Yes",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "rcce-contingency-plan",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "implemented-activities",
+          "text": "What RCCE activities have you implemented?",
+          "type": "choice",
+          "repeats": true,
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "community-engagement",
+                "display": "Community engagement"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "door-to-door",
+                "display": "Door to Door mobilization"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "baraza",
+                "display": "Community baraza / dialogue"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "media-talk",
+                "display": "Media talk shows"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "stakeholders",
+                "display": "Stakeholder engagements"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "training",
+                "display": "Sensitization/Training"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "iec",
+                "display": "Distribution of IEC materials"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rumour",
+                "display": "Rumour Tracking"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "social-media",
+                "display": "Social Media posts"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "pas",
+                "display": "PAS system"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tv-radio",
+                "display": "Airing of TV/Radio Spots"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (Specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "implemented-activities-specify",
+          "text": "Specify other activity",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "implemented-activities",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "social-listening",
+          "text": "Do we have a way of doing community social listening?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "social-listening-methods",
+          "text": "If yes, list ways of community social listening",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "social-listening",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "functional-hotline",
+          "text": "Do you have a functional hotline?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "hotline-number",
+          "text": "If yes, indicate the number",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxLength",
+              "valueInteger": 10
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minLength",
+              "valueInteger": 10
+            }
+          ],
+          "item": [
+            {
+              "linkId": "2.1",
+              "text": "07xxxxxxxx",
+              "type": "display",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "flyover",
+                        "display": "Fly-over"
+                      }
+                    ],
+                    "text": "Flyover"
+                  }
+                }
+              ]
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "functional-hotline",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "key-achievements",
+          "text": "List Key RCCE achievements realized during the ongoing outbreak response",
+          "type": "string"
+        },
+        {
+          "linkId": "partners-supporting",
+          "text": "List the current partners supporting RCCE activities at this level",
+          "type": "string"
+        },
+        {
+          "linkId": "rcce-challenges",
+          "text": "What are the RCCE related challenges which have been experienced during the current outbreak response?",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}
