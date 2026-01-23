@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.android.fhir.FhirEngine
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
@@ -210,15 +209,15 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_delete -> {
-                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
-                    .setTitleText("Are you sure?")
-                    .setContentText("You Won't be able to recover this record!")
-                    .setConfirmText("Yes,delete it!")
-                    .setConfirmClickListener { sDialog ->
-                        Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
-                        sDialog.dismissWithAnimation()
-                    }
-                    .show()
+//                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+//                    .setTitleText("Are you sure?")
+//                    .setContentText("You Won't be able to recover this record!")
+//                    .setConfirmText("Yes,delete it!")
+//                    .setConfirmClickListener { sDialog ->
+//                        Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
+//                        sDialog.dismissWithAnimation()
+//                    }
+//                    .show()
 
                 return true
             }

@@ -26,16 +26,20 @@ class FhirSyncService(
     private val fhirDataSource: FhirDataSource // Your server API interface
 ) {
 
-    suspend fun uploadResource(resource: Resource): SyncResult {
+    suspend fun uploadResource(resource: Resource, token: String): SyncResult {
         return try {
             Log.d("FhirSync", "Uploading resource: ${resource.resourceType}/${resource.logicalId}")
 
             when (resource.resourceType.name) {
-                "Patient" -> uploadPatient(resource as Patient)
-                "Observation" -> uploadObservation(resource as Observation)
-                "Encounter" -> uploadEncounter(resource as Encounter)
-                "QuestionnaireResponse" -> uploadQuestionnaireResponse(resource as QuestionnaireResponse)
-                "MeasureReport" -> uploadMeasureReport(resource as MeasureReport)
+                "Patient" -> uploadPatient(resource as Patient, token)
+                "Observation" -> uploadObservation(resource as Observation, token)
+                "Encounter" -> uploadEncounter(resource as Encounter, token)
+                "QuestionnaireResponse" -> uploadQuestionnaireResponse(
+                    resource as QuestionnaireResponse,
+                    token
+                )
+
+                "MeasureReport" -> uploadMeasureReport(resource as MeasureReport, token)
                 else -> SyncResult.Failure("Unsupported resource type: ${resource.resourceType}")
             }
         } catch (e: Exception) {
@@ -47,14 +51,15 @@ class FhirSyncService(
         }
     }
 
-    private suspend fun uploadPatient(patient: Patient): SyncResult {
+    private suspend fun uploadPatient(patient: Patient, token: String): SyncResult {
         return try {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val json = jsonParser.encodeResourceToString(patient)
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
 
-            val result = fhirDataSource.createPatient(patient.idElement.idPart, requestBody)
+            val result =
+                fhirDataSource.createPatient(patient.idElement.idPart, requestBody, "Bearer $token")
 
             if (result.isSuccessful) {
                 // Update local resource with server metadata
@@ -103,13 +108,17 @@ class FhirSyncService(
         }
     }
 
-    private suspend fun uploadObservation(observation: Observation): SyncResult {
+    private suspend fun uploadObservation(observation: Observation, token: String): SyncResult {
         return try {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val json = jsonParser.encodeResourceToString(observation)
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
-            val result = fhirDataSource.createObservation(observation.logicalId, requestBody)
+            val result = fhirDataSource.createObservation(
+                observation.logicalId,
+                requestBody,
+                "Bearer $token"
+            )
 
             if (result.isSuccessful) {
                 updateLocalResourceAfterSync(observation)
@@ -124,13 +133,14 @@ class FhirSyncService(
         }
     }
 
-    private suspend fun uploadEncounter(encounter: Encounter): SyncResult {
+    private suspend fun uploadEncounter(encounter: Encounter, token: String): SyncResult {
         return try {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val json = jsonParser.encodeResourceToString(encounter)
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
-            val result = fhirDataSource.createEncounter(encounter.logicalId, requestBody)
+            val result =
+                fhirDataSource.createEncounter(encounter.logicalId, requestBody, "Bearer $token")
 
             if (result.isSuccessful) {
                 updateLocalResourceAfterSync(encounter)
@@ -145,13 +155,20 @@ class FhirSyncService(
         }
     }
 
-    private suspend fun uploadQuestionnaireResponse(response: QuestionnaireResponse): SyncResult {
+    private suspend fun uploadQuestionnaireResponse(
+        response: QuestionnaireResponse,
+        token: String
+    ): SyncResult {
         return try {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val json = jsonParser.encodeResourceToString(response)
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
-            val result = fhirDataSource.createQuestionnaireResponse(response.logicalId, requestBody)
+            val result = fhirDataSource.createQuestionnaireResponse(
+                response.logicalId,
+                requestBody,
+                "Bearer $token"
+            )
 
             if (result.isSuccessful) {
                 updateLocalResourceAfterSync(response)
@@ -166,13 +183,14 @@ class FhirSyncService(
         }
     }
 
-    private suspend fun uploadMeasureReport(report: MeasureReport): SyncResult {
+    private suspend fun uploadMeasureReport(report: MeasureReport, token: String): SyncResult {
         return try {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val json = jsonParser.encodeResourceToString(report)
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
-            val result = fhirDataSource.createMeasureReport(report.logicalId, requestBody)
+            val result =
+                fhirDataSource.createMeasureReport(report.logicalId, requestBody, "Bearer $token")
 
             if (result.isSuccessful) {
                 updateLocalResourceAfterSync(report)
@@ -187,14 +205,14 @@ class FhirSyncService(
         }
     }
 
-    suspend fun uploadBundle(bundle: Bundle): BundleUploadResult {
+    suspend fun uploadBundle(bundle: Bundle, token: String): BundleUploadResult {
         return try {
             Log.d("FhirSync", "Uploading bundle with ${bundle.entry.size} resources")
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val json = jsonParser.encodeResourceToString(bundle)
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
-            val response = fhirDataSource.sendBundleToServer(requestBody)
+            val response = fhirDataSource.sendBundleToServer(requestBody, "Bearer $token")
 
             if (response.isSuccessful) {
                 val responseBundle = response.body()
@@ -349,11 +367,11 @@ class FhirSyncService(
         }
     }
 
-    suspend fun uploadMultipleResources(resources: List<Resource>): BulkSyncResult {
+    suspend fun uploadMultipleResources(resources: List<Resource>, token: String): BulkSyncResult {
         val results = mutableListOf<SyncResult>()
 
         resources.forEach { resource ->
-            val result = uploadResource(resource)
+            val result = uploadResource(resource, token)
             results.add(result)
             delay(100) // Small delay between requests to avoid overwhelming server
         }

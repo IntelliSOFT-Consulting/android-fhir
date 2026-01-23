@@ -1,17 +1,12 @@
 package com.icl.surveillance.location
 
 import android.view.View
-import android.view.ViewGroup
 import com.google.android.fhir.datacapture.extensions.itemControlCode
 import com.google.android.fhir.datacapture.extensions.tryUnwrapContext
-import com.google.android.fhir.datacapture.views.GroupHeaderView
 import com.google.android.fhir.datacapture.views.HeaderView
 import com.google.android.fhir.datacapture.views.QuestionnaireViewItem
 import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemAndroidViewHolderDelegate
 import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemAndroidViewHolderFactory
-import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemViewHolder
-import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemViewHolderDelegate
-import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemViewHolderFactory
 import com.google.android.material.button.MaterialButton
 import com.icl.surveillance.R
 import org.hl7.fhir.r4.model.Questionnaire

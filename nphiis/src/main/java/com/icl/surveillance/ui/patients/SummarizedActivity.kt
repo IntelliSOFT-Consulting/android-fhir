@@ -11,7 +11,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import com.google.android.material.tabs.TabLayoutMediator
@@ -254,21 +253,21 @@ class SummarizedActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_delete -> {
-                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
-                    .setTitleText("Are you sure?")
-                    .setContentText("You Won't be able to recover this record!")
-                    .setConfirmText("Yes,delete it!")
-                    .setConfirmClickListener { sDialog ->
-                        val patientId =
-                            FormatterClass().getSharedPref("patientId", this@SummarizedActivity)
-                        if (patientId != null) {
-                            lifecycleScope.launch {
-                            }
-                        }
-                        Toast.makeText(this, "Resource Deleted!!", Toast.LENGTH_SHORT).show()
-                        sDialog.dismissWithAnimation()
-                    }
-                    .show()
+//                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+//                    .setTitleText("Are you sure?")
+//                    .setContentText("You Won't be able to recover this record!")
+//                    .setConfirmText("Yes,delete it!")
+//                    .setConfirmClickListener { sDialog ->
+//                        val patientId =
+//                            FormatterClass().getSharedPref("patientId", this@SummarizedActivity)
+//                        if (patientId != null) {
+//                            lifecycleScope.launch {
+//                            }
+//                        }
+//                        Toast.makeText(this, "Resource Deleted!!", Toast.LENGTH_SHORT).show()
+//                        sDialog.dismissWithAnimation()
+//                    }
+//                    .show()
                 return true
             }
 

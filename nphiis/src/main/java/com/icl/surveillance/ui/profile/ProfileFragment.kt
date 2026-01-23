@@ -8,8 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import cn.pedant.SweetAlert.SweetAlertDialog
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
@@ -133,6 +133,7 @@ class ProfileFragment : Fragment() {
             value
         }
     }
+
     private fun mapUserData() {
         try {
             binding.apply {
@@ -228,16 +229,20 @@ class ProfileFragment : Fragment() {
         confirmText: String = "Yes, Proceed!",
         onConfirm: () -> Unit
     ) {
-        SweetAlertDialog(requireContext(), SweetAlertDialog.WARNING_TYPE).apply {
-            setTitleText(title)
-            setContentText(message)
-            setConfirmText(confirmText)
-            setConfirmClickListener { sDialog ->
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(confirmText) { dialog, _ ->
                 onConfirm()
-                sDialog.dismissWithAnimation()
+                dialog.dismiss()
             }
-            show()
-        }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(true)
+            .show()
+
     }
 
     private fun clearAppCache() {
@@ -267,7 +272,6 @@ class ProfileFragment : Fragment() {
         )
         requireActivity().finish()
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -20,6 +20,7 @@ import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
 import com.google.android.fhir.sync.remote.HttpLogger
+import com.google.firebase.FirebaseApp
 import com.icl.surveillance.monitor.FhirSyncService
 import com.icl.surveillance.monitor.NetworkModule
 import com.icl.surveillance.utils.Constants.BASE_URL
@@ -36,7 +37,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 
-class FhirApplication : Application(), DataCaptureConfig.Provider, Configuration.Provider {
+class FhirApplication : Application(), DataCaptureConfig.Provider {
     private val repo by lazy { FhirRepository(this) }
 
     // Only initiate the FhirEngine when used for the first time, not when the app is created.
@@ -113,46 +114,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider, Configuration
                         "Error setting up periodic sync: ${throwable.message}",
                         throwable
                     )
-                }
-                    .collect { syncJobStatus ->
-//                        when (syncJobStatus) {
-//                            is SyncJobStatus.Started -> {
-//                                Log.d("FHIR_SYNC", "Sync job enqueued")
-//                            }
-//
-//                            is SyncJobStatus.InProgress -> {
-//                                Log.d(
-//                                    "FHIR_SYNC",
-//                                    "Sync in progress: ${syncJobStatus.currentSyncJobStatus}"
-//                                )
-//                            }
-//
-//                            is SyncJobStatus.Succeeded -> {
-//                                Log.d("FHIR_SYNC", "Sync completed successfully")
-//                            }
-//
-//                            is SyncJobStatus.Failed -> {
-//                                Log.e("FHIR_SYNC", "Periodic sync run FAILED at: ${syncJobStatus.timestamp}")
-//                                val failureStatus = syncJobStatus.currentSyncJobStatus
-//                                if (failureStatus is CurrentSyncJobStatus.Failed) {
-//                                    // Log the specific exceptions for easier debugging.
-//                                    failureStatus.timestamp
-//                                        .forEach { info ->
-//                                        Log.e("FHIR_SYNC_FAILURE", "Failure on resource '${info.resourceType}':", info.exception)
-//                                    }
-//                                } else {
-//                                    Log.e("FHIR_SYNC_FAILURE", "Sync failed with an unexpected status: ${failureStatus::class.simpleName}")
-//                                }
-//                            }
-//
-//                            else -> {
-//                                Log.d(
-//                                    "FHIR_SYNC",
-//                                    "Other sync status: ${syncJobStatus::class.simpleName}"
-//                                )
-//                            }
-//                        }
-                    }
+                }.collect {  }
             } catch (e: Exception) {
                 Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
             }
@@ -184,9 +146,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider, Configuration
     override fun getDataCaptureConfig(): DataCaptureConfig =
         dataCaptureConfig ?: DataCaptureConfig()
 
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(MpoxWorkerFactory(repo))
-            .build()
+
+
 
 }

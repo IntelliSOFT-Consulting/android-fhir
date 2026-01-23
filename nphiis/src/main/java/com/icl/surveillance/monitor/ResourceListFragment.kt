@@ -17,8 +17,10 @@ import com.google.android.fhir.FhirEngineProvider
 import com.google.android.material.snackbar.Snackbar
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.FragmentResourceListBinding
+import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.NetworkUtils
 import kotlinx.coroutines.launch
+import java.text.Normalizer
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -88,25 +90,29 @@ class ResourceListFragment : Fragment() {
 
     private fun checkInternetAndUploadAllCurrentType() {
         val currentType = binding.spinner.selectedItem as String
-        lifecycleScope.launch {
-            val bundleSource = fhirBundleService.createUploadBundle(currentType)
-            if (!bundleSource.hasEntry()) {
-                showSnackbar("No $currentType resources to upload")
-                return@launch
-            }
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                viewModel.uploadBundle(bundleSource)
+        val token = FormatterClass().getSharedPref("access_token", requireContext())
+        if (token != null) {
+            lifecycleScope.launch {
+                val bundleSource = fhirBundleService.createUploadBundle(currentType)
+                if (!bundleSource.hasEntry()) {
+                    showSnackbar("No $currentType resources to upload")
+                    return@launch
+                }
+                if (NetworkUtils.isInternetAvailable(requireContext())) {
 
-                showSnackbar("Started uploading $currentType resources as bundle")
-            } else {
-                DialogHelper.showNoInternetDialog(
-                    context = requireContext(),
-                    onRetry = {
-                        viewModel.uploadBundle(bundleSource)
-                    }
-                )
-            }
+                    viewModel.uploadBundle(bundleSource, token = token)
 
+                    showSnackbar("Started uploading $currentType resources as bundle")
+                } else {
+                    DialogHelper.showNoInternetDialog(
+                        context = requireContext(),
+                        onRetry = {
+                            viewModel.uploadBundle(bundleSource, token = token)
+                        }
+                    )
+                }
+
+            }
         }
     }
 
@@ -133,17 +139,17 @@ class ResourceListFragment : Fragment() {
         }
     }
 
-    private fun checkInternetAndUpload(resourceId: String, isRetry: Boolean) {
+    private fun checkInternetAndUpload(resourceId: String, isRetry: Boolean, token: String) {
         if (NetworkUtils.isInternetAvailable(requireContext())) {
-            viewModel.uploadSingleResource(resourceId)
+            viewModel.uploadSingleResource(resourceId, token)
         } else {
             DialogHelper.showNoInternetDialog(
                 context = requireContext(),
                 onRetry = {
                     if (isRetry) {
-                        viewModel.retryUpload(resourceId)
+                        viewModel.retryUpload(resourceId, token)
                     } else {
-                        viewModel.uploadSingleResource(resourceId)
+                        viewModel.uploadSingleResource(resourceId, token)
                     }
                 },
                 onCancel = {
@@ -180,13 +186,13 @@ class ResourceListFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-
+        val token = FormatterClass().getSharedPref("access_token", requireContext())
         adapter = ResourceAdapter(onUploadClick = { resourceId ->
 
-            checkInternetAndUpload(resourceId, false)
+            checkInternetAndUpload(resourceId, false, "$token")
         }, onRetryClick = { resourceId ->
 
-            checkInternetAndUpload(resourceId, true)
+            checkInternetAndUpload(resourceId, true, "$token")
         })
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())

@@ -24,6 +24,7 @@ import com.icl.surveillance.monitor.FhirBundleService
 import com.icl.surveillance.monitor.PaginatedViewModel
 import com.icl.surveillance.monitor.ResourceAdapter
 import com.icl.surveillance.monitor.UploadOptionsBottomSheet
+import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.NetworkUtils
 import kotlinx.coroutines.launch
 
@@ -92,25 +93,27 @@ class SyncUploadActivity : AppCompatActivity() {
 
     private fun checkInternetAndUploadAllCurrentType() {
         val currentType = binding.spinner.selectedItem as String
-        lifecycleScope.launch {
-            val bundleSource = fhirBundleService.createUploadBundle(currentType)
-            if (!bundleSource.hasEntry()) {
-                showSnackbar("No $currentType resources to upload")
-                return@launch
-            }
-            if (NetworkUtils.isInternetAvailable(this@SyncUploadActivity)) {
-                viewModel.uploadBundle(bundleSource)
+        val token = FormatterClass().getSharedPref("access_token", this@SyncUploadActivity)
+        if (token != null) {
+            lifecycleScope.launch {
+                val bundleSource = fhirBundleService.createUploadBundle(currentType)
+                if (!bundleSource.hasEntry()) {
+                    showSnackbar("No $currentType resources to upload")
+                    return@launch
+                }
+                if (NetworkUtils.isInternetAvailable(this@SyncUploadActivity)) {
+                    viewModel.uploadBundle(bundleSource, token = token)
 
-                showSnackbar("Started uploading $currentType resources as bundle")
-            } else {
-                DialogHelper.showNoInternetDialog(
-                    context = this@SyncUploadActivity,
-                    onRetry = {
-                        viewModel.uploadBundle(bundleSource)
-                    }
-                )
+                    showSnackbar("Started uploading $currentType resources as bundle")
+                } else {
+                    DialogHelper.showNoInternetDialog(
+                        context = this@SyncUploadActivity,
+                        onRetry = {
+                            viewModel.uploadBundle(bundleSource, token = token)
+                        }
+                    )
+                }
             }
-
         }
     }
 
@@ -137,17 +140,17 @@ class SyncUploadActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkInternetAndUpload(resourceId: String, isRetry: Boolean) {
+    private fun checkInternetAndUpload(resourceId: String, isRetry: Boolean, token: String) {
         if (NetworkUtils.isInternetAvailable(this@SyncUploadActivity)) {
-            viewModel.uploadSingleResource(resourceId)
+            viewModel.uploadSingleResource(resourceId, token)
         } else {
             DialogHelper.showNoInternetDialog(
                 context = this@SyncUploadActivity,
                 onRetry = {
                     if (isRetry) {
-                        viewModel.retryUpload(resourceId)
+                        viewModel.retryUpload(resourceId, token)
                     } else {
-                        viewModel.uploadSingleResource(resourceId)
+                        viewModel.uploadSingleResource(resourceId, token)
                     }
                 },
                 onCancel = {
@@ -184,13 +187,13 @@ class SyncUploadActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-
+        val token = FormatterClass().getSharedPref("access_token", this@SyncUploadActivity)
         adapter = ResourceAdapter(onUploadClick = { resourceId ->
 
-            checkInternetAndUpload(resourceId, false)
+            checkInternetAndUpload(resourceId, false, "$token")
         }, onRetryClick = { resourceId ->
 
-            checkInternetAndUpload(resourceId, true)
+            checkInternetAndUpload(resourceId, true, "$token")
         })
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this@SyncUploadActivity)

@@ -1,6 +1,5 @@
 package com.icl.surveillance.monitor
 
-import com.google.firebase.sessions.dagger.Provides
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.icl.surveillance.utils.Constants.BASE_URL
@@ -13,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 class NetworkModule {
 
-    @Provides
+
     fun provideFhirDataSource(): FhirDataSource {
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY

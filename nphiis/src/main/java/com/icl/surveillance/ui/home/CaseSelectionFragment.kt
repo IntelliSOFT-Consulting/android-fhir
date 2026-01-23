@@ -9,12 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.android.fhir.FhirEngine
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.icl.surveillance.R
@@ -605,13 +605,13 @@ class CaseSelectionFragment : Fragment() {
    * @param context The context.
    */
   fun showPermissionErrorDialog(context: Context) {
-    SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE).apply {
-      setTitleText("Operation Restricted")
-      setContentText("You do not have permission to perform this action.")
-      setConfirmText("Okay")
-      setConfirmClickListener { sDialog -> sDialog.dismissWithAnimation() }
-      show()
-    }
+//    SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE).apply {
+//      setTitleText("Operation Restricted")
+//      setContentText("You do not have permission to perform this action.")
+//      setConfirmText("Okay")
+//      setConfirmClickListener { sDialog -> sDialog.dismissWithAnimation() }
+//      show()
+//    }
   }
 
   /**

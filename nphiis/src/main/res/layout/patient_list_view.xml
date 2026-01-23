@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/swipe_refresh"
@@ -8,9 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/case_count"
@@ -36,4 +32,3 @@
         tools:context=".PatientListActivity"
         tools:listitem="@layout/patient_list_item_view" />
 </RelativeLayout>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

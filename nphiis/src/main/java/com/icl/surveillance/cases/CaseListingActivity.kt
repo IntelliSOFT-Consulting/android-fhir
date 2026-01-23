@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.android.fhir.FhirEngine
 import com.icl.surveillance.R
 import com.icl.surveillance.adapters.MpoxPatientAdapter
@@ -273,25 +272,25 @@ class CaseListingActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
-                    .setTitleText("Are you sure?")
-                    .setContentText("Are you sure you wish to upload your  data?")
-                    .setConfirmText("Yes,Upload!")
-                    .setConfirmClickListener { sDialog ->
-                        lifecycleScope.launch {
-                            //  patientListViewModel.prepareUploadData("mpox-register")
-                            val workRequest = OneTimeWorkRequestBuilder<MpoxSyncWorker>().build()
-                            WorkManager.getInstance(this@CaseListingActivity).enqueue(workRequest)
-                        }
-                        Toast.makeText(
-                            this@CaseListingActivity,
-                            "Uploading data.....",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                        sDialog.dismissWithAnimation()
-                    }
-                    .show()
+//                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+//                    .setTitleText("Are you sure?")
+//                    .setContentText("Are you sure you wish to upload your  data?")
+//                    .setConfirmText("Yes,Upload!")
+//                    .setConfirmClickListener { sDialog ->
+//                        lifecycleScope.launch {
+//                            //  patientListViewModel.prepareUploadData("mpox-register")
+//                            val workRequest = OneTimeWorkRequestBuilder<MpoxSyncWorker>().build()
+//                            WorkManager.getInstance(this@CaseListingActivity).enqueue(workRequest)
+//                        }
+//                        Toast.makeText(
+//                            this@CaseListingActivity,
+//                            "Uploading data.....",
+//                            Toast.LENGTH_SHORT
+//                        )
+//                            .show()
+//                        sDialog.dismissWithAnimation()
+//                    }
+//                    .show()
 
 
                 true

@@ -118,22 +118,22 @@ class AddClientViewModel(application: Application, private val state: SavedState
 //                if (!cachedFacilities.isNullOrEmpty()) {
 //                    facilityIds.addAll(cachedFacilities)
 //                } else {
-                    val wards = fhirEngine.search<Location> {
-                        filter(Location.PARTOF, { value = "Location/$startId" })
-                        revInclude<Location>(Location.PARTOF)
-                    }
+                val wards = fhirEngine.search<Location> {
+                    filter(Location.PARTOF, { value = "Location/$startId" })
+                    revInclude<Location>(Location.PARTOF)
+                }
 
-                    val allFacilityIds = wards.flatMap { ward ->
-                        ward.revIncluded?.get(ResourceType.Location to Location.PARTOF.paramName)
-                            ?.map {"Location/${it.logicalId}"} ?: emptyList()
-                    }
+                val allFacilityIds = wards.flatMap { ward ->
+                    ward.revIncluded?.get(ResourceType.Location to Location.PARTOF.paramName)
+                        ?.map { "Location/${it.logicalId}" } ?: emptyList()
+                }
 
-                    FormatterClass().saveFacilityIdsForWard(
-                        applicationContext,
-                        startId,
-                        allFacilityIds
-                    )
-                    facilityIds.addAll(allFacilityIds)
+                FormatterClass().saveFacilityIdsForWard(
+                    applicationContext,
+                    startId,
+                    allFacilityIds
+                )
+                facilityIds.addAll(allFacilityIds)
 //                }
             }
 
@@ -144,41 +144,41 @@ class AddClientViewModel(application: Application, private val state: SavedState
 //                    facilityIds.addAll(cachedFacilities)
 //                } else {
 
-                    // 1. County → SubCounties
-                    val subCounties = fhirEngine.search<Location> {
-                        filter(Location.PARTOF, { value = "Location/$startId" })
+                // 1. County → SubCounties
+                val subCounties = fhirEngine.search<Location> {
+                    filter(Location.PARTOF, { value = "Location/$startId" })
+                }
+
+                val allFacilityIds = mutableListOf<String>()
+
+                // 2. SubCounty → Wards
+                for (subCounty in subCounties) {
+                    val wards = fhirEngine.search<Location> {
+                        filter(
+                            Location.PARTOF,
+                            { value = "Location/${subCounty.resource.logicalId}" })
                     }
 
-                    val allFacilityIds = mutableListOf<String>()
-
-                    // 2. SubCounty → Wards
-                    for (subCounty in subCounties) {
-                        val wards = fhirEngine.search<Location> {
+                    // 3. Ward → Facilities
+                    for (ward in wards) {
+                        val facilities = fhirEngine.search<Location> {
                             filter(
                                 Location.PARTOF,
-                                { value = "Location/${subCounty.resource.logicalId}" })
+                                { value = "Location/${ward.resource.logicalId}" })
                         }
 
-                        // 3. Ward → Facilities
-                        for (ward in wards) {
-                            val facilities = fhirEngine.search<Location> {
-                                filter(
-                                    Location.PARTOF,
-                                    { value = "Location/${ward.resource.logicalId}" })
-                            }
-
-                            allFacilityIds.addAll(
-                                facilities.map { "Location/${it.resource.logicalId}" }
-                            )
-                        }
+                        allFacilityIds.addAll(
+                            facilities.map { "Location/${it.resource.logicalId}" }
+                        )
                     }
-                    FormatterClass().saveFacilityIdsForWard(
-                        applicationContext,
-                        startId,
-                        allFacilityIds
-                    )
+                }
+                FormatterClass().saveFacilityIdsForWard(
+                    applicationContext,
+                    startId,
+                    allFacilityIds
+                )
 
-                    facilityIds.addAll(allFacilityIds)
+                facilityIds.addAll(allFacilityIds)
 //                }
             }
 
@@ -1432,7 +1432,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
             UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER ->
                 "819946803677_sub_county"
 
-            UserRole.ADMINISTRATOR,
+            UserRole.ADMINISTRATOR ->
+                "819946803677_national"
+
             UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
             UserRole.SUPERVISOR,
             UserRole.VACCINATOR ->
