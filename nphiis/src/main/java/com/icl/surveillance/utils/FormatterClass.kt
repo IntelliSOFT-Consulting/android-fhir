@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.widget.Button
 import com.google.android.fhir.datacapture.extensions.layoutInflater
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.icl.surveillance.R
@@ -293,7 +294,7 @@ class FormatterClass {
       dialog.setContentView(view)
       dialog.setCancelable(true)
 
-      view.findViewById<Button>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+      view.findViewById<MaterialButton>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
       dialog.show()
     } catch (e: Exception) {
       e.printStackTrace()

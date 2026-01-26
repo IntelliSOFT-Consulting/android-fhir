@@ -518,14 +518,8 @@ class CaseSelectionFragment : Fragment() {
             }
 
             else -> {
-              val dialog = BottomSheetDialog(requireContext())
-              val view = layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
-
-              dialog.setContentView(view)
-              dialog.setCancelable(true)
-
-              view.findViewById<Button>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
-              dialog.show()
+             
+                FormatterClass().showComingSoon(requireContext())
             }
           }
         }
