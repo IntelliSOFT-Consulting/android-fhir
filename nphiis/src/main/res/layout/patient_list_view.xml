@@ -8,14 +8,30 @@
     android:background="@color/white">
 
 
-    <TextView
-        android:id="@+id/case_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <LinearLayout
+        android:id="@+id/emptyStateLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_centerInParent="true"
-        android:text="0 Cases"
-        android:textColor="@color/black"
-        android:visibility="gone" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:contentDescription="@string/no_notifications"
+            android:src="@drawable/baseline_hourglass_empty_24"
+            app:tint="@color/gray" />
+
+
+        <TextView
+            android:id="@+id/case_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/you_re_all_caught_up"
+            android:textColor="@color/gray" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/pb_progress"
@@ -31,4 +47,6 @@
         app:layoutManager="LinearLayoutManager"
         tools:context=".PatientListActivity"
         tools:listitem="@layout/patient_list_item_view" />
+
+
 </RelativeLayout>

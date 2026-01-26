@@ -81,7 +81,7 @@ class CaseListingActivity : AppCompatActivity() {
             val slug = currentCase.toSlug()
             when (slug) {
                 "social-listening-and-rumor-tracking-tool" -> {
-                    patientListViewModel.handleCurrentRumorCaseListing(slug,units,userRole)
+                    patientListViewModel.handleCurrentRumorCaseListing(slug, units, userRole)
                     recyclerView.adapter = adapterRumor
                     patientListViewModel.liveRumorCases.observe(this) {
                         binding.apply {
@@ -91,10 +91,14 @@ class CaseListingActivity : AppCompatActivity() {
 
                         if (it.isEmpty()) {
                             binding.apply {
-                                patientListContainer.caseCount.visibility = View.VISIBLE
+                                patientListContainer.emptyStateLayout.visibility = View.VISIBLE
+                                patientListContainer.caseCount.text =
+                                    getString(R.string.matching_cases_single, it.size)
                             }
                         } else {
-                            binding.apply { patientListContainer.caseCount.visibility = View.GONE }
+                            binding.apply {
+                                patientListContainer.emptyStateLayout.visibility = View.GONE
+                            }
                         }
 
                         adapterRumor.submitList(it)
@@ -110,7 +114,7 @@ class CaseListingActivity : AppCompatActivity() {
                     )
                     recyclerView.adapter = adapterRegister
                     recyclerView.layoutManager = LinearLayoutManager(this@CaseListingActivity)
-                    patientListViewModel.loadMpoxPatientList(slug, units,userRole)
+                    patientListViewModel.loadMpoxPatientList(slug, units, userRole)
 
 
                     lifecycleScope.launch {
@@ -141,7 +145,7 @@ class CaseListingActivity : AppCompatActivity() {
                 }
 
                 else -> {
-                    patientListViewModel.handleCurrentCaseListing(slug,units,userRole)
+                    patientListViewModel.handleCurrentCaseListing(slug, units, userRole)
                     recyclerView.adapter = adapter
                     patientListViewModel.liveSearchedCases.observe(this) {
                         binding.apply {
@@ -150,10 +154,14 @@ class CaseListingActivity : AppCompatActivity() {
 
                         if (it.isEmpty()) {
                             binding.apply {
-                                patientListContainer.caseCount.visibility = View.VISIBLE
+                                patientListContainer.emptyStateLayout.visibility = View.VISIBLE
+                                patientListContainer.caseCount.text =
+                                    getString(R.string.matching_cases_single, it.size)
                             }
                         } else {
-                            binding.apply { patientListContainer.caseCount.visibility = View.GONE }
+                            binding.apply {
+                                patientListContainer.emptyStateLayout.visibility = View.GONE
+                            }
                         }
                         adapter.setData(it)
 
