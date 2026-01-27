@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.download.DownloadRequest
+import com.icl.surveillance.models.NPHIISSyncProgress
 import com.icl.surveillance.utils.FormatterClass
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -11,6 +12,7 @@ import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.ListResource
@@ -19,28 +21,36 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class TimestampBasedDownloadWorkManagerImpl(
     private val dataStore: DemoDataStore,
     val context: Context,
     val fhirEngine: FhirEngine,
     val scope: CoroutineScope,
-    var urls: LinkedList<String> = LinkedList(),
+//    var urls: LinkedList<String> = LinkedList(),
 ) : DownloadWorkManager {
     private var seeded = false
     private val resourceTypeList = ResourceType.values().map { it.name }
-    private val url1 =
-        LinkedList(
-            listOf(
-                "Patient?_sort=_lastUpdated",
-                "Encounter?_sort=_lastUpdated",
-                "QuestionnaireResponse?_sort=_lastUpdated",
-                "MeasureReport?_sort=_lastUpdated",
-                "Observation?_sort=_lastUpdated",
-                "Specimen?_sort=_lastUpdated",
-                "Location?_sort=-_lastUpdated",
-            )
+
+    // --- LIVE TRACKER ---
+    private val locationMonitor = NPHIISSyncProgressStore(context)
+    private val tracker = NPHIISSyncTracker(locationMonitor, locationTarget = 17000)
+    private var runId: String? = null
+
+    val urls = LinkedList(
+        listOf(
+            "Patient?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Encounter?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "QuestionnaireResponse?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "MeasureReport?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Observation?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Specimen?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Location?_sort=_lastUpdated"
         )
+    )
+
+    fun locationProgressFlow(): Flow<NPHIISSyncProgress> = locationMonitor.progress
 
     private fun startOfThisYearNairobi(): String {
         val zone = ZoneId.of("Africa/Nairobi")
@@ -59,6 +69,12 @@ class TimestampBasedDownloadWorkManagerImpl(
     private suspend fun seedTimestampsIfMissing() {
         if (seeded) return
         seeded = true
+
+        // Ensure runId exists once per instance lifecycle
+        if (runId == null) {
+            runId = UUID.randomUUID().toString()
+            locationMonitor.setRun(runId!!)
+        }
 
         val startOfYear = startOfThisYearNairobi()
 
@@ -86,6 +102,9 @@ class TimestampBasedDownloadWorkManagerImpl(
 
         val resourceTypeToDownload =
             ResourceType.fromCode(url.findAnyOf(resourceTypeList, ignoreCase = true)!!.second)
+
+        locationMonitor.setCurrentType(resourceTypeToDownload.name)
+
         dataStore.getLastUpdateTimestamp(resourceTypeToDownload)?.let {
             url = affixLastUpdatedTimestamp(url, it)
         }
@@ -130,10 +149,21 @@ class TimestampBasedDownloadWorkManagerImpl(
         // If the resource returned is a Bundle, check to see if there is a "next" relation referenced
         // in the Bundle.link component, if so, append the URL referenced to list of URLs to download.
         if (response is Bundle) {
+
+            // ---- Location monitoring: count Location entries in this page ----
+            val locationInThisPage =
+                response.entry.mapNotNull { it.resource }
+                    .count { it.resourceType == ResourceType.Location }
+
+            if (locationInThisPage > 0) {
+                locationMonitor.addLocationDownloaded(locationInThisPage)
+            }
+
             for (entry in response.entry) {
                 val type = entry.resource.resourceType.toString()
                 if (type == "Patient") {
-                    val patientUrl = "${entry.fullUrl}/\$everything"
+                    val patientId = entry.resource.idElement.idPart
+                    val patientUrl = "Patient/$patientId/\$everything"
                     urls.add(patientUrl)
                 }
             }
@@ -201,6 +231,9 @@ class TimestampBasedDownloadWorkManagerImpl(
                 } else {
                     "$downloadUrl?_lastUpdated=gt$lastUpdated"
                 }
+        }
+        if (downloadUrl.contains("_lastUpdated=")) {
+            downloadUrl = url
         }
 
         // Do not modify any URL set by a server that specifies the token of the page to return.

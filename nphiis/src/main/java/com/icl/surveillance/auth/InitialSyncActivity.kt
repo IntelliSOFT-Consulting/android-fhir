@@ -2,36 +2,53 @@ package com.icl.surveillance.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.work.Constraints
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.sync.PeriodicSyncConfiguration
+import com.google.android.fhir.sync.RepeatInterval
+import com.google.android.fhir.sync.Sync
 import com.icl.surveillance.MainActivity
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityInitialSyncBinding
+import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.LocationDownloadedWorker
+import com.icl.surveillance.fhir.NPHIISSyncProgressStore
+import com.icl.surveillance.models.NPHIISSyncProgress
 import com.icl.surveillance.utils.FhirBundleLoader
 import com.icl.surveillance.utils.FormatterClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import java.io.File
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.emptyList
 
 class InitialSyncActivity : AppCompatActivity() {
     private lateinit var fhirEngine: FhirEngine
     private lateinit var binding: ActivityInitialSyncBinding
+
+    private lateinit var locationMonitor: NPHIISSyncProgressStore
+    private var locationSyncCompleted = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,42 +61,57 @@ class InitialSyncActivity : AppCompatActivity() {
             insets
         }
         fhirEngine = FhirApplication.fhirEngine(this@InitialSyncActivity)
+
+        locationMonitor = NPHIISSyncProgressStore(applicationContext)
+        lifecycleScope.launch {
+            try {
+                Sync.oneTimeSync<AppFhirSyncWorker>(
+                    this@InitialSyncActivity
+
+                ).catch { throwable ->
+                    Log.e(
+                        "FHIR_SYNC",
+                        "Error setting up periodic sync: ${throwable.message}",
+                        throwable
+                    )
+                }.collect { }
+            } catch (e: Exception) {
+                Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
+            }
+        }
+        observeLocationProgress()
         if (FormatterClass().isSyncDone(this)) {
             startMain()
 
-        } else {
-            handleInitialFHIRLocalSync()
         }
     }
 
-    private fun handleInitialFHIRSync() {
-        val workerRequest = OneTimeWorkRequestBuilder<LocationDownloadedWorker>().build()
-        val workerId = workerRequest.id
-        WorkManager.getInstance(this@InitialSyncActivity).enqueue(workerRequest)
+    private fun observeLocationProgress() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                locationMonitor.progress.collect { progress ->
 
-        WorkManager.getInstance(this@InitialSyncActivity)
-            .getWorkInfoByIdLiveData(workerId)
-            .observe(this) { workInfo ->
-                workInfo?.progress?.let { data ->
-                    val processed = data.getInt("processed", 0)
-                    val skipped = data.getInt("skipped", 0)
-                    val failed = data.getInt("failed", 0)
-                    val message = buildString {
-                        if (processed > 0) append("Processed $processed ")
-                        if (skipped > 0) append(", skipped $skipped")
-                        if (failed > 0) append(", failed $failed")
+                    val count = progress.locationDownloaded
+                    val type = progress.currentType
+                    val runId = progress.runId
+
+                    binding.syncStatusText.text = "Locations synced: $count"
+
+                    if (!locationSyncCompleted && count >= 16700) {
+                        locationSyncCompleted = true
+
+                        FormatterClass().setSyncDone(this@InitialSyncActivity)
+                        binding.syncStatusText.text = "All data imported successfully."
+                        lifecycleScope.launch {
+                            delay(2000)
+                            startMain()
+                        }
                     }
-                    binding.syncStatusText.text = message
-                }
-
-                // Optional: handle completion
-                if (workInfo?.state?.isFinished == true) {
-                    Toast.makeText(this, "Import complete", Toast.LENGTH_SHORT).show()
-                    startMain()
                 }
             }
-
+        }
     }
+
 
     private fun handleInitialFHIRLocalSync() {
         lifecycleScope.launch {
@@ -135,7 +167,7 @@ class InitialSyncActivity : AppCompatActivity() {
                             totalFailed.addAndGet(deltaFailed)
 
                             val message = buildString {
-                                if (totalProcessed.get() > 0) append("Processed ${totalProcessed.get()} ") 
+                                if (totalProcessed.get() > 0) append("Processed ${totalProcessed.get()} ")
                                 if (totalFailed.get() > 0) append(", failed ${totalFailed.get()}")
                             }
                             CoroutineScope(Dispatchers.Main).launch {
@@ -201,9 +233,19 @@ class InitialSyncActivity : AppCompatActivity() {
 
     private fun startMain() {
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        startActivity(Intent(this, MainActivity::class.java))
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+            )
+        }
+
+        startActivity(intent)
         finish()
     }
+
 
     private suspend fun importBundleFile(
         loader: FhirBundleLoader,
