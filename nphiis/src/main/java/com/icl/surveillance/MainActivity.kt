@@ -22,11 +22,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -41,22 +45,24 @@ import com.icl.surveillance.viewmodels.SyncFragmentViewModel
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
-import com.google.firebase.FirebaseApp
-import com.google.firebase.messaging.FirebaseMessaging
+
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.fhir.DemoDataStore
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.monitor.FhirBundleService
+import com.icl.surveillance.monitor.FhirPaginatedRepository
+import com.icl.surveillance.monitor.PaginatedViewModel
 import com.icl.surveillance.network.RetrofitCallsAuthentication
 import com.icl.surveillance.viewmodels.AddClientViewModel
 import com.icl.surveillance.viewmodels.PeriodicSyncViewModel
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.QuestionnaireResponse
-import org.hl7.fhir.r4.model.ResourceType
+import org.hl7.fhir.r4.model.*
+import java.util.Date
 import kotlin.getValue
 import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
-
+    private lateinit var backupSyncViewModel: PaginatedViewModel
     private var retrofitCallsAuthentication = RetrofitCallsAuthentication()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
@@ -97,12 +103,16 @@ class MainActivity : AppCompatActivity() {
 
     private val addClientViewModel: AddClientViewModel by viewModels()
     private lateinit var fhirEngine: FhirEngine
-
+    private lateinit var fhirBundleService: FhirBundleService
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fhirEngine = FhirApplication.fhirEngine(this@MainActivity)
+
+        backupSyncViewModel = PaginatedViewModel(fhirEngine)
+        fhirBundleService = FhirBundleService(fhirEngine)
+
         val rootView: View = findViewById(R.id.container) // your root view ID
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -504,11 +514,80 @@ class MainActivity : AppCompatActivity() {
                 // Display toast to show sync has started
                 Toast.makeText(this, "Sync Started ... ", Toast.LENGTH_SHORT).show()
 //                  startActivity(Intent(this@MainActivity, SyncActivity::class.java))
+                processBackupSync()
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun processBackupSync() {
+        val repository = FhirPaginatedRepository(fhirEngine)
+        backupSyncViewModel.loadLocalResources("Patient")
+        val resources = backupSyncViewModel.resources.value
+        val token = FormatterClass().getSharedPref("access_token", this@MainActivity)
+        if (token != null) {
+            lifecycleScope.launch {
+                resources.forEach { resourceData ->
+                    println("Resource Type: ${resourceData.resource.idElement.idPart}")
+                    val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+                    val bundle = org.hl7.fhir.r4.model.Bundle().apply {
+                        id = "upload-bundle-${System.currentTimeMillis()}"
+                        type = org.hl7.fhir.r4.model.Bundle.BundleType.TRANSACTION
+                        timestamp = Date()
+                    }
+                    val entry = org.hl7.fhir.r4.model.Bundle.BundleEntryComponent().apply {
+                        fullUrl =
+                            "${resourceData.resource.resourceType}/${resourceData.resource.logicalId}"
+                        val requestPayload =
+                            org.hl7.fhir.r4.model.Bundle.BundleEntryRequestComponent().apply {
+                                method = org.hl7.fhir.r4.model.Bundle.HTTPVerb.PUT
+                                url =
+                                    "${resourceData.resource.resourceType}/${resourceData.resource.logicalId}"
+                            }
+                        request = requestPayload
+                        resource = resourceData.resource
+                    }
+                    bundle.addEntry(entry)
+                    val resources = repository.fetchPatientRelatedResources(
+                        fhirEngine = fhirEngine,
+                        patientId = resourceData.resource.idElement.idPart,
+                        resourceTypes = listOf(
+                            ResourceType.Encounter,
+                            ResourceType.Observation,
+                            ResourceType.QuestionnaireResponse,
+                            ResourceType.Specimen
+                        ),
+                        pageSize = 200,
+                        onlyMissingLastUpdated = true
+                    )
+                    resources.forEach { data ->
+                        println("Resource Child: ${data.resourceType} -> ${data.idElement.idPart} ")
+                        val entry = org.hl7.fhir.r4.model.Bundle.BundleEntryComponent().apply {
+                            fullUrl = "${data.resourceType}/${data.logicalId}"
+                            val requestPayload =
+                                org.hl7.fhir.r4.model.Bundle.BundleEntryRequestComponent().apply {
+                                    method = org.hl7.fhir.r4.model.Bundle.HTTPVerb.PUT
+                                    url = "${data.resourceType}/${data.logicalId}"
+                                }
+                            request = requestPayload
+                            resource = data
+                        }
+                        val questionnaireResponseString =
+                            jsonParser.encodeResourceToString(data)
+                        println("Resource Entry: $questionnaireResponseString ")
+                        bundle.addEntry(entry)
+
+                    }
+                    val questionnaireResponseString =
+                        jsonParser.encodeResourceToString(bundle)
+                    println("Resource Bundle: $questionnaireResponseString ")
+                    backupSyncViewModel.uploadBundle(bundle, token = token)
+                }
+            }
+        }
+
     }
 
 }
