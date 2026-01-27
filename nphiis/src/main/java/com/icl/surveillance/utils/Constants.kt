@@ -11,8 +11,8 @@ object Constants {
 //    const val BASE_AUTH_URL = "https://dsrkeycloak.intellisoftkenya.com/auth/"
 //    const val ALERTS_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"
 
-    const val BASE_URL = "https://auth.nphiis.nphl.go.ke/fhir/"
-    const val BASE_AUTH_URL = "https://auth.nphiis.nphl.go.ke/"
+    const val BASE_URL = "https://auth.nphiis.health.go.ke/fhir/"
+    const val BASE_AUTH_URL = "https://auth.nphiis.health.go.ke/"
     const val ALERTS_BASE_URL = BASE_AUTH_URL// "https://dsrfhir.intellisoftkenya.com/api/"
 
 

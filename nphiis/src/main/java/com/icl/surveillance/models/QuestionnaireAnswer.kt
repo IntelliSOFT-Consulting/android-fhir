@@ -75,6 +75,7 @@ data class AnswerCoding(
 data class FCMToken(
     val token: String
 )
+
 data class BundleImportResult(
     val processed: Int,
     val failed: Int,
@@ -314,7 +315,20 @@ data class FailedSyncResource(
     val resourceId: String,
     val errorMessage: String? = null
 )
+
 data class FacilityInfo(
     val name: String,
     val code: String
 )
+
+data class NPHIISSyncProgress(
+    val runId: String = "",
+    val status: NPHIISSyncStatus = NPHIISSyncStatus.IDLE,
+    val currentType: String = "",
+    val locationDownloaded: Int = 0,
+    val locationTarget: Int = 15_000,
+    val lastMessage: String = "",
+    val updatedAtEpochMs: Long = 0L,
+)
+
+enum class NPHIISSyncStatus { IDLE, RUNNING, SUCCESS, FAILED }

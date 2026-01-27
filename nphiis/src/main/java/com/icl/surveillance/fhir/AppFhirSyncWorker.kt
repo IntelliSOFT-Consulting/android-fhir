@@ -30,14 +30,14 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         val engine = FhirApplication.fhirEngine(applicationContext)
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-        val facilityIds = getRespectiveFilteredResourcesSuspend(applicationContext, engine)
+//        val facilityIds = getRespectiveFilteredResourcesSuspend(applicationContext, engine)
 //        println("All Respective IDs expected $facilityIds")
         val manager = TimestampBasedDownloadWorkManagerImpl(
             dataStore = FhirApplication.dataStore(applicationContext),
             context = applicationContext,
             fhirEngine = engine,
             scope = scope,
-            urls = facilityIds
+//            urls = facilityIds
         )
 
         return manager

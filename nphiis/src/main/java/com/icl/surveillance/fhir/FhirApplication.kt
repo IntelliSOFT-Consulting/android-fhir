@@ -73,7 +73,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                         ) {
                             Log.e("App-HttpLog", it)
                         },
-                    networkConfiguration = NetworkConfiguration(uploadWithGzip = true),
+                    networkConfiguration = NetworkConfiguration(uploadWithGzip = false),
                     authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
                 ),
             ),

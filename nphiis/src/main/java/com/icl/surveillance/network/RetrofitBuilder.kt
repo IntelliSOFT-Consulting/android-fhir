@@ -14,57 +14,32 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitBuilder {
 
-  fun getRetrofit(baseUrl: String): Retrofit {
+    fun getRetrofit(baseUrl: String): Retrofit {
 
-    val interceptor = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        val interceptor =
+            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
-    val builder =
-        OkHttpClient.Builder()
-            .readTimeout(5, TimeUnit.MINUTES)
-            .writeTimeout(5, TimeUnit.MINUTES)
-            .connectTimeout(2, TimeUnit.MINUTES)
-            .protocols(listOf(Protocol.HTTP_1_1))
-            .connectionSpecs(
-                listOf(
-                    ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
-                        .tlsVersions(TlsVersion.TLS_1_2, TlsVersion.TLS_1_3)
-                        .build()
+        val builder =
+            OkHttpClient.Builder()
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(5, TimeUnit.MINUTES)
+                .connectTimeout(2, TimeUnit.MINUTES)
+                // Key change: allow compatible TLS for older / OEM devices
+                .connectionSpecs(
+                    listOf(
+                        ConnectionSpec.MODERN_TLS,
+                        ConnectionSpec.COMPATIBLE_TLS
+                    )
                 )
-            )
-            .addInterceptor(interceptor)
+                .addInterceptor(interceptor)
 
-    val trustAllCerts =
-        arrayOf<TrustManager>(
-            object : X509TrustManager {
-              override fun checkClientTrusted(
-                  chain: Array<java.security.cert.X509Certificate>,
-                  authType: String,
-              ) = Unit
 
-              override fun checkServerTrusted(
-                  chain: Array<java.security.cert.X509Certificate>,
-                  authType: String,
-              ) = Unit
+        val client = builder.build()
 
-              override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> =
-                  arrayOf()
-            }
-        )
-
-    val sslContext = SSLContext.getInstance("TLS")
-    sslContext.init(null, trustAllCerts, java.security.SecureRandom())
-    val sslSocketFactory = sslContext.socketFactory
-
-    builder
-        .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
-        .hostnameVerifier { _, _ -> true }
-
-    val client = builder.build()
-
-    return Retrofit.Builder()
-        .baseUrl(baseUrl)
-        .client(client)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-  }
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 }
