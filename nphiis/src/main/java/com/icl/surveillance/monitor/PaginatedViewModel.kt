@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Resource
 import java.time.Instant
 
 class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
@@ -49,6 +50,29 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
 
 
     fun loadFirstPage(resourceType: String) {
+        currentResourceType = resourceType
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val firstPage = repository.getResourcesPage(resourceType, 0)
+                val resourcesWithStatus = firstPage.map { resource ->
+                    ResourceWithSyncStatus(
+                        resource = resource,
+                        syncStatus = SyncStatus.PENDING
+                    )
+                }
+                _resources.value = resourcesWithStatus
+                _hasMore.value = repository.hasMore(firstPage)
+                updateSyncStats()
+            } catch (e: Exception) {
+                Log.e("PaginatedVM", "Error loading first page: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadLocalResources(resourceType: String) {
         currentResourceType = resourceType
         viewModelScope.launch {
             _isLoading.value = true
@@ -111,7 +135,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
     }
 
     // NEW: Upload functionality
-    fun uploadSingleResource(resourceId: String,token: String) {
+    fun uploadSingleResource(resourceId: String, token: String) {
         viewModelScope.launch {
             val resourceWithStatus = _resources.value.find { it.resource.logicalId == resourceId }
             if (resourceWithStatus != null) {
@@ -119,7 +143,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
                 _syncInProgress.value = _syncInProgress.value + resourceId
 
                 try {
-                    val result = fhirSyncService.uploadResource(resourceWithStatus.resource, token )
+                    val result = fhirSyncService.uploadResource(resourceWithStatus.resource, token)
 
                     when (result) {
                         is SyncResult.Success -> {
@@ -155,7 +179,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
         }
     }
 
-    fun retryUpload(resourceId: String,token: String) {
+    fun retryUpload(resourceId: String, token: String) {
         if (!syncFailureManager.shouldRetry(resourceId)) {
             Log.w("ViewModel", "Max retries reached for $resourceId")
             return
@@ -166,7 +190,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
             _syncInProgress.value = _syncInProgress.value + resourceId
 
             try {
-                val success = performActualUpload(resourceId,token)
+                val success = performActualUpload(resourceId, token)
 
                 if (success) {
                     updateResourceStatus(resourceId, SyncStatus.SYNCED)
@@ -194,7 +218,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
     }
 
 
-    fun uploadBundle(bundle: Bundle, bundleDescription: String = "Bundle",token: String) {
+    fun uploadBundle(bundle: Bundle, bundleDescription: String = "Bundle", token: String) {
         viewModelScope.launch {
             val resourceIdsInBundle = bundle.entry.mapNotNull { it.resource?.logicalId }
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
@@ -219,7 +243,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
                 _syncInProgress.value = _syncInProgress.value + resourceIdsInBundle
 
                 // Step 2: Upload the bundle
-                val result = fhirSyncService.uploadBundle(bundle,token)
+                val result = fhirSyncService.uploadBundle(bundle, token)
 
                 // Step 3: Process individual results
                 processBundleUploadResult(result, resourceIdsInBundle, bundleDescription)
@@ -356,10 +380,10 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
         _resources.value = currentList
     }
 
-    private suspend fun performActualUpload(resourceId: String,token: String): Boolean {
+    private suspend fun performActualUpload(resourceId: String, token: String): Boolean {
         val resourceWithStatus = _resources.value.find { it.resource.logicalId == resourceId }
         return if (resourceWithStatus != null) {
-            val result = fhirSyncService.uploadResource(resourceWithStatus.resource,token)
+            val result = fhirSyncService.uploadResource(resourceWithStatus.resource, token)
             result is SyncResult.Success
         } else {
             false

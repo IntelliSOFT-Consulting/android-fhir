@@ -73,11 +73,13 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                         ) {
                             Log.e("App-HttpLog", it)
                         },
-                    networkConfiguration = NetworkConfiguration(uploadWithGzip = false),
+                    networkConfiguration = NetworkConfiguration(uploadWithGzip = true),
                     authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
                 ),
             ),
         )
+        setupPeriodicSync()
+
         try {
 
             dataCaptureConfig =
@@ -89,7 +91,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                         fhirEngine.search(it).map { it.resource }
                     }
                 }
-            setupPeriodicSync()
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -114,7 +116,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                         "Error setting up periodic sync: ${throwable.message}",
                         throwable
                     )
-                }.collect {  }
+                }.collect { }
             } catch (e: Exception) {
                 Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
             }
@@ -145,8 +147,6 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
     override fun getDataCaptureConfig(): DataCaptureConfig =
         dataCaptureConfig ?: DataCaptureConfig()
-
-
 
 
 }

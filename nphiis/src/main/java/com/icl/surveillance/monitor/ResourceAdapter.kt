@@ -129,6 +129,11 @@ class ResourceAdapter(
             syncStatusIcon.visibility = if (showProgress) View.GONE else View.VISIBLE
             btnRetry.visibility = if (showRetry) View.VISIBLE else View.GONE
             syncStatusBanner.visibility = if (showBanner) View.VISIBLE else View.GONE
+            val params = syncProgress.layoutParams
+            params.width = 10   // px
+            params.height = 10  // px
+            syncProgress.layoutParams = params
+
         }
 
         private fun updateCornerButton(syncStatus: SyncStatus) {

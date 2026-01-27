@@ -74,7 +74,6 @@ class SyncUploadActivity : AppCompatActivity() {
         return true
     }
 
-
     private fun showUploadOptionsBottomSheet() {
         val currentType = binding.spinner.selectedItem as String
 

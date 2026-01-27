@@ -41,63 +41,19 @@ class TimestampBasedDownloadWorkManagerImpl(
     val urls = LinkedList(
         listOf(
             "Patient?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Encounter?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "QuestionnaireResponse?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "MeasureReport?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Observation?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Specimen?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+//            "Encounter?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+//            "QuestionnaireResponse?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+//            "MeasureReport?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+//            "Observation?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+//            "Specimen?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
             "Location?_sort=_lastUpdated"
         )
     )
 
-    fun locationProgressFlow(): Flow<NPHIISSyncProgress> = locationMonitor.progress
-
-    private fun startOfThisYearNairobi(): String {
-        val zone = ZoneId.of("Africa/Nairobi")
-        val start = ZonedDateTime.now(zone)
-            .withDayOfYear(1)
-            .toLocalDate()
-            .atStartOfDay(zone)
-
-        val formatter =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
-                .withZone(zone)
-
-        return formatter.format(start.toInstant())
-    }
-
-    private suspend fun seedTimestampsIfMissing() {
-        if (seeded) return
-        seeded = true
-
-        // Ensure runId exists once per instance lifecycle
-        if (runId == null) {
-            runId = UUID.randomUUID().toString()
-            locationMonitor.setRun(runId!!)
-        }
-
-        val startOfYear = startOfThisYearNairobi()
-
-        // Only seed if the store doesn't already have a value
-        listOf(
-            ResourceType.Patient,
-            ResourceType.Encounter,
-            ResourceType.QuestionnaireResponse,
-            ResourceType.MeasureReport,
-            ResourceType.Observation,
-            ResourceType.Location,
-            ResourceType.Specimen,
-        ).forEach { rt ->
-            val existing = dataStore.getLastUpdateTimestamp(rt)
-            if (existing.isNullOrBlank()) {
-                dataStore.saveLastUpdatedTimestamp(rt, startOfYear)
-            }
-        }
-    }
 
     override suspend fun getNextRequest(): DownloadRequest? {
         FormatterClass().getSharedPref("isLoggedIn", context) ?: return null
-        seedTimestampsIfMissing()
+
         var url = urls.poll() ?: return null
 
         val resourceTypeToDownload =
