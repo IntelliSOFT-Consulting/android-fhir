@@ -41,11 +41,11 @@ class TimestampBasedDownloadWorkManagerImpl(
     val urls = LinkedList(
         listOf(
             "Patient?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-//            "Encounter?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-//            "QuestionnaireResponse?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-//            "MeasureReport?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-//            "Observation?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-//            "Specimen?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Encounter?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "QuestionnaireResponse?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "MeasureReport?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Observation?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Specimen?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
             "Location?_sort=_lastUpdated"
         )
     )
