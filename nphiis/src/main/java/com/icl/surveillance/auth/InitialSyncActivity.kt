@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -30,6 +31,7 @@ import com.icl.surveillance.fhir.NPHIISSyncProgressStore
 import com.icl.surveillance.models.NPHIISSyncProgress
 import com.icl.surveillance.utils.FhirBundleLoader
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.viewmodels.SyncFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -41,10 +43,12 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.emptyList
+import kotlin.getValue
 
 class InitialSyncActivity : AppCompatActivity() {
     private lateinit var fhirEngine: FhirEngine
     private lateinit var binding: ActivityInitialSyncBinding
+    private val viewModel: SyncFragmentViewModel by viewModels()
 
     private lateinit var locationMonitor: NPHIISSyncProgressStore
     private var locationSyncCompleted = false
@@ -61,7 +65,7 @@ class InitialSyncActivity : AppCompatActivity() {
             insets
         }
         fhirEngine = FhirApplication.fhirEngine(this@InitialSyncActivity)
-
+        viewModel.triggerOneTimeSync()
         locationMonitor = NPHIISSyncProgressStore(applicationContext)
         lifecycleScope.launch {
             try {
