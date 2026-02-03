@@ -40,13 +40,13 @@ class TimestampBasedDownloadWorkManagerImpl(
 
     val urls = LinkedList(
         listOf(
-            "Patient?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Encounter?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "QuestionnaireResponse?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "MeasureReport?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Observation?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Specimen?_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Location?_sort=_lastUpdated"
+            "Patient?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Encounter?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "QuestionnaireResponse?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "MeasureReport?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Observation?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Specimen?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Location?_count=900&_sort=_lastUpdated"
         )
     )
 
@@ -188,7 +188,8 @@ class TimestampBasedDownloadWorkManagerImpl(
                     "$downloadUrl?_lastUpdated=gt$lastUpdated"
                 }
         }
-        if (downloadUrl.contains("_lastUpdated=")) {
+
+        if (downloadUrl.contains("Location")) {
             downloadUrl = url
         }
 

@@ -27,6 +27,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
@@ -53,11 +58,14 @@ import com.icl.surveillance.monitor.FhirBundleService
 import com.icl.surveillance.monitor.FhirPaginatedRepository
 import com.icl.surveillance.monitor.PaginatedViewModel
 import com.icl.surveillance.network.RetrofitCallsAuthentication
+import com.icl.surveillance.network.TokenRefreshWorker
+import com.icl.surveillance.utils.NetworkUtils.isInternetAvailable
 import com.icl.surveillance.viewmodels.AddClientViewModel
 import com.icl.surveillance.viewmodels.PeriodicSyncViewModel
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.*
 import java.util.Date
+import java.util.concurrent.TimeUnit
 import kotlin.getValue
 import kotlin.jvm.java
 
@@ -128,21 +136,9 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         getUserProfile()
-//        FirebaseApp.initializeApp(this)
-//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-//            if (!task.isSuccessful) {
-//
-//                return@addOnCompleteListener
-//            }
-//            val token = task.result
-//            Log.d("FCM", "Current token: $token")
-//
-//            // Optionally save it or send to your server
-//            FormatterClass().saveSharedPref("fcmToken", token, this)
-//            retrofitCallsAuthentication.updateOrCreateToken(this, token)
-//        }
 
-        updateSourceFacility()
+//        updateSourceFacility()
+        setupTokenRefresh()
         appUpdateManager = AppUpdateManagerFactory.create(this)
         checkForAppUpdate()
 
@@ -188,6 +184,30 @@ class MainActivity : AppCompatActivity() {
         }
         checkLocationPermission()
         generateAreaOfJurisdiction()
+    }
+
+    private fun setupTokenRefresh() {
+
+        if (isInternetAvailable(this@MainActivity)) {
+            val workRequest =
+                PeriodicWorkRequestBuilder<TokenRefreshWorker>(
+                    1, TimeUnit.HOURS
+                )
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .build()
+
+            WorkManager.getInstance(
+                this@MainActivity
+            ).enqueueUniquePeriodicWork(
+                "token_refresh_work",
+                ExistingPeriodicWorkPolicy.UPDATE,
+                workRequest
+            )
+        }
     }
 
     private fun generateAreaOfJurisdiction() {
@@ -527,6 +547,8 @@ class MainActivity : AppCompatActivity() {
         backupSyncViewModel.loadLocalResources("Patient")
         val resources = backupSyncViewModel.resources.value
         val token = FormatterClass().getSharedPref("access_token", this@MainActivity)
+
+        println("Resource Count: ${resources.size}")
         if (token != null) {
             lifecycleScope.launch {
                 resources.forEach { resourceData ->
@@ -557,7 +579,8 @@ class MainActivity : AppCompatActivity() {
                             ResourceType.Encounter,
                             ResourceType.Observation,
                             ResourceType.QuestionnaireResponse,
-                            ResourceType.Specimen
+                            ResourceType.Specimen,
+                            ResourceType.MeasureReport
                         ),
                         pageSize = 200,
                         onlyMissingLastUpdated = true

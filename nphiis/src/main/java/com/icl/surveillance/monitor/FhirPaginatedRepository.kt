@@ -29,12 +29,12 @@ class FhirPaginatedRepository(private val fhirEngine: FhirEngine) {
             when (resourceType) {
                 "Patient" -> {
                     fhirEngine.search<Patient> {
-                        count = pageSize
-                        from = page * pageSize
+                        count = 500//pageSize
+                        from =0// page * pageSize
                     }.map { it.resource }
-                        .filter {
-                            it.meta?.lastUpdated == null
-                        }
+//                        .filter {
+//                            it.meta?.lastUpdated == null
+//                        }
                 }
 
                 "QuestionnaireResponse" -> {
@@ -156,6 +156,14 @@ class FhirPaginatedRepository(private val fhirEngine: FhirEngine) {
                 ResourceType.Specimen -> fetchPaged { from ->
                     fhirEngine.search<Specimen> {
                         filter(Specimen.SUBJECT, { value = patientRef })
+                        count = pageSize
+                        this.from = from
+                    }.map { it.resource }
+                }
+
+                ResourceType.MeasureReport -> fetchPaged { from ->
+                    fhirEngine.search<MeasureReport> {
+                        filter(MeasureReport.SUBJECT, { value = patientRef })
                         count = pageSize
                         this.from = from
                     }.map { it.resource }
