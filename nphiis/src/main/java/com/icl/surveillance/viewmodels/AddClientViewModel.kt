@@ -1313,7 +1313,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     questionnaireResponse.subject = subjectReference
                     questionnaireResponse.encounter = encounterReference
 
-//                    fhirEngine.create(questionnaireResponse)
+                    fhirEngine.create(questionnaireResponse)
 
                     extractedAnswers.forEach {
 
