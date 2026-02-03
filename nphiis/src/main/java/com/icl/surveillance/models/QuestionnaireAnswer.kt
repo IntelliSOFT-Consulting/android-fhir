@@ -82,6 +82,10 @@ data class BundleImportResult(
     val skipped: Int
 )
 
+data class RefreshToken(
+    val refresh_token: String
+)
+
 data class DbSignIn(
     val idNumber: String,
     val password: String,
@@ -332,3 +336,16 @@ data class NPHIISSyncProgress(
 )
 
 enum class NPHIISSyncStatus { IDLE, RUNNING, SUCCESS, FAILED }
+
+@Serializable
+data class AuthTokenResponse(
+    val access_token: String,
+    val expires_in: Long,
+    val refresh_expires_in: Long,
+    val refresh_token: String,
+    val token_type: String,
+    val `not-before-policy`: Int,
+    val session_state: String,
+    val scope: String,
+    val status: String
+)

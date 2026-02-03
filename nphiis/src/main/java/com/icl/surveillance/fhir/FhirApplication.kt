@@ -34,6 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 
@@ -57,7 +58,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
     override fun onCreate() {
         super.onCreate()
-
+        Timber.plant(Timber.DebugTree())
         FhirEngineProvider.init(
             FhirEngineConfiguration(
                 enableEncryptionIfSupported = false,
@@ -70,10 +71,10 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                                 HttpLogger.Level.BASIC,
                             ),
                         ) {
-                            Log.e("App-HttpLog", it)
+                            Timber.tag("App-HttpLog").e(it)
                         },
-                    networkConfiguration = NetworkConfiguration(uploadWithGzip = true),
-                    authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
+                    networkConfiguration = NetworkConfiguration(uploadWithGzip = false),
+//                    authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
                 ),
             ),
         )
