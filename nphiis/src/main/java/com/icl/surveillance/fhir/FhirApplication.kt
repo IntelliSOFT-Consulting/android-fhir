@@ -56,7 +56,6 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     }
 
     override fun onCreate() {
-
         super.onCreate()
 
         FhirEngineProvider.init(
@@ -78,7 +77,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                 ),
             ),
         )
-        setupPeriodicSync()
+//        setupPeriodicSync()
 
         try {
 

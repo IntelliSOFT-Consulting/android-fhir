@@ -225,7 +225,11 @@ class RetrofitCallsAuthentication {
                                     val expires_in = body.expires_in
                                     val refresh_expires_in = body.refresh_expires_in
                                     val refresh_token = body.refresh_token
-
+                                    TokenStore.saveTokens(
+                                        context,
+                                        accessToken = access_token,
+                                        refreshToken = refresh_token,
+                                    )
                                     formatter.saveSharedPref("access_token", access_token, context)
                                     formatter.saveSharedPref(
                                         "expires_in",
@@ -356,12 +360,14 @@ class RetrofitCallsAuthentication {
                     val apiInterface = apiService.getUserInfo("Bearer $token")
                     if (apiInterface.isSuccessful) {
                         viewModel.triggerOneTimeSync()
+                        viewModel.setupPeriodicSync()
                         val statusCode = apiInterface.code()
                         val body = apiInterface.body()
                         if (statusCode == 200 || statusCode == 201) {
                             if (body != null) {
                                 val user = body.user
                                 saveUserInformation(user, context)
+
                             }
                         }
                     }

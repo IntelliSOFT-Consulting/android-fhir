@@ -2,17 +2,23 @@ package com.icl.surveillance.viewmodels
 
 import android.app.Application
 import android.text.format.DateFormat
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
+import androidx.work.NetworkType
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.PeriodicSyncConfiguration
+import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
 import com.icl.surveillance.fhir.AppFhirSyncWorker
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 
 
 class SyncFragmentViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,6 +57,30 @@ class SyncFragmentViewModel(application: Application) : AndroidViewModel(applica
                         _syncState.value = SyncState.Finished
                     }
                 }
+        }
+    }
+    fun setupPeriodicSync() {
+        viewModelScope.launch {
+            try {
+                Sync.periodicSync<AppFhirSyncWorker>(
+                    this@SyncFragmentViewModel.getApplication(),
+                    periodicSyncConfiguration = PeriodicSyncConfiguration(
+                        syncConstraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build(),
+                        repeat = RepeatInterval(interval = 15, timeUnit = TimeUnit.MINUTES)
+                    )
+
+                ).catch { throwable ->
+                    Log.e(
+                        "FHIR_SYNC",
+                        "Error setting up periodic sync: ${throwable.message}",
+                        throwable
+                    )
+                }.collect { }
+            } catch (e: Exception) {
+                Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
+            }
         }
     }
 
