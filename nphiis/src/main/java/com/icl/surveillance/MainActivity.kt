@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         getUserProfile()
-
+        viewModel.triggerOneTimeSync()
 //        updateSourceFacility()
         setupTokenRefresh()
         appUpdateManager = AppUpdateManagerFactory.create(this)
@@ -516,10 +516,9 @@ class MainActivity : AppCompatActivity() {
                         )
                         DemoDataStore(this@MainActivity).clearAllTimestamps(trackedResources)
                         viewModel.triggerOneTimeSync()
-                        //  show toast
+
                         Toast.makeText(this@MainActivity, "Sync Started ... ", Toast.LENGTH_SHORT)
                             .show()
-
 
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -534,7 +533,7 @@ class MainActivity : AppCompatActivity() {
                 // Display toast to show sync has started
                 Toast.makeText(this, "Sync Started ... ", Toast.LENGTH_SHORT).show()
 //                  startActivity(Intent(this@MainActivity, SyncActivity::class.java))
-                processBackupSync()
+//                processBackupSync()
                 true
             }
 

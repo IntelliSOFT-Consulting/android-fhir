@@ -58,6 +58,7 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.Specimen
 import org.json.JSONObject
+import timber.log.Timber
 import java.util.Calendar
 import java.util.LinkedList
 import java.util.Locale
@@ -1311,7 +1312,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     questionnaireResponse.id = generateUuid()
                     questionnaireResponse.subject = subjectReference
                     questionnaireResponse.encounter = encounterReference
-                    fhirEngine.create(questionnaireResponse)
+
+//                    fhirEngine.create(questionnaireResponse)
 
                     extractedAnswers.forEach {
 
@@ -1383,7 +1385,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("TAG", "Error experienced ${e.message}}")
+                    Timber.tag("TAG").e("Error experienced ${e.message}}")
                 }
                 withContext(Dispatchers.Main) { isPatientSaved.value = true }
             }

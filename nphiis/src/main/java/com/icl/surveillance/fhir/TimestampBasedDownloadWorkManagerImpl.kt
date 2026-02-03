@@ -20,6 +20,7 @@ import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -37,15 +38,14 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val locationMonitor = NPHIISSyncProgressStore(context)
     private val tracker = NPHIISSyncTracker(locationMonitor, locationTarget = 17000)
     private var runId: String? = null
-
+    private val BASELINE_2026: Instant = Instant.parse("2026-01-01T00:00:00Z")
     val urls = LinkedList(
         listOf(
-            "Patient?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Encounter?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "QuestionnaireResponse?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "MeasureReport?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Observation?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
-            "Specimen?_count=200&_lastUpdated=ge2026-01-01T00:00:00Z&_sort=_lastUpdated",
+            "Patient?_count=200&_sort=_lastUpdated",
+            "Encounter?_count=200&_sort=_lastUpdated",
+            "MeasureReport?_count=200&_sort=_lastUpdated",
+            "Observation?_count=200&_sort=_lastUpdated",
+            "Specimen?_count=200&_sort=_lastUpdated",
             "Location?_count=900&_sort=_lastUpdated"
         )
     )
@@ -156,6 +156,7 @@ class TimestampBasedDownloadWorkManagerImpl(
             }
     }
 
+
     /**
      * Affixes the last updated timestamp to the request URL.
      *
@@ -163,6 +164,7 @@ class TimestampBasedDownloadWorkManagerImpl(
      * attached using the `_since` parameter. Otherwise, the last updated timestamp will be attached
      * using the `_lastUpdated` parameter.
      */
+
     private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String {
         var downloadUrl = url
 
