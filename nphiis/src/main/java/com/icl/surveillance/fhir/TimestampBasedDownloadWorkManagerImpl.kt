@@ -46,12 +46,12 @@ class TimestampBasedDownloadWorkManagerImpl(
         DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC)
     private val CORE_URLS = listOf(
         "Patient?_count=200&_sort=_lastUpdated",
-        "QuestionnaireResponse?_count=200&_sort=_lastUpdated",
-        "MeasureReport?_count=200&_sort=_lastUpdated",
-        "Specimen?_count=200&_sort=_lastUpdated",
+//        "QuestionnaireResponse?_count=200&_sort=_lastUpdated",
+//        "MeasureReport?_count=200&_sort=_lastUpdated",
+//        "Specimen?_count=200&_sort=_lastUpdated",
     )
 
-    private val LOCATION_URL = "Location?_count=900&_sort=_lastUpdated"
+    private val LOCATION_URL = "Location?_count=500&_sort=_lastUpdated"
     private val urls: LinkedList<String> = LinkedList()
     private var shouldMarkLocationSeedDone = false
 
@@ -59,14 +59,12 @@ class TimestampBasedDownloadWorkManagerImpl(
         if (seeded) return
 
         urls.clear()
-        urls.addAll(CORE_URLS)
-
         val isFirstTimeForLocation = !FormatterClass().isSyncDone(context)
         if (isFirstTimeForLocation) {
             urls.add(LOCATION_URL)
             shouldMarkLocationSeedDone = true
         }
-
+        urls.addAll(CORE_URLS)
         seeded = true
     }
 
