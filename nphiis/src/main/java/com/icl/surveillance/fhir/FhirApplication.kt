@@ -74,7 +74,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                             Timber.tag("App-HttpLog").e(it)
                         },
                     networkConfiguration = NetworkConfiguration(uploadWithGzip = false),
-//                    authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
+                    authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
                 ),
             ),
         )

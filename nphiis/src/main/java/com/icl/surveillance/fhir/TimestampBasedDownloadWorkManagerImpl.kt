@@ -44,12 +44,17 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val FLOOR_2026 = "2026-01-01T00:00:00Z"
     private val ISO_INSTANT: DateTimeFormatter =
         DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC)
-    private val CORE_URLS = listOf(
-        "Patient?_count=200&_sort=_lastUpdated",
-//        "QuestionnaireResponse?_count=200&_sort=_lastUpdated",
-//        "MeasureReport?_count=200&_sort=_lastUpdated",
-//        "Specimen?_count=200&_sort=_lastUpdated",
-    )
+    private val CORE_URLS =
+        if (FormatterClass().isSyncDone(context)) {
+            listOf(
+                "Patient?_count=200&_sort=_lastUpdated",
+                "Location?_count=500&_sort=_lastUpdated"
+            )
+        } else {
+            listOf(
+                "Location?_count=500&_sort=_lastUpdated"
+            )
+        }
 
     private val LOCATION_URL = "Location?_count=500&_sort=_lastUpdated"
     private val urls: LinkedList<String> = LinkedList()
@@ -194,19 +199,8 @@ class TimestampBasedDownloadWorkManagerImpl(
 
         val isEverything = url.contains("\$everything")
         if (url.contains("Location")) {
-            return if (!lastUpdated.isNullOrBlank()) {
-
-                if (FormatterClass().isSyncDone(context)) {
-                    setOrReplaceQueryParam(
-                        url,
-                        "_lastUpdated",
-                        "gt${normalizeToInstant(lastUpdated)}"
-                    )
-                } else {
-                    url
-                }
-            } else {
-                url
+            if (!FormatterClass().isSyncDone(context)) {
+                return url
             }
         }
         // Compute ONE lower bound
@@ -263,63 +257,6 @@ class TimestampBasedDownloadWorkManagerImpl(
         val sep = if (url.contains("?")) "&" else "?"
         return "$url$sep$key=$value"
     }
-
-
-    private fun affixLastUpdatedTimestampOld(url: String, lastUpdated: String): String {
-        var downloadUrl = url
-        val storedInstant: Instant? =
-            lastUpdated.takeIf { it.isNotBlank() }
-                ?.let { runCatching { Instant.parse(it) }.getOrNull() }
-
-        // ✅ If first time -> baseline start of year; else stored
-        val effectiveStart: Instant = storedInstant ?: BASELINE_START_OF_YEAR
-        val ts = ISO_INSTANT.format(effectiveStart)
-
-        // $everything uses _since
-        if (url.contains("\$everything")) {
-            val cleaned = url.replace(Regex("[&?]_since=[^&]*"), "")
-            val joiner = if (cleaned.contains("?")) "&" else "?"
-            return "$cleaned${joiner}_since=$ts"
-        }
-
-        // Normal search uses _lastUpdated (replace any existing)
-        val cleaned = url.replace(Regex("[&?]_lastUpdated=[^&]*"), "")
-        val joiner = if (cleaned.contains("?")) "&" else "?"
-        downloadUrl = "$cleaned${joiner}_lastUpdated=ge$ts"
-
-        // Affix lastUpdate to a $everything query using _since as per:
-        // https://hl7.org/fhir/operation-patient-everything.html
-//        if (downloadUrl.contains("\$everything")) {
-//            downloadUrl =
-//                if (downloadUrl.contains("?")) {
-//                    "$downloadUrl&_since=$lastUpdated"
-//                } else {
-//                    "$downloadUrl?_since=$lastUpdated"
-//                }
-//        }
-//        if (!downloadUrl.contains("\$everything")) {
-//            downloadUrl =
-//                if (downloadUrl.contains("&_count=")) {
-//                    url
-//                } else if (downloadUrl.contains("&_lastUpdated")) {
-//                    url
-//                } else if (downloadUrl.contains("sort")) {
-//                    "$downloadUrl&_lastUpdated=gt$lastUpdated"
-//                } else {
-//                    "$downloadUrl?_lastUpdated=gt$lastUpdated"
-//                }
-//        }
-//        if (downloadUrl.contains("_lastUpdated=")) {
-//            downloadUrl = url
-//        }
-
-        // Do not modify any URL set by a server that specifies the token of the page to return.
-        if (downloadUrl.contains("&page_token")) {
-            downloadUrl = url
-        }
-        return downloadUrl
-    }
-
     private fun Date.toTimeZoneString(): String {
         val simpleDateFormat =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())

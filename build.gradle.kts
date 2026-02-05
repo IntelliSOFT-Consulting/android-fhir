@@ -15,10 +15,11 @@ buildscript {
         classpath(Plugins.kspGradlePlugin)
         classpath(Plugins.navSafeArgsGradlePlugin)
         classpath(Plugins.rulerGradlePlugin)
-//        classpath(Plugins.googleServices)
-//        classpath(Plugins.firebaseCrashlytics)
+        classpath(Plugins.googleServices)
+        classpath(Plugins.firebaseCrashlytics)
     }
 }
+
 allprojects {
     repositories {
         google()

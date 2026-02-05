@@ -66,7 +66,6 @@ class SummarizedActivity : AppCompatActivity() {
 
 
         val slug = currentCase?.toSlug()
-        println("Current Case $slug")
         fhirEngine = FhirApplication.fhirEngine(this@SummarizedActivity)
         patientDetailsViewModel =
             ViewModelProvider(
