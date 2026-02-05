@@ -84,6 +84,9 @@ woodstox = "6.5.1"
 xerces = "2.12.2"
 xml-unit = "2.9.1"
 zxing = "3.4.1"
+googleServices = "4.4.2"
+firebaseCrashlyticsPlugin = "2.9.9"
+firebaseMessaging = "25.0.1"
 
 [libraries]
 accompanist-themeadapter-material3 = { module = "com.google.accompanist:accompanist-themeadapter-material3", version.ref = "accompanist-themeadapter-material3"}
@@ -197,6 +200,7 @@ woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version.ref = "woo
 xerces = { module = "xerces:xercesImpl", version.ref = "xerces" }
 xml-unit = { module = "org.xmlunit:xmlunit-core", version.ref = "xml-unit" }
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [bundles]
 androidx-tracing = ["androidx-tracing-tracing", "androidx-tracing-tracing-android", "androidx-tracing-tracing-ktx"]
@@ -219,3 +223,5 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization" }
 kotlin-serialization-build-src = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebaseCrashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }

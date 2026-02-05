@@ -1006,7 +1006,6 @@ class PatientListViewModel(
             }
 
             else -> {
-//                val result = fhirEngine.search("Patient?gender=female")
                 return fhirEngine.search<Patient> {
                     sort(Patient.GIVEN, Order.ASCENDING)
 
@@ -1290,19 +1289,19 @@ class PatientListViewModel(
                         null // Not a match — exclude
                     }
                 }
-                    .filter {
-                        when (userRole) {
-                            UserRole.ADMINISTRATOR -> {
-                                true
-                            }
-
-                            else -> {
-                                it.sourceTag in units
-                            }
-                        }
-
-
-                    }
+//                    .filter {
+//                        when (userRole) {
+//                            UserRole.ADMINISTRATOR -> {
+//                                true
+//                            }
+//
+//                            else -> {
+//                                it.sourceTag in units
+//                            }
+//                        }
+//
+//
+//                    }
                     .sortedByDescending { it.lastUpdated }
             }
         }

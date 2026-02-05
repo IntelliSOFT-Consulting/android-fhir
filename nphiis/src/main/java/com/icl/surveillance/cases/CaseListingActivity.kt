@@ -75,6 +75,8 @@ class CaseListingActivity : AppCompatActivity() {
 
         val formatter = FormatterClass()
         val storedRole = formatter.getSharedPref("practitionerRole", this)
+        val storedCounty = formatter.getSharedPref("countyName", this)
+        val storedSubCounty = formatter.getSharedPref("subCountyName", this)
         val userRole = UserRole.fromAny(storedRole ?: "")
 
         if (currentCase != null) {
@@ -163,7 +165,30 @@ class CaseListingActivity : AppCompatActivity() {
                                 patientListContainer.emptyStateLayout.visibility = View.GONE
                             }
                         }
-                        adapter.setData(it)
+                        when (userRole) {
+                            UserRole.ADMINISTRATOR -> {
+                                adapter.setData(it)
+                            }
+
+                            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                val filtered = it.filter { case ->
+                                    case.county == storedCounty
+                                }
+                                adapter.setData(filtered)
+                            }
+
+                            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                val filtered = it.filter { case ->
+                                    case.subCounty == storedSubCounty
+                                }
+                                adapter.setData(filtered)
+                            }
+
+                            else -> {
+
+                            }
+                        }
+
 
                         binding.apply {
                             tvEpidNo.addTextChangedListener { text ->

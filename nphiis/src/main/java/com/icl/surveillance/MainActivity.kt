@@ -50,6 +50,7 @@ import com.icl.surveillance.viewmodels.SyncFragmentViewModel
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.firebase.messaging.FirebaseMessaging
 
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.fhir.DemoDataStore
@@ -136,6 +137,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         getUserProfile()
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+
+                return@addOnCompleteListener
+            }
+            val token = task.result
+
+            // Optionally save it or send to your server
+            FormatterClass().saveSharedPref("fcmToken", token, this)
+            retrofitCallsAuthentication.updateOrCreateToken(this, token)
+        }
+
         viewModel.triggerOneTimeSync()
 //        updateSourceFacility()
         setupTokenRefresh()

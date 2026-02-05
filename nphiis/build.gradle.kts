@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.androidx.navigation.safeargs)
 
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 configureRuler()
@@ -75,8 +77,8 @@ dependencies {
     implementation("com.airbnb.android:lottie:6.6.0")
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-messaging")
-    implementation ("com.google.firebase:firebase-analytics")
-    implementation ("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.android.play:app-update:2.1.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
