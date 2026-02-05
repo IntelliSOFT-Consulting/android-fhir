@@ -4,15 +4,15 @@ import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.download.DownloadRequest
-import com.icl.surveillance.models.NPHIISSyncProgress
 import com.icl.surveillance.utils.FormatterClass
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.ListResource
@@ -20,19 +20,15 @@ import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import java.time.Instant
 import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter.ISO_INSTANT
-import java.util.UUID
 
 class TimestampBasedDownloadWorkManagerImpl(
     private val dataStore: DemoDataStore,
     val context: Context,
     val fhirEngine: FhirEngine,
     val scope: CoroutineScope,
-//    var urls: LinkedList<String> = LinkedList(),
 ) : DownloadWorkManager {
+
     private var seeded = false
     private val resourceTypeList = ResourceType.values().map { it.name }
 
@@ -40,35 +36,44 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val locationMonitor = NPHIISSyncProgressStore(context)
     private val tracker = NPHIISSyncTracker(locationMonitor, locationTarget = 17000)
     private var runId: String? = null
-    private val BASELINE_START_OF_YEAR: Instant = Instant.parse("2026-01-01T00:00:00Z")
+
     private val FLOOR_2026 = "2026-01-01T00:00:00Z"
     private val ISO_INSTANT: DateTimeFormatter =
         DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC)
+
+    private val LOCATION_URL = "Location?_count=500&_sort=_lastUpdated"
+
+    // NOTE: keep your intended behavior; this is just as you had it.
     private val CORE_URLS =
         if (FormatterClass().isSyncDone(context)) {
             listOf(
                 "Patient?_count=200&_sort=_lastUpdated",
-                "Location?_count=500&_sort=_lastUpdated"
+                "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
             listOf(
-                "Location?_count=500&_sort=_lastUpdated"
+                "Location?_count=500&_sort=_lastUpdated",
             )
         }
 
-    private val LOCATION_URL = "Location?_count=500&_sort=_lastUpdated"
     private val urls: LinkedList<String> = LinkedList()
     private var shouldMarkLocationSeedDone = false
+
+    // ✅ Prevent infinite loops
+    private val enqueuedEverythingPatients = mutableSetOf<String>()   // PatientId -> enqueued once
+    private val seenUrls = mutableSetOf<String>()                     // global guard (optional but strong)
 
     private fun seedUrlsIfNeeded() {
         if (seeded) return
 
         urls.clear()
+
         val isFirstTimeForLocation = !FormatterClass().isSyncDone(context)
         if (isFirstTimeForLocation) {
             urls.add(LOCATION_URL)
             shouldMarkLocationSeedDone = true
         }
+
         urls.addAll(CORE_URLS)
         seeded = true
     }
@@ -77,53 +82,50 @@ class TimestampBasedDownloadWorkManagerImpl(
         FormatterClass().getSharedPref("isLoggedIn", context) ?: return null
         seedUrlsIfNeeded()
 
-        var url = urls.poll() ?: run {
-            // ✅ All queued work done for this run
-            if (shouldMarkLocationSeedDone) {
-//                FormatterClass().setSyncDone(context)
-                shouldMarkLocationSeedDone = false
+        while (true) {
+            var url = urls.poll() ?: run {
+                // ✅ All queued work done for this run
+                if (shouldMarkLocationSeedDone) {
+                    // FormatterClass().setSyncDone(context)
+                    shouldMarkLocationSeedDone = false
+                }
+                return null
             }
-            return null
+
+            // ✅ Hard stop: never execute the exact same URL twice in the same run
+            if (!seenUrls.add(url)) {
+                continue
+            }
+
+            val typeHit = url.findAnyOf(resourceTypeList, ignoreCase = true)?.second
+                ?: return null
+
+            val resourceTypeToDownload = ResourceType.fromCode(typeHit)
+            locationMonitor.setCurrentType(resourceTypeToDownload.name)
+
+            dataStore.getLastUpdateTimestamp(resourceTypeToDownload)?.let {
+                url = affixLastUpdatedTimestamp(url, it)
+            }
+
+            return DownloadRequest.of(url)
         }
-
-        val resourceTypeToDownload =
-            ResourceType.fromCode(url.findAnyOf(resourceTypeList, ignoreCase = true)!!.second)
-
-        locationMonitor.setCurrentType(resourceTypeToDownload.name)
-
-        dataStore.getLastUpdateTimestamp(resourceTypeToDownload)?.let {
-            url = affixLastUpdatedTimestamp(url, it)
-        }
-        return DownloadRequest.of(url)
     }
 
     override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {
         return urls.associate { url ->
             val resourceType = ResourceType.fromCode(url.substringBefore("?"))
-            //            if (resourceType == ResourceType.Patient) {
-            //                resourceType to
-            // url.plus("&${SyncDataParams.SUMMARY_KEY}=${SyncDataParams.SUMMARY_COUNT_VALUE}")
-            //            } else {
             resourceType to url
-            //            }
         }
     }
 
     override suspend fun processResponse(response: Resource): Collection<Resource> {
-        // As per FHIR documentation :
-        // If the search fails (cannot be executed, not that there are no matches), the
-        // return value SHALL be a status code 4xx or 5xx with an OperationOutcome.
-        // See https://www.hl7.org/fhir/http.html#search for more details.
         if (response is OperationOutcome) {
             throw FHIRException(response.issueFirstRep.diagnostics)
         }
 
-        // If the resource returned is a List containing Patients, extract Patient references and fetch
-        // all resources related to the patient using the $everything operation.
+        // If List containing Patients -> queue $everything for those patient refs
         if (response is ListResource) {
-
             for (entry in response.entry) {
-
                 val reference = Reference(entry.item.reference)
                 if (reference.referenceElement.resourceType.equals("Patient")) {
                     val patientUrl = "${entry.item.reference}/\$everything"
@@ -132,43 +134,54 @@ class TimestampBasedDownloadWorkManagerImpl(
             }
         }
 
-        // If the resource returned is a Bundle, check to see if there is a "next" relation referenced
-        // in the Bundle.link component, if so, append the URL referenced to list of URLs to download.
         if (response is Bundle) {
-
             // ---- Location monitoring: count Location entries in this page ----
             val locationInThisPage =
                 response.entry.mapNotNull { it.resource }
                     .count { it.resourceType == ResourceType.Location }
-
             if (locationInThisPage > 0) {
                 locationMonitor.addLocationDownloaded(locationInThisPage)
             }
 
-            for (entry in response.entry) {
-                val type = entry.resource.resourceType.toString()
-                if (type == "Patient") {
-                    val patientId = entry.resource.idElement.idPart
-                    val patientUrl = "Patient/$patientId/\$everything"
-                    urls.add(patientUrl)
+            // ✅ Detect: is this a Patient SEARCH page (Patient-only SEARCHSET)?
+            val typesInBundle: Set<ResourceType> =
+                response.entry.mapNotNull { it.resource?.resourceType }.toSet()
+
+            val isPatientOnlySearchPage =
+                response.type == Bundle.BundleType.SEARCHSET &&
+                        typesInBundle.size == 1 &&
+                        typesInBundle.contains(ResourceType.Patient)
+
+            // ✅ Only enqueue $everything from Patient search pages
+            // (Never enqueue from $everything bundles, which are mixed types and often include Patient again)
+            if (isPatientOnlySearchPage) {
+                for (entry in response.entry) {
+                    val res = entry.resource ?: continue
+                    val patientId = res.idElement?.idPart ?: continue
+
+                    // ✅ enqueue once per patient
+                    if (enqueuedEverythingPatients.add(patientId)) {
+                        urls.add("Patient/$patientId/\$everything")
+                    }
                 }
             }
 
-            val nextUrl =
-                response.link.firstOrNull { component -> component.relation == "next" }?.url
+            // pagination for ANY searchset (including Patient search pages)
+            val nextUrl = response.link.firstOrNull { it.relation == "next" }?.url
             if (nextUrl != null) {
                 urls.add(nextUrl)
             }
         }
 
-        // Finally, extract the downloaded resources from the bundle.
+        // Finally, extract resources
         var bundleCollection: Collection<Resource> = mutableListOf()
         if (response is Bundle && response.type == Bundle.BundleType.SEARCHSET) {
             bundleCollection =
                 response.entry
-                    .map { it.resource }
+                    .mapNotNull { it.resource }
                     .also { extractAndSaveLastUpdateTimestampToFetchFutureUpdates(it) }
         }
+
         return bundleCollection
     }
 
@@ -178,7 +191,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         resources
             .groupBy { it.resourceType }
             .entries
-            .map { map ->
+            .forEach { map ->
                 dataStore.saveLastUpdatedTimestamp(
                     map.key,
                     map.value.maxOfOrNull { it.meta.lastUpdated }?.toTimeZoneString() ?: "",
@@ -186,24 +199,18 @@ class TimestampBasedDownloadWorkManagerImpl(
             }
     }
 
-    /**
-     * Affixes the last updated timestamp to the request URL.
-     *
-     * If the request URL includes the `$everything` parameter, the last updated timestamp will be
-     * attached using the `_since` parameter. Otherwise, the last updated timestamp will be attached
-     * using the `_lastUpdated` parameter.
-     */
-
     private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String?): String {
         if (url.contains("&page_token")) return url
 
         val isEverything = url.contains("\$everything")
+
+        // Keep your special Location behavior
         if (url.contains("Location")) {
             if (!FormatterClass().isSyncDone(context)) {
                 return url
             }
         }
-        // Compute ONE lower bound
+
         val lowerBound = if (lastUpdated.isNullOrBlank()) {
             FLOOR_2026
         } else {
@@ -211,23 +218,20 @@ class TimestampBasedDownloadWorkManagerImpl(
         }
 
         return if (isEverything) {
-            // Ensure only one _since
             setOrReplaceQueryParam(url, "_since", lowerBound)
         } else {
-            // Ensure only one _lastUpdated (single, strict constraint)
             setOrReplaceQueryParam(url, "_lastUpdated", "gt$lowerBound")
         }
     }
 
     private fun normalizeToInstant(ts: String): String {
         return try {
-            // Accepts "2025-09-04T00:46:33.677+03:00"
-            java.time.OffsetDateTime.parse(ts).toInstant().toString()
+            OffsetDateTime.parse(ts).toInstant().toString()
         } catch (_: Exception) {
             try {
                 Instant.parse(ts).toString()
             } catch (_: Exception) {
-                ts // last resort, but try hard to avoid this path
+                ts
             }
         }
     }
@@ -238,13 +242,11 @@ class TimestampBasedDownloadWorkManagerImpl(
             val ib = Instant.parse(b)
             if (ib.isAfter(ia)) b else a
         } catch (_: Exception) {
-            // If parsing fails, prefer b if it's not blank, else a
             b.ifBlank { a }
         }
     }
 
     private fun setOrReplaceQueryParam(url: String, key: String, value: String): String {
-        // Replace if present
         val regex = Regex("([?&])$key=[^&]*")
         return if (regex.containsMatchIn(url)) {
             url.replace(regex, "$1$key=$value")
@@ -257,6 +259,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         val sep = if (url.contains("?")) "&" else "?"
         return "$url$sep$key=$value"
     }
+
     private fun Date.toTimeZoneString(): String {
         val simpleDateFormat =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())

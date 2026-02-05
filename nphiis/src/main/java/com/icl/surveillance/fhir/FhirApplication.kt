@@ -68,10 +68,11 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                     httpLogger =
                         HttpLogger(
                             HttpLogger.Configuration(
-                                HttpLogger.Level.BASIC,
+                                HttpLogger.Level.BODY,
                             ),
-                        ) {
-                            Timber.tag("App-HttpLog").e(it)
+                        ) {line->
+                            Timber.tag("App-HttpLog").e(line)
+                            Timber.tag("FHIR-HTTP").d(line)
                         },
                     networkConfiguration = NetworkConfiguration(uploadWithGzip = false),
                     authenticator = { HttpAuthenticationMethod.Bearer(retrieveStoredToken()) }
