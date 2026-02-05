@@ -172,14 +172,14 @@ class CaseListingActivity : AppCompatActivity() {
 
                             UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
                                 val filtered = it.filter { case ->
-                                    case.county == storedCounty
+                                    case.county.contains("$storedCounty")
                                 }
                                 adapter.setData(filtered)
                             }
 
                             UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
                                 val filtered = it.filter { case ->
-                                    case.subCounty == storedSubCounty
+                                    case.subCounty.contains("$storedSubCounty")
                                 }
                                 adapter.setData(filtered)
                             }
