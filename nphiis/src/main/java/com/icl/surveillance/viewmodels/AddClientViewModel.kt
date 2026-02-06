@@ -536,8 +536,6 @@ class AddClientViewModel(application: Application, private val state: SavedState
         questionnaireResponse: QuestionnaireResponse, context: Context
     ) {
         viewModelScope.launch {
-//            val questionnaireResponse = populateReportingSiteAnswers(updatedResponse, context)
-
             if (QuestionnaireResponseValidator.validateQuestionnaireResponse(
                     questionnaire,
                     questionnaireResponse,
@@ -1307,6 +1305,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
                     patient.identifier.add(identifierSystem0)
                     patient.identifier.add(identifierSystem)
+                    patient.active = true
                     fhirEngine.create(patient)
                     fhirEngine.create(enc)
                     questionnaireResponse.id = generateUuid()

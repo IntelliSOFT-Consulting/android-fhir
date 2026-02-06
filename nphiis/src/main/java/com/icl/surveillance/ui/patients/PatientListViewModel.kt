@@ -766,6 +766,7 @@ class PatientListViewModel(
             "mpox-tally-sheet" -> {
                 val questionnaireData: MutableList<PatientItem> = mutableListOf()
                 fhirEngine.search<MeasureReport> {
+
                     sort(MeasureReport.DATE, Order.DESCENDING)
                 }
                     .mapIndexedNotNull { index, data ->
@@ -873,6 +874,7 @@ class PatientListViewModel(
 
                 val questionnaireData: MutableList<PatientItem> = mutableListOf()
                 fhirEngine.search<Patient> {
+                    filter(Patient.ACTIVE, { value = of(true) })
                     sort(Patient.GIVEN, Order.ASCENDING)
                     revInclude<Observation>(Observation.SUBJECT)
                 }.mapIndexedNotNull { index, fhirPatient ->
@@ -1007,6 +1009,7 @@ class PatientListViewModel(
 
             else -> {
                 return fhirEngine.search<Patient> {
+                    filter(Patient.ACTIVE, { value = of(true) })
                     sort(Patient.GIVEN, Order.ASCENDING)
 
                 }.mapIndexedNotNull { index, fhirPatient ->
