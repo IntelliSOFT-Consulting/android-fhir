@@ -62,7 +62,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
                     )
                 }
                 _resources.value = resourcesWithStatus
-                _hasMore.value = repository.hasMore(firstPage)
+                _hasMore.value = repository.hasMore(resourceType, firstPage)
                 updateSyncStats()
             } catch (e: Exception) {
                 Log.e("PaginatedVM", "Error loading first page: ${e.message}")
@@ -85,7 +85,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
                     )
                 }
                 _resources.value = resourcesWithStatus
-                _hasMore.value = repository.hasMore(firstPage)
+                _hasMore.value = repository.hasMore(resourceType, firstPage)
                 updateSyncStats()
             } catch (e: Exception) {
                 Log.e("PaginatedVM", "Error loading first page: ${e.message}")
@@ -115,7 +115,7 @@ class PaginatedViewModel(private val fhirEngine: FhirEngine) : ViewModel() {
                     val currentList = _resources.value.toMutableList()
                     currentList.addAll(newResourcesWithStatus)
                     _resources.value = currentList
-                    _hasMore.value = repository.hasMore(nextPage)
+                    _hasMore.value = repository.hasMore(currentResourceType, nextPage)
                     updateSyncStats()
                 } else {
                     _hasMore.value = false

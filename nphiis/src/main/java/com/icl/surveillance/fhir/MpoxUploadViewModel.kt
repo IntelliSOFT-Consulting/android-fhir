@@ -262,9 +262,8 @@ class MpoxUploadViewModel(
         bundle: Bundle,
         context: Context
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             println("API Response:::: Preparing data")
-            val payload = jsonParser.encodeResourceToString(bundle)
             val apiCall = RetrofitCallsAuthentication()
             val json = jsonParser.encodeResourceToString(bundle)
             val requestBody = json.toRequestBody("application/json".toMediaType())

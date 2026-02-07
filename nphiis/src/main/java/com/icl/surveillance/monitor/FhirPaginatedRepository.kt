@@ -18,19 +18,20 @@ import org.hl7.fhir.r4.model.Specimen
 class FhirPaginatedRepository(private val fhirEngine: FhirEngine) {
 
     private val currentPage = MutableStateFlow(0)
-    private val pageSize = 50
     private val defaultPageSize = 50
 
     suspend fun getResourcesPage(
         resourceType: String,
         page: Int = 0
     ): List<Resource> {
+        val pageSize = getPageSize(resourceType)
+        val offset = page * pageSize
         return try {
             when (resourceType) {
                 "Patient" -> {
                     fhirEngine.search<Patient> {
-                        count = 500//pageSize
-                        from =0// page * pageSize
+                        count = pageSize
+                        from = offset
                     }.map { it.resource }
 //                        .filter {
 //                            it.meta?.lastUpdated == null
@@ -40,28 +41,28 @@ class FhirPaginatedRepository(private val fhirEngine: FhirEngine) {
                 "QuestionnaireResponse" -> {
                     fhirEngine.search<QuestionnaireResponse> {
                         count = pageSize
-                        from = page * pageSize
+                        from = offset
                     }.map { it.resource }.filter { it.meta?.lastUpdated == null }
                 }
 
                 "MeasureReport" -> {
                     fhirEngine.search<MeasureReport> {
                         count = pageSize
-                        from = page * pageSize
+                        from = offset
                     }.map { it.resource }.filter { it.meta?.lastUpdated == null }
                 }
 
                 "Encounter" -> {
                     fhirEngine.search<Encounter> {
-                        count = 500 // Specific count for Encounter
-                        from = page * 500 // Adjust for different page size
+                        count = pageSize
+                        from = offset
                     }.map { it.resource }.filter { it.meta?.lastUpdated == null }
                 }
 
                 "Observation" -> {
                     fhirEngine.search<Observation> {
-                        count = 500 // Specific count for Observation
-                        from = page * 500 // Adjust for different page size
+                        count = pageSize
+                        from = offset
                     }.map { it.resource }.filter { it.meta?.lastUpdated == null }
                 }
 
@@ -88,10 +89,12 @@ class FhirPaginatedRepository(private val fhirEngine: FhirEngine) {
 
     suspend fun create(rr: Resource): Bundle.BundleEntryComponent {
         return Bundle.BundleEntryComponent().apply {
-            fullUrl = "${resource.resourceType}/${resource.logicalId}"
+            val resourceType = rr.resourceType.name
+            val logicalId = rr.logicalId
+            fullUrl = "$resourceType/$logicalId"
             val requestPayload = Bundle.BundleEntryRequestComponent().apply {
                 method = Bundle.HTTPVerb.PUT
-                url = "${resource.resourceType}/${resource.logicalId}"
+                url = "$resourceType/$logicalId"
             }
             request = requestPayload
             resource = rr
@@ -182,8 +185,8 @@ class FhirPaginatedRepository(private val fhirEngine: FhirEngine) {
         return getResourcesPage(resourceType, 0)
     }
 
-    fun hasMore(resources: List<Resource>): Boolean {
-        return resources.size == pageSize
+    fun hasMore(resourceType: String, resources: List<Resource>): Boolean {
+        return resources.size == getPageSize(resourceType)
     }
 
     fun getPageSize(resourceType: String): Int {

@@ -2,6 +2,7 @@ package com.icl.surveillance.monitor
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.utils.Constants.BASE_URL
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -14,14 +15,17 @@ class NetworkModule {
 
 
     fun provideFhirDataSource(): FhirDataSource {
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BODY
-
-        val client = OkHttpClient.Builder()
+        val clientBuilder = OkHttpClient.Builder()
             .readTimeout(5, TimeUnit.MINUTES)
             .writeTimeout(5, TimeUnit.MINUTES)
             .connectTimeout(2, TimeUnit.MINUTES)
-            .addInterceptor(interceptor).build()
+        if (BuildConfig.DEBUG) {
+            val interceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            clientBuilder.addInterceptor(interceptor)
+        }
+        val client = clientBuilder.build()
 
 
         val retrofit = Retrofit.Builder()

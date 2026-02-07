@@ -37,15 +37,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Address
+import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.DecimalType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.HumanName
 import org.hl7.fhir.r4.model.Identifier
+import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.MeasureReport
 import org.hl7.fhir.r4.model.MeasureReport.MeasureReportGroupPopulationComponent
@@ -57,6 +61,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.Specimen
+import org.hl7.fhir.r4.model.StringType
 import org.json.JSONObject
 import timber.log.Timber
 import java.util.Calendar
@@ -77,6 +82,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
             .parseResource(questionnaireJson) as Questionnaire
 
     private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val formatter = FormatterClass()
 
     /**
      * Saves patient registration questionnaire response into the application database.
@@ -362,13 +368,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 isPatientSaved.value = false
                 return@launch
             }
-            // Print the response to the log
-            val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-            val questionnaireResponseString =
-                jsonParser.encodeResourceToString(questionnaireResponse)
-            val jsonObject = JSONObject(questionnaireResponseString)
             val extractedAnswers =
-                FormatterClass().extractStructuredAnswersOnlyFromItems(jsonObject)
+                extractStructuredAnswers(questionnaireResponse, questionnaireResponseString)
 
 
             withContext(Dispatchers.IO) {
@@ -431,13 +432,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 isPatientSaved.value = false
                 return@launch
             }
-            // Print the response to the log
-            val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-            val questionnaireResponseString =
-                jsonParser.encodeResourceToString(questionnaireResponse)
-            val jsonObject = JSONObject(questionnaireResponseString)
-            val extractedAnswers =
-                FormatterClass().extractStructuredAnswersOnlyFromItems(jsonObject)
+            val extractedAnswers = extractStructuredAnswers(questionnaireResponse, "")
 
             viewModelScope.launch {
                 questionnaireResponse.addExtension(
@@ -545,11 +540,6 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 isPatientSaved.value = false
                 return@launch
             }
-            // Print the response to the log
-            val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-            val questionnaireResponseString =
-                jsonParser.encodeResourceToString(questionnaireResponse)
-
             val identifierSystem0 = Identifier()
             val typeCodeableConcept0 = CodeableConcept()
             val codingList0 = ArrayList<Coding>()
@@ -571,9 +561,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             val facility = formatter.getSharedPref("facility", context)
 
-            val jsonObject = JSONObject(questionnaireResponseString)
-            val extractedAnswers =
-                FormatterClass().extractStructuredAnswersOnlyFromItems(jsonObject)
+            val extractedAnswers = extractStructuredAnswers(questionnaireResponse, "")
 
 
             val reasonCode = FormatterClass().getSharedPref(
@@ -1596,6 +1584,69 @@ class AddClientViewModel(application: Application, private val state: SavedState
         } catch (e: Exception) {
             Log.e("SavePatient", "Error saving patient", e)
         }
+    }
+
+    private fun extractStructuredAnswers(
+        questionnaireResponse: QuestionnaireResponse,
+        questionnaireResponseString: String
+    ): List<QuestionnaireAnswer> {
+        val fromModel = extractStructuredAnswersFromItems(questionnaireResponse.item)
+        if (fromModel.isNotEmpty()) {
+            return fromModel
+        }
+
+        if (questionnaireResponseString.isBlank()) {
+            return emptyList()
+        }
+
+        return try {
+            formatter.extractStructuredAnswersOnlyFromItems(JSONObject(questionnaireResponseString))
+        } catch (e: Exception) {
+            Log.e("AddClientViewModel", "Failed to parse questionnaire response JSON", e)
+            emptyList()
+        }
+    }
+
+    private fun extractStructuredAnswersFromItems(
+        items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
+    ): List<QuestionnaireAnswer> {
+        val results = mutableListOf<QuestionnaireAnswer>()
+
+        fun processItem(item: QuestionnaireResponse.QuestionnaireResponseItemComponent) {
+            val linkId = item.linkId ?: ""
+            val text = item.text ?: ""
+
+            if (item.answer.isNotEmpty()) {
+                val values = item.answer.mapNotNull { extractAnswerValue(it) }
+                if (values.isNotEmpty()) {
+                    results.add(QuestionnaireAnswer(linkId, text, values.joinToString(", ")))
+                }
+            }
+
+            if (item.item.isNotEmpty()) {
+                item.item.forEach { child -> processItem(child) }
+            }
+        }
+
+        items.forEach { processItem(it) }
+        return results
+    }
+
+    private fun extractAnswerValue(
+        answer: QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent
+    ): String? {
+        val value = answer.value ?: return null
+        return when (value) {
+            is StringType -> value.value
+            is IntegerType -> value.value?.toString()
+            is DateType -> value.valueAsString
+            is DateTimeType -> value.valueAsString
+            is BooleanType -> value.booleanValue()?.toString()
+            is DecimalType -> value.value?.toString()
+            is Coding -> value.display ?: value.code
+            is Reference -> value.display ?: value.reference
+            else -> null
+        }?.takeIf { it.isNotBlank() }
     }
 
 
