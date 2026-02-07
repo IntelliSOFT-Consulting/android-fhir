@@ -161,4 +161,5 @@
     <string name="this_feature_is_currently_under_development_and_will_be_available_in_a_future_update">This feature is currently under development and will be available in a future update.</string>
     <string name="okay">Okay</string>
     <string name="matching_cases_single">Matching cases found: %1$d</string>
+    <string name="summary">Summary</string>
 </resources>

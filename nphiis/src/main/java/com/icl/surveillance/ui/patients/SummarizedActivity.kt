@@ -47,6 +47,7 @@ import java.time.Period
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 
 class SummarizedActivity : AppCompatActivity() {
@@ -174,6 +175,7 @@ class SummarizedActivity : AppCompatActivity() {
             }
         }
         patientDetailsViewModel.liveSummaryData.observe(this) { data ->
+            updateSummaryHeader(currentCase, latestEncounter, data)
             groups.forEach { group ->
                 // For each item inside the group
                 group.items.forEach { outputItem ->
@@ -212,6 +214,42 @@ class SummarizedActivity : AppCompatActivity() {
                 tab.text = adapter.getTabTitle(position)
             }.attach()
         }
+    }
+
+    private fun updateSummaryHeader(
+        currentCase: String?,
+        latestEncounter: String?,
+        data: PatientListViewModel.CaseDetailSummaryData
+    ) {
+        val name = data.name.trim()
+        binding.summaryTitle.text = if (name.isNotBlank()) name else "Summary"
+
+        val caseLabel = formatCaseTitle(currentCase ?: latestEncounter)
+        binding.summarySubtitle.text = if (caseLabel.isNotBlank()) {
+            "Case: $caseLabel"
+        } else {
+            "Case summary"
+        }
+
+        val epid = data.epidNo.trim()
+        binding.summaryChip.text = if (epid.isNotBlank()) {
+            "EPID: $epid"
+        } else {
+            "Auto-generated"
+        }
+    }
+
+    private fun formatCaseTitle(raw: String?): String {
+        if (raw.isNullOrBlank()) return ""
+        return raw
+            .trim()
+            .replace("-", " ")
+            .replace("_", " ")
+            .split(" ")
+            .filter { it.isNotBlank() }
+            .joinToString(" ") { part ->
+                part.lowercase(Locale.getDefault()).replaceFirstChar { it.titlecase(Locale.getDefault()) }
+            }
     }
 
     private fun checkIfResourceHasQuestionnaireResponse(
@@ -594,4 +632,3 @@ class SummarizedActivity : AppCompatActivity() {
     }
 
 }
-

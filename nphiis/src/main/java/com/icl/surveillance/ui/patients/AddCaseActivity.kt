@@ -57,6 +57,17 @@ class AddCaseActivity : AppCompatActivity() {
         val titleName = FormatterClass().getSharedPref("title", this@AddCaseActivity)
         supportActionBar.apply { title = titleName }
 
+        val questionnaire = FormatterClass().getSharedPref("questionnaire", this@AddCaseActivity)
+        if (isLabQuestionnaire(questionnaire) && !hasLabAccess()) {
+            Toast.makeText(
+                this@AddCaseActivity,
+                "Only Admin or Laboratory users can add lab information.",
+                Toast.LENGTH_LONG
+            ).show()
+            finish()
+            return
+        }
+
         LocationUtils.requestCurrentLocation(
             this,
             onLocationReceived = { lat, lon ->
@@ -376,6 +387,30 @@ class AddCaseActivity : AppCompatActivity() {
     override fun onBackPressed() {
         showCancelScreenerQuestionnaireAlertDialog()
         super.onBackPressed()
+    }
+
+    private fun isLabQuestionnaire(questionnaire: String?): Boolean {
+        return when (questionnaire) {
+            "measles-lab-results.json",
+            "measles-lab-reg-results.json",
+            "afp-case-stool-lab-results.json",
+            "afp-itd-lab.json",
+            "afp-final-lab-results.json",
+            "vl-case-lab-information.json" -> true
+
+            else -> false
+        }
+    }
+
+    private fun hasLabAccess(): Boolean {
+        val formatter = FormatterClass()
+        val storedRole =
+            formatter.getSharedPref("practitionerRole", this) ?: formatter.getSharedPref("role", this)
+        if (storedRole.isNullOrBlank()) {
+            return false
+        }
+        val role = storedRole.lowercase()
+        return role.contains("admin") || role.contains("laboratory") || role.contains("lab")
     }
 
 }
