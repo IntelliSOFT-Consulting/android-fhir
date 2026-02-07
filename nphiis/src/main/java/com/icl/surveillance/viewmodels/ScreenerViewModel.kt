@@ -7,10 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import ca.uhn.fhir.context.FhirContext
-import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.models.QuestionnaireAnswer
@@ -18,21 +15,24 @@ import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.QuestionnaireHelper
 import java.util.Date
 import java.util.UUID
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.Extension
+import org.hl7.fhir.r4.model.BooleanType
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.DecimalType
 import org.hl7.fhir.r4.model.Identifier
+import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Meta
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
-import org.json.JSONArray
+import org.hl7.fhir.r4.model.StringType
 import org.json.JSONObject
 import java.time.LocalDate
 
@@ -43,13 +43,9 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
 
     val isResourcesSaved = MutableLiveData<Boolean>()
 
-    private val questionnaireResource: Questionnaire
-        get() =
-            FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().parseResource(questionnaire)
-                    as Questionnaire
-
     private var questionnaireJson: String? = null
-    private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val formatter = FormatterClass()
 
     /**
      * Saves screener encounter questionnaire response into the application database.
@@ -60,22 +56,26 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
     private fun sourceMetaTag(
         resource: String,
         facility: String,
-        context: Context
+        facilityName: String?
     ): Coding {
         return Coding().apply {
             system = "http://example.org/fhir/StructureDefinition/$resource-managingLocation"
             code = "Location/$facility"
-            display = FormatterClass().getSharedPref("facilityName", context)
+            facilityName?.let { display = it }
         }
     }
 
-    private fun sourceExtension(resource: String, facility: String, context: Context): Extension {
+    private fun sourceExtension(
+        resource: String,
+        facility: String,
+        facilityName: String?
+    ): Extension {
         return Extension().apply {
             url = "http://example.org/fhir/StructureDefinition/$resource-managingLocation"
             setValue(
                 Reference().apply {
                     reference = "Location/$facility"
-                    display = FormatterClass().getSharedPref("facilityName", context)
+                    facilityName?.let { display = it }
                 })
         }
     }
@@ -87,190 +87,192 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
         questionnaireResponseString: String,
         appContext: Context
     ) {
-        viewModelScope.launch {
-            val bundle =
-                ResourceMapper.extract(questionnaireResource, questionnaireResponse)
-            val context = FhirContext.forR4()
-            val questionnaire =
-                context.newJsonParser().encodeResourceToString(questionnaireResponse)
+        viewModelScope.launch(Dispatchers.IO) {
+            val success = try {
+                val title = "afp-contact-case-information"
+                val linkReference = Reference("Patient/$patientId")
+                val encounterId = generateUuid()
+                val contactId = generateUuid()
+                val now = Date()
+                val formattedNow = formatter.formatDateTime(now)
 
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val title = "afp-contact-case-information"
-                    val linkReference = Reference("Patient/$patientId")
-                    val encounterId = generateUuid()
-                    val contactId = generateUuid()
+                val contact = Patient().apply { id = contactId }
 
-                    val contact = Patient()
-                    contact.id = contactId
-
-
-                    val identifierSystem0 = Identifier()
-                    val typeCodeableConcept0 = CodeableConcept()
-                    val codingList0 = ArrayList<Coding>()
-                    val coding0 = Coding()
-                    coding0.system = "system-creation"
-                    coding0.code = "system_creation"
-                    coding0.display = "System Creation"
-                    codingList0.add(coding0)
-                    typeCodeableConcept0.coding = codingList0
-                    typeCodeableConcept0.text = FormatterClass().formatDateTime(Date())
-
-                    identifierSystem0.value = FormatterClass().formatDateTime(Date())
-                    identifierSystem0.system = "system-creation"
-                    identifierSystem0.type = typeCodeableConcept0
-
-
-                    val identifierSystem = Identifier()
-                    val typeCodeableConcept = CodeableConcept()
-                    val codingList = ArrayList<Coding>()
-                    val coding = Coding()
-                    coding.system = title
-                    coding.code = title
-                    coding.display = title
-                    codingList.add(coding)
-                    typeCodeableConcept.coding = codingList
-                    typeCodeableConcept.text = encounterId
-
-                    identifierSystem.value = encounterId
-                    identifierSystem.system = title
-                    identifierSystem.type = typeCodeableConcept
-
-
-                    contact.identifier.add(identifierSystem0)
-                    contact.identifier.add(identifierSystem)
-                    contact.linkFirstRep.other = linkReference
-
-                    val subjectReference = Reference("Patient/$contactId")
-                    val jsonObject = JSONObject(questionnaireResponseString)
-                    val extractedAnswers = extractStructuredAnswersOnlyFromItems(jsonObject)
-
-                    val nameEntry = extractedAnswers.find { it.linkId == "652156781680" }
-                    val dobEntry = extractedAnswers.find { it.linkId == "833589441171" }
-                    val genderEntry = extractedAnswers.find { it.linkId == "952250448507" }
-
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
-
-                    nameEntry?.answer?.let { fullName ->
-                        val parts = fullName.trim().split("\\s+".toRegex())
-                        when (parts.size) {
-                            1 -> {
-                                contact.nameFirstRep.family = parts[0]
+                val identifierSystem0 = Identifier().apply {
+                    system = "system-creation"
+                    value = formattedNow
+                    type = CodeableConcept().apply {
+                        coding = arrayListOf(
+                            Coding().apply {
+                                system = "system-creation"
+                                code = "system_creation"
+                                display = "System Creation"
                             }
-
-                            2 -> {
-                                contact.nameFirstRep.family = parts[0]
-                                contact.nameFirstRep.addGiven(parts[1])
-                            }
-
-                            else -> {
-                                contact.nameFirstRep.family = parts[0]
-                                contact.nameFirstRep.addGiven(parts[1])
-                                contact.nameFirstRep.addGiven(parts.drop(2).joinToString(" "))
-                            }
-                        }
-                    }
-                    if (genderEntry != null) {
-                        val gender = when (genderEntry.answer.lowercase()) {
-                            "male" -> Enumerations.AdministrativeGender.MALE
-                            "female" -> Enumerations.AdministrativeGender.FEMALE
-                            else -> Enumerations.AdministrativeGender.UNKNOWN
-                        }
-                        contact.gender = gender
-                    }
-
-
-                    val qh = QuestionnaireHelper()
-                    val enc = qh.generalEncounter(encounter, encounterId)
-                    enc.id = encounterId
-                    enc.subject = subjectReference
-                    enc.reasonCodeFirstRep.codingFirstRep.code = title
-
-                    val codeableConcept = CodeableConcept()
-                    codeableConcept.codingFirstRep.code = "case-information"
-                    codeableConcept.codingFirstRep.display = "case-information"
-                    codeableConcept.codingFirstRep.system = "case-information"
-                    codeableConcept.text = "case-information"
-                    enc.addReasonCode(codeableConcept)
-                    enc.identifier.add(identifierSystem0)
-
-
-                    val facility = FormatterClass().getSharedPref("facility", appContext)
-                    if (facility != null) {
-                        contact.addExtension(sourceExtension("patient", facility, appContext))
-                        enc.addExtension(sourceExtension("encounter", facility, appContext))
-                        contact.meta = Meta().apply {
-                            tag = listOf(
-                                sourceMetaTag("patient", facility, appContext)
-                            )
-                        }
-                        enc.meta = Meta().apply {
-                            tag = listOf(
-                                sourceMetaTag("encounter", facility, appContext)
-                            )
-                        }
-                        questionnaireResponse.meta = Meta().apply {
-                            tag = listOf(
-                                sourceMetaTag("questionnaire", facility, appContext)
-                            )
-                        }
-
-                        questionnaireResponse.addExtension(
-                            sourceExtension(
-                                "questionnaire",
-                                facility,
-                                appContext
-                            )
                         )
-
+                        text = formattedNow
                     }
-                    val encounterReference = Reference("Encounter/$encounterId")
-
-                    contact.active=true
-                    fhirEngine.create(contact)
-                    fhirEngine.create(enc)
-
-                    questionnaireResponse.id = generateUuid()
-                    questionnaireResponse.subject = subjectReference
-                    questionnaireResponse.encounter = encounterReference
-                    fhirEngine.create(questionnaireResponse)
-
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                    }
-
-                    val countyCode = county.padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode = subCounty.padEnd(3, 'X').take(3).uppercase()
-
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-AFP-C"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(obs, subjectReference, encounterReference, appContext)
-
-                    extractedAnswers.forEach {
-
-                        val obs = qh.codingQuestionnaire(
-                            it.linkId, it.text,
-                            it.answer
-                        )
-                        createResource(obs, subjectReference, encounterReference, appContext)
-                        println("Data Found LinkId: ${it.linkId}, Text: ${it.text}, Answer: ${it.answer}")
-                    }
-
-                    CoroutineScope(Dispatchers.Main).launch { isResourcesSaved.value = true }
-                } catch (e: Exception) {
-
-                    CoroutineScope(Dispatchers.Main).launch { isResourcesSaved.value = false }
                 }
+
+                val identifierSystem = Identifier().apply {
+                    system = title
+                    value = encounterId
+                    type = CodeableConcept().apply {
+                        coding = arrayListOf(
+                            Coding().apply {
+                                system = title
+                                code = title
+                                display = title
+                            }
+                        )
+                        text = encounterId
+                    }
+                }
+
+                contact.identifier.add(identifierSystem0)
+                contact.identifier.add(identifierSystem)
+                contact.linkFirstRep.other = linkReference
+
+                val subjectReference = Reference("Patient/$contactId")
+                val extractedAnswers =
+                    extractStructuredAnswers(questionnaireResponse, questionnaireResponseString)
+
+                val nameEntry = extractedAnswers.find { it.linkId == "652156781680" }
+                val genderEntry = extractedAnswers.find { it.linkId == "952250448507" }
+
+                val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
+                val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
+
+                nameEntry?.answer?.let { fullName ->
+                    val parts = fullName.trim().split("\\s+".toRegex())
+                    when (parts.size) {
+                        1 -> {
+                            contact.nameFirstRep.family = parts[0]
+                        }
+
+                        2 -> {
+                            contact.nameFirstRep.family = parts[0]
+                            contact.nameFirstRep.addGiven(parts[1])
+                        }
+
+                        else -> {
+                            contact.nameFirstRep.family = parts[0]
+                            contact.nameFirstRep.addGiven(parts[1])
+                            contact.nameFirstRep.addGiven(parts.drop(2).joinToString(" "))
+                        }
+                    }
+                }
+                if (genderEntry != null) {
+                    val gender = when (genderEntry.answer.lowercase()) {
+                        "male" -> Enumerations.AdministrativeGender.MALE
+                        "female" -> Enumerations.AdministrativeGender.FEMALE
+                        else -> Enumerations.AdministrativeGender.UNKNOWN
+                    }
+                    contact.gender = gender
+                }
+
+                val qh = QuestionnaireHelper()
+                val enc = qh.generalEncounter(encounter, encounterId).apply {
+                    id = encounterId
+                    subject = subjectReference
+                    reasonCodeFirstRep.codingFirstRep.code = title
+                    addReasonCode(
+                        CodeableConcept().apply {
+                            codingFirstRep.code = "case-information"
+                            codingFirstRep.display = "case-information"
+                            codingFirstRep.system = "case-information"
+                            text = "case-information"
+                        }
+                    )
+                    identifier.add(identifierSystem0)
+                }
+
+                val facility = formatter.getSharedPref("facility", appContext)
+                val facilityName = formatter.getSharedPref("facilityName", appContext)
+                if (facility != null) {
+                    contact.addExtension(sourceExtension("patient", facility, facilityName))
+                    enc.addExtension(sourceExtension("encounter", facility, facilityName))
+                    contact.meta = Meta().apply {
+                        tag = listOf(
+                            sourceMetaTag("patient", facility, facilityName)
+                        )
+                    }
+                    enc.meta = Meta().apply {
+                        tag = listOf(
+                            sourceMetaTag("encounter", facility, facilityName)
+                        )
+                    }
+                    questionnaireResponse.meta = Meta().apply {
+                        tag = listOf(
+                            sourceMetaTag("questionnaire", facility, facilityName)
+                        )
+                    }
+
+                    questionnaireResponse.addExtension(
+                        sourceExtension(
+                            "questionnaire",
+                            facility,
+                            facilityName
+                        )
+                    )
+                }
+                val encounterReference = Reference("Encounter/$encounterId")
+
+                contact.active = true
+                fhirEngine.create(contact)
+                fhirEngine.create(enc)
+
+                questionnaireResponse.id = generateUuid()
+                questionnaireResponse.subject = subjectReference
+                questionnaireResponse.encounter = encounterReference
+                fhirEngine.create(questionnaireResponse)
+
+                var county = ""
+                var subCounty = ""
+                val currentYear = LocalDate.now().year
+
+                if (subCountyEntry != null) {
+                    subCounty = subCountyEntry.answer
+                }
+                if (countyEntry != null) {
+                    county = countyEntry.answer
+                }
+
+                val countyCode = county.padEnd(3, 'X').take(3).uppercase()
+                val subCountyCode = subCounty.padEnd(3, 'X').take(3).uppercase()
+
+                val epid = "KEN-$countyCode-$subCountyCode-$currentYear-AFP-C"
+
+                val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
+                createResource(
+                    obs,
+                    subjectReference,
+                    encounterReference,
+                    facility,
+                    facilityName,
+                    null
+                )
+
+                extractedAnswers.forEach {
+                    val obs = qh.codingQuestionnaire(
+                        it.linkId, it.text,
+                        it.answer
+                    )
+                    createResource(
+                        obs,
+                        subjectReference,
+                        encounterReference,
+                        facility,
+                        facilityName,
+                        null
+                    )
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("ScreenerViewModel", "Failed to complete contact assessment", e)
+                false
             }
+
+            isResourcesSaved.postValue(success)
         }
     }
 
@@ -282,153 +284,165 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
         questionnaireResponseString: String,
         appContext: Context
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            val success = try {
+                val formattedNow = formatter.formatDateTime(Date())
 
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val identifierSystem0 = Identifier()
-                    val typeCodeableConcept0 = CodeableConcept()
-                    val codingList0 = ArrayList<Coding>()
-                    val coding0 = Coding()
-                    coding0.system = "system-creation"
-                    coding0.code = "system_creation"
-                    coding0.display = "System Creation"
-                    codingList0.add(coding0)
-                    typeCodeableConcept0.coding = codingList0
-                    typeCodeableConcept0.text = FormatterClass().formatDateTime(Date())
-
-                    identifierSystem0.value = FormatterClass().formatDateTime(Date())
-                    identifierSystem0.system = "system-creation"
-                    identifierSystem0.type = typeCodeableConcept0
-
-                    val subjectReference = Reference("Patient/$patientId")
-                    val jsonObject = JSONObject(questionnaireResponseString)
-                    val extractedAnswers = extractStructuredAnswersOnlyFromItems(jsonObject)
-
-                    val qh = QuestionnaireHelper()
-                    val encounterId = generateUuid()
-                    val enc = qh.generalEncounter(encounter, encounterId)
-                    enc.id = encounterId
-                    enc.subject = subjectReference
-                    enc.reasonCodeFirstRep.codingFirstRep.code = title
-                    enc.identifier.add(identifierSystem0)
-                    val facility = FormatterClass().getSharedPref("facility", appContext)
-                    if (facility != null) {
-                        questionnaireResponse.meta = Meta().apply {
-                            tag = listOf(
-                                sourceMetaTag("questionnaire", facility, appContext)
-                            )
-                        }
-                        enc.meta = Meta().apply {
-                            tag = listOf(
-                                sourceMetaTag("encounter", facility, appContext)
-                            )
-                        }
-                        questionnaireResponse.addExtension(
-                            sourceExtension(
-                                "questionnaire",
-                                facility,
-                                appContext
-                            )
+                val identifierSystem0 = Identifier().apply {
+                    system = "system-creation"
+                    value = formattedNow
+                    type = CodeableConcept().apply {
+                        coding = arrayListOf(
+                            Coding().apply {
+                                system = "system-creation"
+                                code = "system_creation"
+                                display = "System Creation"
+                            }
                         )
-                        enc.addExtension(sourceExtension("encounter", facility, appContext))
+                        text = formattedNow
                     }
-
-                    val practitionerId =
-                        FormatterClass().getSharedPref("fhirPractitionerId", appContext)
-                    if (practitionerId != null) {
-                        questionnaireResponse.author = Reference("Practitioner/$practitionerId")
-                        enc.participantFirstRep.individual =
-                            Reference("Practitioner/$practitionerId")
-                    }
-
-                    fhirEngine.create(enc)
-
-                    val encounterReference = Reference("Encounter/$encounterId")
-                    questionnaireResponse.id = generateUuid()
-                    questionnaireResponse.subject = subjectReference
-                    questionnaireResponse.encounter = encounterReference
-                    fhirEngine.create(questionnaireResponse)
-
-                    extractedAnswers.forEach {
-                        val obs = qh.codingQuestionnaire(
-                            it.linkId, it.text,
-                            it.answer
-                        )
-                        createResource(obs, subjectReference, encounterReference, appContext)
-                    }
-
-                    CoroutineScope(Dispatchers.Main).launch { isResourcesSaved.value = true }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    CoroutineScope(Dispatchers.Main).launch { isResourcesSaved.value = false }
                 }
+
+                val subjectReference = Reference("Patient/$patientId")
+                val extractedAnswers =
+                    extractStructuredAnswers(questionnaireResponse, questionnaireResponseString)
+
+                val qh = QuestionnaireHelper()
+                val encounterId = generateUuid()
+                val enc = qh.generalEncounter(encounter, encounterId).apply {
+                    id = encounterId
+                    subject = subjectReference
+                    reasonCodeFirstRep.codingFirstRep.code = title
+                    identifier.add(identifierSystem0)
+                }
+
+                val facility = formatter.getSharedPref("facility", appContext)
+                val facilityName = formatter.getSharedPref("facilityName", appContext)
+                if (facility != null) {
+                    questionnaireResponse.meta = Meta().apply {
+                        tag = listOf(
+                            sourceMetaTag("questionnaire", facility, facilityName)
+                        )
+                    }
+                    enc.meta = Meta().apply {
+                        tag = listOf(
+                            sourceMetaTag("encounter", facility, facilityName)
+                        )
+                    }
+                    questionnaireResponse.addExtension(
+                        sourceExtension(
+                            "questionnaire",
+                            facility,
+                            facilityName
+                        )
+                    )
+                    enc.addExtension(sourceExtension("encounter", facility, facilityName))
+                }
+
+                val practitionerId = formatter.getSharedPref("fhirPractitionerId", appContext)
+                if (practitionerId != null) {
+                    questionnaireResponse.author = Reference("Practitioner/$practitionerId")
+                    enc.participantFirstRep.individual =
+                        Reference("Practitioner/$practitionerId")
+                }
+
+                fhirEngine.create(enc)
+
+                val encounterReference = Reference("Encounter/$encounterId")
+                questionnaireResponse.id = generateUuid()
+                questionnaireResponse.subject = subjectReference
+                questionnaireResponse.encounter = encounterReference
+                fhirEngine.create(questionnaireResponse)
+
+                extractedAnswers.forEach {
+                    val obs = qh.codingQuestionnaire(
+                        it.linkId, it.text,
+                        it.answer
+                    )
+                    createResource(
+                        obs,
+                        subjectReference,
+                        encounterReference,
+                        facility,
+                        facilityName,
+                        practitionerId
+                    )
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("ScreenerViewModel", "Failed to complete lab assessment", e)
+                false
             }
+
+            isResourcesSaved.postValue(success)
         }
     }
 
     fun extractStructuredAnswersOnlyFromItems(json: JSONObject): List<QuestionnaireAnswer> {
+        return formatter.extractStructuredAnswersOnlyFromItems(json)
+    }
+
+    private fun extractStructuredAnswers(
+        questionnaireResponse: QuestionnaireResponse,
+        questionnaireResponseString: String
+    ): List<QuestionnaireAnswer> {
+        val fromModel = extractStructuredAnswersFromItems(questionnaireResponse.item)
+        if (fromModel.isNotEmpty()) {
+            return fromModel
+        }
+
+        if (questionnaireResponseString.isBlank()) {
+            return emptyList()
+        }
+
+        return try {
+            formatter.extractStructuredAnswersOnlyFromItems(JSONObject(questionnaireResponseString))
+        } catch (e: Exception) {
+            Log.e("ScreenerViewModel", "Failed to parse questionnaire response JSON", e)
+            emptyList()
+        }
+    }
+
+    private fun extractStructuredAnswersFromItems(
+        items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
+    ): List<QuestionnaireAnswer> {
         val results = mutableListOf<QuestionnaireAnswer>()
 
-        fun processItems(items: JSONArray) {
-            for (i in 0 until items.length()) {
-                val item = items.getJSONObject(i)
-                val linkId = item.optString("linkId", "")
-                val text = item.optString("text", "")
+        fun processItem(item: QuestionnaireResponse.QuestionnaireResponseItemComponent) {
+            val linkId = item.linkId ?: ""
+            val text = item.text ?: ""
 
-                if (item.has("answer")) {
-                    val answers = item.getJSONArray("answer")
-                    val valueList = mutableListOf<String>()
-
-                    for (j in 0 until answers.length()) {
-                        val answerObj = answers.getJSONObject(j)
-
-                        val value = when {
-                            answerObj.has("valueString") -> answerObj.getString("valueString")
-                            answerObj.has("valueInteger") -> answerObj.optString("valueInteger", "")
-                            answerObj.has("valueDate") -> answerObj.optString("valueDate", "")
-                            answerObj.has("valueDateTime") -> answerObj.optString(
-                                "valueDateTime",
-                                ""
-                            )
-
-                            answerObj.has("valueBoolean") -> answerObj.optString("valueBoolean", "")
-                            answerObj.has("valueDecimal") -> answerObj.optString("valueDecimal", "")
-                            answerObj.has("valueCoding") -> {
-                                val coding = answerObj.getJSONObject("valueCoding")
-                                coding.optString("display", coding.optString("code", ""))
-                            }
-
-                            answerObj.has("valueReference") -> {
-                                val ref = answerObj.getJSONObject("valueReference")
-                                ref.optString("display", ref.optString("reference", ""))
-                            }
-
-                            else -> null
-                        }
-
-                        if (!value.isNullOrBlank()) {
-                            valueList.add(value)
-                        }
-                    }
-
-                    if (valueList.isNotEmpty()) {
-                        // Join multiple values with comma
-                        results.add(QuestionnaireAnswer(linkId, text, valueList.joinToString(", ")))
-                    }
+            if (item.answer.isNotEmpty()) {
+                val values = item.answer.mapNotNull { extractAnswerValue(it) }
+                if (values.isNotEmpty()) {
+                    results.add(QuestionnaireAnswer(linkId, text, values.joinToString(", ")))
                 }
+            }
 
-                if (item.has("item")) {
-                    processItems(item.getJSONArray("item"))
-                }
+            if (item.item.isNotEmpty()) {
+                item.item.forEach { child -> processItem(child) }
             }
         }
 
-        if (json.has("item")) {
-            processItems(json.getJSONArray("item"))
-        }
-
+        items.forEach { processItem(it) }
         return results
+    }
+
+    private fun extractAnswerValue(
+        answer: QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent
+    ): String? {
+        val value = answer.value ?: return null
+        return when (value) {
+            is StringType -> value.value
+            is IntegerType -> value.value?.toString()
+            is DateType -> value.valueAsString
+            is DateTimeType -> value.valueAsString
+            is BooleanType -> value.booleanValue()?.toString()
+            is DecimalType -> value.value?.toString()
+            is Coding -> value.display ?: value.code
+            is Reference -> value.display ?: value.reference
+            else -> null
+        }?.takeIf { it.isNotBlank() }
     }
 
 
@@ -436,26 +450,25 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
         obs: Observation,
         subjectReference: Reference,
         encounterReference: Reference,
-        context: Context
+        facility: String?,
+        facilityName: String?,
+        practitionerId: String?
     ) {
         try {
-            val practitioner = FormatterClass().getSharedPref("fhirPractitionerId", context)
-
             obs.id = generateUuid()
             obs.subject = subjectReference
             obs.encounter = encounterReference
-            if (practitioner != null) {
-                obs.performerFirstRep.reference = "Practitioner/$practitioner"
+            if (practitionerId != null) {
+                obs.performerFirstRep.reference = "Practitioner/$practitionerId"
             }
             obs.issued = Date()
-            val facility = FormatterClass().getSharedPref("facility", context)
             if (facility != null) {
                 obs.meta = Meta().apply {
                     tag = listOf(
-                        sourceMetaTag("observation", facility, context)
+                        sourceMetaTag("observation", facility, facilityName)
                     )
                 }
-                obs.addExtension(sourceExtension("observation", facility, context))
+                obs.addExtension(sourceExtension("observation", facility, facilityName))
             }
             fhirEngine.create(obs)
 
@@ -467,11 +480,9 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
 
 
     private fun getQuestionnaireJson(): String {
-        questionnaireJson?.let {
-            return it!!
-        }
+        questionnaireJson?.let { return it }
         questionnaireJson = readFileFromAssets(state[QUESTIONNAIRE_FILE_PATH_KEY]!!)
-        return questionnaireJson!!
+        return questionnaireJson ?: ""
     }
 
     private fun readFileFromAssets(filename: String): String {
