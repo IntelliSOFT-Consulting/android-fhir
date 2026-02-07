@@ -38,4 +38,21 @@
     <color name="snackbar_error">#F44336</color>   <!-- Red -->
     <color name="snackbar_text">#FFFFFF</color>    <!-- White -->
     <color name="snackbar_warning">#FF9800</color> <!-- Orange -->
+
+    <!-- Summary Page -->
+    <color name="summary_bg_start">@color/white</color>
+    <color name="summary_bg_end">@color/inactiveTabBackground</color>
+    <color name="summary_header_start">@color/blue</color>
+    <color name="summary_header_end">@color/compatible</color>
+    <color name="summary_header_subtitle">@color/white</color>
+    <color name="summary_header_icon">@color/white</color>
+    <color name="summary_chip_bg">#33FFFFFF</color>
+    <color name="summary_tab_selected_bg">@color/activeTabBackground</color>
+    <color name="summary_tab_selected_border">@color/activeTabBorder</color>
+    <color name="summary_tab_unselected_border">@color/inactiveTabBorder</color>
+    <color name="summary_tab_selected_text">@color/activeTabText</color>
+    <color name="summary_tab_unselected_text">@color/inactiveTabText</color>
+    <color name="summary_tab_ripple">@color/activeTabPressed</color>
+    <color name="summary_card_border">@color/spinner_border</color>
+    <color name="summary_card_bg">@color/white</color>
 </resources>

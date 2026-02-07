@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/summary_tab_selected_bg" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/summary_tab_selected_border" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/summary_tab_unselected_border" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</selector>
