@@ -1,5 +1,6 @@
 package com.icl.surveillance.network
 
+import com.icl.surveillance.BuildConfig
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -15,10 +16,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitBuilder {
 
     fun getRetrofit(baseUrl: String): Retrofit {
-
-        val interceptor =
-            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-
         val builder =
             OkHttpClient.Builder()
                 .readTimeout(5, TimeUnit.MINUTES)
@@ -31,7 +28,11 @@ object RetrofitBuilder {
                         ConnectionSpec.COMPATIBLE_TLS
                     )
                 )
-                .addInterceptor(interceptor)
+        if (BuildConfig.DEBUG) {
+            val interceptor =
+                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+            builder.addInterceptor(interceptor)
+        }
 
 
         val client = builder.build()

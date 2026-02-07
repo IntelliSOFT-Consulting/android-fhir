@@ -20,6 +20,7 @@ import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
+import com.icl.surveillance.models.QuestionnaireAnswer
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.network.RetrofitCallsAuthentication
 import com.icl.surveillance.utils.FormatterClass
@@ -1097,18 +1098,7 @@ class PatientListViewModel(
 
                                 if (res.isNotEmpty()) {
                                     val response = res.first().resource
-                                    val data = FhirContext.forR4Cached().newJsonParser()
-                                        .encodeResourceToString(response)
-
-                                    val jsonParser =
-                                        FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-                                    val questionnaireResponseString =
-                                        jsonParser.encodeResourceToString(response)
-                                    val jsonObject = JSONObject(questionnaireResponseString)
-                                    val extractedAnswers =
-                                        FormatterClass().extractStructuredAnswersOnlyFromItems(
-                                            jsonObject
-                                        )
+                                    val extractedAnswers = extractStructuredAnswers(response)
                                     val countyLinkIds = listOf(
                                         "294367770999",
                                         "294367770999_sub_county",
@@ -2323,6 +2313,53 @@ class PatientListViewModel(
 
         return patients
 
+    }
+
+    private fun extractStructuredAnswers(
+        response: QuestionnaireResponse
+    ): List<QuestionnaireAnswer> {
+        val fromModel = extractStructuredAnswersFromItems(response.item)
+        if (fromModel.isNotEmpty()) {
+            return fromModel
+        }
+
+        return try {
+            val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+            val questionnaireResponseString = jsonParser.encodeResourceToString(response)
+            FormatterClass().extractStructuredAnswersOnlyFromItems(
+                JSONObject(questionnaireResponseString)
+            )
+        } catch (e: Exception) {
+            Log.e("PatientListViewModel", "Failed to parse questionnaire response JSON", e)
+            emptyList()
+        }
+    }
+
+    private fun extractStructuredAnswersFromItems(
+        items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
+    ): List<QuestionnaireAnswer> {
+        val results = mutableListOf<QuestionnaireAnswer>()
+
+        fun processItem(item: QuestionnaireResponse.QuestionnaireResponseItemComponent) {
+            val linkId = item.linkId ?: ""
+            val text = item.text ?: ""
+
+            if (item.answer.isNotEmpty()) {
+                val values = item.answer.mapNotNull { answer ->
+                    extractAnswerValue(answer).takeIf { it.isNotBlank() }
+                }
+                if (values.isNotEmpty()) {
+                    results.add(QuestionnaireAnswer(linkId, text, values.joinToString(", ")))
+                }
+            }
+
+            if (item.item.isNotEmpty()) {
+                item.item.forEach { child -> processItem(child) }
+            }
+        }
+
+        items.forEach { processItem(it) }
+        return results
     }
 
     private suspend fun searchedPatientCount(): Long {

@@ -22,13 +22,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.BooleanType
+import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.DecimalType
 import org.hl7.fhir.r4.model.Enumerations
+import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
-import org.json.JSONArray
+import org.hl7.fhir.r4.model.StringType
 import org.json.JSONObject
 import java.util.Date
 import java.util.UUID
@@ -41,6 +47,7 @@ class EditSupervisorChecklistViewModel(
 ) :
     AndroidViewModel(application) {
     private val fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val formatter = FormatterClass()
     private val backgroundProcessingScope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO + CoroutineName("BackgroundProcessing")
     )
@@ -93,12 +100,14 @@ class EditSupervisorChecklistViewModel(
                 "add-case.json"->{
                     startBackgroundProcessing(
                         context,
+                        questionnaireResponse,
                         questionnaireResponseString,
                         questionnaire
                     )
                 }
                 "mpox-register.json" -> startBackgroundProcessing(
                     context,
+                    questionnaireResponse,
                     questionnaireResponseString,
                     questionnaire
                 )
@@ -113,16 +122,17 @@ class EditSupervisorChecklistViewModel(
 
     private fun startBackgroundProcessing(
         context: Context,
+        questionnaireResponse: QuestionnaireResponse?,
         questionnaireResponseString: String,
         questionnaire: String?
     ) {
 
         backgroundProcessingScope.launch {
             try {
-                val patientId = FormatterClass().getSharedPref("patientId", context)
+                val patientId = formatter.getSharedPref("patientId", context)
                println("Started working on patient $patientId")
-                val jsonObject = JSONObject(questionnaireResponseString)
-                val extractedAnswers = extractStructuredAnswersOnlyFromItems(jsonObject)
+                val extractedAnswers =
+                    extractStructuredAnswers(questionnaireResponse, questionnaireResponseString)
 
                 if (patientId != null) {
                     val patient = fhirEngine.get<Patient>(patientId)
@@ -225,67 +235,72 @@ class EditSupervisorChecklistViewModel(
     }
 
     fun extractStructuredAnswersOnlyFromItems(json: JSONObject): List<QuestionnaireAnswer> {
-        val results = mutableListOf<QuestionnaireAnswer>()
+        return formatter.extractStructuredAnswersOnlyFromItems(json)
+    }
 
-        fun processItems(items: JSONArray) {
-            for (i in 0 until items.length()) {
-                val item = items.getJSONObject(i)
-                val linkId = item.optString("linkId", "")
-                val text = item.optString("text", "")
-
-                if (item.has("answer")) {
-                    val answers = item.getJSONArray("answer")
-                    val valueList = mutableListOf<String>()
-
-                    for (j in 0 until answers.length()) {
-                        val answerObj = answers.getJSONObject(j)
-
-                        val value = when {
-                            answerObj.has("valueString") -> answerObj.getString("valueString")
-                            answerObj.has("valueInteger") -> answerObj.optString("valueInteger", "")
-                            answerObj.has("valueDate") -> answerObj.optString("valueDate", "")
-                            answerObj.has("valueDateTime") -> answerObj.optString(
-                                "valueDateTime",
-                                ""
-                            )
-
-                            answerObj.has("valueBoolean") -> answerObj.optString("valueBoolean", "")
-                            answerObj.has("valueDecimal") -> answerObj.optString("valueDecimal", "")
-                            answerObj.has("valueCoding") -> {
-                                val coding = answerObj.getJSONObject("valueCoding")
-                                coding.optString("display", coding.optString("code", ""))
-                            }
-
-                            answerObj.has("valueReference") -> {
-                                val ref = answerObj.getJSONObject("valueReference")
-                                ref.optString("display", ref.optString("reference", ""))
-                            }
-
-                            else -> null
-                        }
-
-                        if (!value.isNullOrBlank()) {
-                            valueList.add(value)
-                        }
-                    }
-
-                    if (valueList.isNotEmpty()) {
-                        // Join multiple values with comma
-                        results.add(QuestionnaireAnswer(linkId, text, valueList.joinToString(", ")))
-                    }
-                }
-
-                if (item.has("item")) {
-                    processItems(item.getJSONArray("item"))
-                }
+    private fun extractStructuredAnswers(
+        questionnaireResponse: QuestionnaireResponse?,
+        questionnaireResponseString: String
+    ): List<QuestionnaireAnswer> {
+        if (questionnaireResponse != null) {
+            val fromModel = extractStructuredAnswersFromItems(questionnaireResponse.item)
+            if (fromModel.isNotEmpty()) {
+                return fromModel
             }
         }
 
-        if (json.has("item")) {
-            processItems(json.getJSONArray("item"))
+        if (questionnaireResponseString.isBlank()) {
+            return emptyList()
         }
+
+        return try {
+            formatter.extractStructuredAnswersOnlyFromItems(JSONObject(questionnaireResponseString))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    private fun extractStructuredAnswersFromItems(
+        items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
+    ): List<QuestionnaireAnswer> {
+        val results = mutableListOf<QuestionnaireAnswer>()
+
+        fun processItem(item: QuestionnaireResponse.QuestionnaireResponseItemComponent) {
+            val linkId = item.linkId ?: ""
+            val text = item.text ?: ""
+
+            if (item.answer.isNotEmpty()) {
+                val values = item.answer.mapNotNull { extractAnswerValue(it) }
+                if (values.isNotEmpty()) {
+                    results.add(QuestionnaireAnswer(linkId, text, values.joinToString(", ")))
+                }
+            }
+
+            if (item.item.isNotEmpty()) {
+                item.item.forEach { child -> processItem(child) }
+            }
+        }
+
+        items.forEach { processItem(it) }
         return results
     }
 
+    private fun extractAnswerValue(
+        answer: QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent
+    ): String? {
+        val value = answer.value ?: return null
+        return when (value) {
+            is StringType -> value.value
+            is IntegerType -> value.value?.toString()
+            is DateType -> value.valueAsString
+            is DateTimeType -> value.valueAsString
+            is BooleanType -> value.booleanValue()?.toString()
+            is DecimalType -> value.value?.toString()
+            is Coding -> value.display ?: value.code
+            is Reference -> value.display ?: value.reference
+            else -> null
+        }?.takeIf { it.isNotBlank() }
+    }
 
 }
