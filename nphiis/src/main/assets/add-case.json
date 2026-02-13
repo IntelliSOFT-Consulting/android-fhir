@@ -1664,35 +1664,6 @@
                   "valueString": "554231819382"
                 }
               ]
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
-              "extension": [
-                {
-                  "url": "key",
-                  "valueId": "constraint-1"
-                },
-                {
-                  "url": "requirements",
-                  "valueString": "Date Date of onset of illness should be after date of birth"
-                },
-                {
-                  "url": "severity",
-                  "valueCode": "error"
-                },
-                {
-                  "url": "expression",
-                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='257830485990').answer.value"
-                },
-                {
-                  "url": "human",
-                  "valueString": "Date of onset of illness should be after date of birth"
-                },
-                {
-                  "url": "location",
-                  "valueString": "257830485990"
-                }
-              ]
             }
           ]
         },

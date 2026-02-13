@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NPHIIS </string>
+    <string name="app_name">NPHIIS</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Cases List</string>
     <string name="title_notifications">Profile</string>

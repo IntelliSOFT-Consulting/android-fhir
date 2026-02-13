@@ -13,6 +13,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:clipToPadding="false"
         android:background="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/ln_lower_section"
         app:layout_constraintEnd_toEndOf="parent"
@@ -37,8 +38,25 @@
                 android:paddingBottom="16dp">
 
                 <TextView
+                    android:id="@+id/tvEnvironment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:background="@drawable/login_environment_badge"
+                    android:paddingStart="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="4dp"
+                    android:text="TEST APP"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:text="Login"
                     android:textColor="@android:color/white"
                     android:textSize="24sp"
