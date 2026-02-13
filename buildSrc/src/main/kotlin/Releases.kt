@@ -93,8 +93,9 @@ object Releases {
     const val versionName = "1.0"
   }
   object Surveillance {
+//    const val applicationId = "com.icl.surveillance"
     const val applicationId = "com.icl.nphi"
-    const val versionCode = 7
+    const val versionCode = 9
     const val versionName = "1.0"
   }
 

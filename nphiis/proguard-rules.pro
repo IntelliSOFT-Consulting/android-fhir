@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Keep all models
+-keep class com.icl.surveillance.models.** { *; }
+
+# Keep Gson annotations
+-keepattributes Signature
+-keepattributes *Annotation*
+

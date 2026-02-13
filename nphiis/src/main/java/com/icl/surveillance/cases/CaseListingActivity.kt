@@ -149,44 +149,46 @@ class CaseListingActivity : AppCompatActivity() {
                 else -> {
                     patientListViewModel.handleCurrentCaseListing(slug, units, userRole)
                     recyclerView.adapter = adapter
-                    patientListViewModel.liveSearchedCases.observe(this) {
-                        binding.apply {
-                            patientListContainer.pbProgress.visibility = View.GONE
-                        }
+                    patientListViewModel.liveSearchedCases.observe(this) { cases ->
+                        // Apply role-based filtering FIRST
+                        val filteredCases = when (userRole) {
 
-                        if (it.isEmpty()) {
-                            binding.apply {
-                                patientListContainer.emptyStateLayout.visibility = View.VISIBLE
-                                patientListContainer.caseCount.text =
-                                    getString(R.string.matching_cases_single, it.size)
-                            }
-                        } else {
-                            binding.apply {
-                                patientListContainer.emptyStateLayout.visibility = View.GONE
-                            }
-                        }
-                        when (userRole) {
                             UserRole.ADMINISTRATOR -> {
-                                adapter.setData(it)
+                                cases
                             }
 
                             UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                val filtered = it.filter { case ->
-                                    case.county.contains("$storedCounty")
+                                cases.filter { case ->
+                                    case.county?.contains(
+                                        "$storedCounty",
+                                        ignoreCase = true
+                                    ) == true
                                 }
-                                adapter.setData(filtered)
                             }
 
                             UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                val filtered = it.filter { case ->
-                                    case.subCounty.contains("$storedSubCounty")
+                                cases.filter { case ->
+                                    case.subCounty?.contains(
+                                        "$storedSubCounty",
+                                        ignoreCase = true
+                                    ) == true
                                 }
-                                adapter.setData(filtered)
                             }
 
                             else -> {
-
+                                cases
                             }
+                        }
+                        adapter.setData(filteredCases)
+
+                        if (filteredCases.isEmpty()) {
+                            binding.patientListContainer.emptyStateLayout.visibility = View.VISIBLE
+                        } else {
+                            binding.patientListContainer.emptyStateLayout.visibility = View.GONE
+                        }
+
+                        binding.apply {
+                            patientListContainer.pbProgress.visibility = View.GONE
                         }
 
 

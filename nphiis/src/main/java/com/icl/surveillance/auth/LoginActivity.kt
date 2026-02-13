@@ -3,8 +3,10 @@ package com.icl.surveillance.auth
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -17,7 +19,9 @@ import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityLoginBinding
 import com.icl.surveillance.models.DbSignIn
 import com.icl.surveillance.network.RetrofitCallsAuthentication
+import com.icl.surveillance.utils.Constants.BASE_URL
 import com.icl.surveillance.viewmodels.SyncFragmentViewModel
+import kotlin.math.max
 import kotlin.getValue
 
 class LoginActivity : AppCompatActivity() {
@@ -33,12 +37,13 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val bottomInset = max(systemBars.bottom, imeInsets.bottom)
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomInset)
             insets
         }
 
-
-
+        configureEnvironmentLabel()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -71,6 +76,13 @@ class LoginActivity : AppCompatActivity() {
                     .setStartDelay(100)
                     .start()
             }
+            etPassword.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    scrollView.post {
+                        scrollView.smoothScrollTo(0, passwordLayout.bottom)
+                    }
+                }
+            }
             btnLogin.setOnClickListener {
                 val email = etEmail.text.toString()
                 val password = etPassword.text.toString()
@@ -92,6 +104,30 @@ class LoginActivity : AppCompatActivity() {
                     dbSignIn = dbSignIn
                 )
 
+            }
+        }
+    }
+
+    private fun configureEnvironmentLabel() {
+        val normalizedUrl = BASE_URL.trim().trimEnd('/')
+        val isLive = normalizedUrl == "https://auth.nphiis.health.go.ke/fhir"
+        val isTest = normalizedUrl == "https://dsrfhir.intellisoftkenya.com/hapi/fhir"
+
+        val label = when {
+            isLive -> "LIVE APP"
+            isTest -> "TEST APP"
+            else -> "CUSTOM APP"
+        }
+        val backgroundColor = if (isLive) {
+            ContextCompat.getColor(this, R.color.green)
+        } else {
+            ContextCompat.getColor(this, R.color.red)
+        }
+        binding.apply {
+            tvEnvironment.text = label
+            tvEnvironment.backgroundTintList = ColorStateList.valueOf(backgroundColor)
+            if (isLive) {
+                tvEnvironment.visibility = View.GONE
             }
         }
     }

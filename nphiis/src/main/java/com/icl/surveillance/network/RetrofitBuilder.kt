@@ -1,5 +1,6 @@
 package com.icl.surveillance.network
 
+import android.util.Log
 import com.icl.surveillance.BuildConfig
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
@@ -28,11 +29,12 @@ object RetrofitBuilder {
                         ConnectionSpec.COMPATIBLE_TLS
                     )
                 )
-        if (BuildConfig.DEBUG) {
-            val interceptor =
-                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-            builder.addInterceptor(interceptor)
-        }
+
+        val interceptor =
+            HttpLoggingInterceptor { message ->
+                Log.e("API_RELEASE", message)
+            }.apply { level = HttpLoggingInterceptor.Level.BODY }
+        builder.addInterceptor(interceptor)
 
 
         val client = builder.build()
