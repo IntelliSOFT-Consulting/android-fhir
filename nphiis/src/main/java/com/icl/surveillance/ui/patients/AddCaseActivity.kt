@@ -28,7 +28,9 @@ import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.LocationUtils
 import com.icl.surveillance.utils.ProgressDialogManager
 import com.icl.surveillance.viewmodels.ScreenerViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -243,17 +245,19 @@ class AddCaseActivity : AppCompatActivity() {
             "resourceId", this@AddCaseActivity
         ) // aka Questionnaire
         if (resourceId != null) {
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.Default) {
                 val searchResult =
                     fhirEngine.search<QuestionnaireResponse> {
                         filter(Resource.RES_ID, { value = of(resourceId) })
                     }
                 if (searchResult.isEmpty()) {
-                    Toast.makeText(
-                        this@AddCaseActivity,
-                        "Please try again later",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@AddCaseActivity,
+                            "Please try again later",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     return@launch
                 }
                 searchResult.first().let { response ->
@@ -291,22 +295,26 @@ class AddCaseActivity : AppCompatActivity() {
                         }
                     }
 
-                    if (supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) == null) {
+                    val questionnaireResponseJson =
+                        FhirContext.forR4Cached().newJsonParser().encodeResourceToString(resource)
+                    val questionnaireJson = viewModel.questionnaire
+
+                    withContext(Dispatchers.Main) {
+                        if (supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) != null) {
+                            return@withContext
+                        }
                         supportFragmentManager.commit {
 
                             setReorderingAllowed(true)
                             val questionnaireFragmentBuilder =
                                 QuestionnaireFragment.builder().apply {
                                     setShowSubmitAnywayButton(false)
-                                    setQuestionnaireResponse(
-                                        FhirContext.forR4Cached().newJsonParser()
-                                            .encodeResourceToString(resource)
-                                    )
+                                    setQuestionnaireResponse(questionnaireResponseJson)
                                     setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(
                                         ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
                                             .LOCATION_WIDGET_PROVIDER,
                                     )
-                                    setQuestionnaire(viewModel.questionnaire)
+                                    setQuestionnaire(questionnaireJson)
                                 }
                             add(
                                 R.id.add_patient_container,

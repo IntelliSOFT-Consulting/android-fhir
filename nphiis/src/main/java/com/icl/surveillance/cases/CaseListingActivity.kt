@@ -8,27 +8,29 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.R
 import com.icl.surveillance.adapters.MpoxPatientAdapter
 import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapter
 import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapterRumor
 import com.icl.surveillance.databinding.ActivityCaseListingBinding
 import com.icl.surveillance.fhir.FhirApplication
-import com.icl.surveillance.fhir.MpoxSyncWorker
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.ui.patients.FullCaseDetailsActivity
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.ui.patients.SummarizedActivity
 import com.icl.surveillance.ui.patients.responses.ResponseQuestionnaireActivity
 import com.icl.surveillance.utils.FormatterClass
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 class CaseListingActivity : AppCompatActivity() {
@@ -37,6 +39,14 @@ class CaseListingActivity : AppCompatActivity() {
     private lateinit var fhirEngine: FhirEngine
     private val items = mutableListOf<PatientListViewModel.PatientItem>()
     private lateinit var patientListViewModel: PatientListViewModel
+    private var roleScopedCases: List<PatientListViewModel.PatientItem> = emptyList()
+    private val selectedCounties = mutableSetOf<String>()
+    private val selectedSubCounties = mutableSetOf<String>()
+    private var currentRole: UserRole? = null
+    private var searchQuery: String = ""
+    private var searchListenerAttached = false
+    private var activeCaseAdapter: PatientItemRecyclerViewAdapter? = null
+    private var showLocationFilterMenu: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +71,7 @@ class CaseListingActivity : AppCompatActivity() {
                     this.application, fhirEngine
                 ),
             ).get(PatientListViewModel::class.java)
+        setupSearchListener()
         loadData()
     }
 
@@ -78,15 +89,22 @@ class CaseListingActivity : AppCompatActivity() {
         val storedCounty = formatter.getSharedPref("countyName", this)
         val storedSubCounty = formatter.getSharedPref("subCountyName", this)
         val userRole = UserRole.fromAny(storedRole ?: "")
+        currentRole = userRole
+        searchQuery = binding.tvEpidNo.text?.toString().orEmpty()
 
         if (currentCase != null) {
             val slug = currentCase.toSlug()
             when (slug) {
                 "social-listening-and-rumor-tracking-tool" -> {
+                    showLocationFilterMenu = false
+                    invalidateOptionsMenu()
+                    activeCaseAdapter = null
+                    patientListViewModel.liveRumorCases.removeObservers(this)
                     patientListViewModel.handleCurrentRumorCaseListing(slug, units, userRole)
                     recyclerView.adapter = adapterRumor
                     patientListViewModel.liveRumorCases.observe(this) {
                         binding.apply {
+                            count.visibility = View.VISIBLE
                             count.text = "Showing ${it.size} Results"
                             patientListContainer.pbProgress.visibility = View.GONE
                         }
@@ -108,6 +126,9 @@ class CaseListingActivity : AppCompatActivity() {
                 }
 
                 "mpox-register" -> {
+                    showLocationFilterMenu = false
+                    invalidateOptionsMenu()
+                    activeCaseAdapter = null
                     val adapterRegister = MpoxPatientAdapter(
                         items,
                         this::onPatientItemClicked,
@@ -124,6 +145,7 @@ class CaseListingActivity : AppCompatActivity() {
                             adapterRegister.addPatients(newList)
                             if (newList.isNotEmpty()) {
                                 binding.apply {
+                                    count.visibility = View.VISIBLE
                                     count.text = "Showing ${newList.size} Results"
                                     patientListContainer.pbProgress.visibility = View.GONE
                                 }
@@ -147,60 +169,240 @@ class CaseListingActivity : AppCompatActivity() {
                 }
 
                 else -> {
+                    activeCaseAdapter = adapter
+                    showLocationFilterMenu = canShowLocationFilters(userRole)
+                    if (!showLocationFilterMenu) {
+                        selectedCounties.clear()
+                        selectedSubCounties.clear()
+                    }
+                    invalidateOptionsMenu()
+                    patientListViewModel.liveSearchedCases.removeObservers(this)
                     patientListViewModel.handleCurrentCaseListing(slug, units, userRole)
                     recyclerView.adapter = adapter
                     patientListViewModel.liveSearchedCases.observe(this) { cases ->
-                        // Apply role-based filtering FIRST
-                        val filteredCases = when (userRole) {
-
-                            UserRole.ADMINISTRATOR -> {
-                                cases
-                            }
-
-                            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                cases.filter { case ->
-                                    case.county?.contains(
-                                        "$storedCounty",
-                                        ignoreCase = true
-                                    ) == true
-                                }
-                            }
-
-                            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                cases.filter { case ->
-                                    case.subCounty?.contains(
-                                        "$storedSubCounty",
-                                        ignoreCase = true
-                                    ) == true
-                                }
-                            }
-
-                            else -> {
-                                cases
-                            }
-                        }
-                        adapter.setData(filteredCases)
-
-                        if (filteredCases.isEmpty()) {
-                            binding.patientListContainer.emptyStateLayout.visibility = View.VISIBLE
-                        } else {
-                            binding.patientListContainer.emptyStateLayout.visibility = View.GONE
-                        }
-
-                        binding.apply {
-                            patientListContainer.pbProgress.visibility = View.GONE
-                        }
-
-
-                        binding.apply {
-                            tvEpidNo.addTextChangedListener { text ->
-                                adapter.filter(text.toString())
-                            }
-                        }
+                        roleScopedCases =
+                            applyRoleScope(cases, userRole, storedCounty, storedSubCounty)
+                        pruneSelectedFilters()
+                        applyCaseFilters()
+                        binding.patientListContainer.pbProgress.visibility = View.GONE
                     }
                 }
             }
+        } else {
+            showLocationFilterMenu = false
+            invalidateOptionsMenu()
         }
+    }
+
+    private fun setupSearchListener() {
+        if (searchListenerAttached) return
+        binding.tvEpidNo.addTextChangedListener { text ->
+            searchQuery = text?.toString().orEmpty()
+            applyCaseFilters()
+        }
+        searchListenerAttached = true
+    }
+
+    private fun canShowLocationFilters(role: UserRole?): Boolean {
+        return role == UserRole.ADMINISTRATOR || role == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER
+    }
+
+    private fun normalizeLocationValue(value: String): String {
+        return value.trim().lowercase(Locale.getDefault())
+    }
+
+    private fun hasSelection(value: String, selected: Set<String>): Boolean {
+        if (selected.isEmpty()) return false
+        val normalizedValue = normalizeLocationValue(value)
+        return selected.any { normalizeLocationValue(it) == normalizedValue }
+    }
+
+    private fun getAvailableCounties(): List<String> {
+        return roleScopedCases
+            .map { it.county.trim() }
+            .filter { it.isNotBlank() }
+            .distinctBy { normalizeLocationValue(it) }
+            .sortedBy { normalizeLocationValue(it) }
+    }
+
+    private fun getAvailableSubCounties(): List<String> {
+        val sourceCases = if (
+            currentRole == UserRole.ADMINISTRATOR &&
+            selectedCounties.isNotEmpty()
+        ) {
+            roleScopedCases.filter { hasSelection(it.county, selectedCounties) }
+        } else {
+            roleScopedCases
+        }
+
+        return sourceCases
+            .map { it.subCounty.trim() }
+            .filter { it.isNotBlank() }
+            .distinctBy { normalizeLocationValue(it) }
+            .sortedBy { normalizeLocationValue(it) }
+    }
+
+    private fun pruneSelectedFilters() {
+        val countyOptions = getAvailableCounties()
+        val countyKeys = countyOptions.map { normalizeLocationValue(it) }.toSet()
+        selectedCounties.removeIf { normalizeLocationValue(it) !in countyKeys }
+
+        val subCountyOptions = getAvailableSubCounties()
+        val subCountyKeys = subCountyOptions.map { normalizeLocationValue(it) }.toSet()
+        selectedSubCounties.removeIf { normalizeLocationValue(it) !in subCountyKeys }
+
+        invalidateOptionsMenu()
+    }
+
+    private fun showCountyFilterDialog() {
+        val options = getAvailableCounties()
+        if (options.isEmpty()) {
+            Toast.makeText(this, R.string.no_filter_options_available, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val workingSelection = selectedCounties.toMutableSet()
+        val checkedItems = options.map { hasSelection(it, workingSelection) }.toBooleanArray()
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.filter_county)
+            .setMultiChoiceItems(options.toTypedArray(), checkedItems) { _, which, isChecked ->
+                val value = options[which]
+                if (isChecked) {
+                    workingSelection.add(value)
+                } else {
+                    workingSelection.removeIf {
+                        normalizeLocationValue(it) == normalizeLocationValue(value)
+                    }
+                }
+            }
+            .setNeutralButton(R.string.reset) { _, _ ->
+                selectedCounties.clear()
+                pruneSelectedFilters()
+                applyCaseFilters()
+            }
+            .setPositiveButton(R.string.apply) { _, _ ->
+                selectedCounties.clear()
+                selectedCounties.addAll(workingSelection)
+                pruneSelectedFilters()
+                applyCaseFilters()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+        styleDialogActionButtons(dialog)
+    }
+
+    private fun showSubCountyFilterDialog() {
+        val options = getAvailableSubCounties()
+        if (options.isEmpty()) {
+            Toast.makeText(this, R.string.no_filter_options_available, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val workingSelection = selectedSubCounties.toMutableSet()
+        val checkedItems = options.map { hasSelection(it, workingSelection) }.toBooleanArray()
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.filter_sub_county)
+            .setMultiChoiceItems(options.toTypedArray(), checkedItems) { _, which, isChecked ->
+                val value = options[which]
+                if (isChecked) {
+                    workingSelection.add(value)
+                } else {
+                    workingSelection.removeIf {
+                        normalizeLocationValue(it) == normalizeLocationValue(value)
+                    }
+                }
+            }
+            .setNeutralButton(R.string.reset) { _, _ ->
+                selectedSubCounties.clear()
+                applyCaseFilters()
+                invalidateOptionsMenu()
+            }
+            .setPositiveButton(R.string.apply) { _, _ ->
+                selectedSubCounties.clear()
+                selectedSubCounties.addAll(workingSelection)
+                applyCaseFilters()
+                invalidateOptionsMenu()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+        styleDialogActionButtons(dialog)
+    }
+
+    private fun styleDialogActionButtons(dialog: AlertDialog) {
+        val actionColor = MaterialColors.getColor(
+            this,
+            androidx.appcompat.R.attr.colorPrimary,
+            ContextCompat.getColor(this, R.color.blue)
+        )
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(actionColor)
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(actionColor)
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(actionColor)
+    }
+
+    private fun resetLocationFilters() {
+        selectedCounties.clear()
+        selectedSubCounties.clear()
+        applyCaseFilters()
+        invalidateOptionsMenu()
+    }
+
+    private fun applyRoleScope(
+        cases: List<PatientListViewModel.PatientItem>,
+        userRole: UserRole?,
+        storedCounty: String?,
+        storedSubCounty: String?
+    ): List<PatientListViewModel.PatientItem> {
+        return when (userRole) {
+            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                if (storedCounty.isNullOrBlank()) {
+                    cases
+                } else {
+                    cases.filter { it.county.contains(storedCounty, ignoreCase = true) }
+                }
+            }
+
+            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                if (storedSubCounty.isNullOrBlank()) {
+                    cases
+                } else {
+                    cases.filter { it.subCounty.contains(storedSubCounty, ignoreCase = true) }
+                }
+            }
+
+            else -> cases
+        }
+    }
+
+    private fun applyCaseFilters() {
+        val adapter = activeCaseAdapter ?: return
+
+        var filtered = roleScopedCases
+        if (currentRole == UserRole.ADMINISTRATOR && selectedCounties.isNotEmpty()) {
+            filtered = filtered.filter { hasSelection(it.county, selectedCounties) }
+        }
+        if (
+            (currentRole == UserRole.ADMINISTRATOR || currentRole == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER)
+            && selectedSubCounties.isNotEmpty()
+        ) {
+            filtered = filtered.filter { hasSelection(it.subCounty, selectedSubCounties) }
+        }
+        if (searchQuery.isNotBlank()) {
+            filtered = filtered.filter {
+                it.epid.contains(searchQuery, ignoreCase = true) ||
+                    it.name.contains(searchQuery, ignoreCase = true)
+            }
+        }
+
+        adapter.setData(filtered)
+        binding.count.visibility = View.VISIBLE
+        binding.count.text = "Showing ${filtered.size} Results"
+        binding.patientListContainer.emptyStateLayout.visibility =
+            if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        binding.patientListContainer.caseCount.text =
+            getString(R.string.matching_cases_single, filtered.size)
+        invalidateOptionsMenu()
     }
 
     override fun onResume() {
@@ -304,8 +506,37 @@ class CaseListingActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val canUseLocationFilters = showLocationFilterMenu && canShowLocationFilters(currentRole)
+        val filterItem = menu?.findItem(R.id.action_filter)
+        filterItem?.isVisible = canUseLocationFilters
+        filterItem?.subMenu?.findItem(R.id.action_filter_county)?.isVisible =
+            currentRole == UserRole.ADMINISTRATOR
+        filterItem?.subMenu?.findItem(R.id.action_filter_sub_county)?.isVisible =
+            currentRole == UserRole.ADMINISTRATOR ||
+                currentRole == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER
+        filterItem?.subMenu?.findItem(R.id.action_reset_location_filters)?.isVisible =
+            selectedCounties.isNotEmpty() || selectedSubCounties.isNotEmpty()
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_filter_county -> {
+                showCountyFilterDialog()
+                true
+            }
+
+            R.id.action_filter_sub_county -> {
+                showSubCountyFilterDialog()
+                true
+            }
+
+            R.id.action_reset_location_filters -> {
+                resetLocationFilters()
+                true
+            }
+
             R.id.action_refresh -> {
 //                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
 //                    .setTitleText("Are you sure?")
@@ -349,4 +580,3 @@ class CaseListingActivity : AppCompatActivity() {
         return true
     }
 }
-

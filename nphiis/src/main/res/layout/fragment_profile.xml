@@ -195,6 +195,7 @@
                     android:fontFamily="@font/montserratregular"
                     android:gravity="start|center_vertical"
                     android:text="@string/sync_data"
+                    android:visibility="gone"
                     android:textAllCaps="false"
                     android:textColor="@color/purple_200"
                     android:textSize="14sp"
