@@ -91,7 +91,6 @@ class HomeFragment : Fragment() {
         binding.apply {
             greetingText.text = time
             usernameText.text = safeText(name)
-            userInitials.text = formatter.generateUserAvatarInitials(firstName, lastName, fullName)
         }
     }
 

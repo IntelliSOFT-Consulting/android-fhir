@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/summary_page_item_bg"
     tools:context=".ui.patients.custom.GroupFragment">
 
     <!-- TODO: Update blank fragment layout -->
@@ -12,14 +12,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@color/white"
-        android:backgroundTint="@color/white"
+        android:background="@color/summary_page_item_bg"
+        android:backgroundTint="@color/summary_page_item_bg"
         android:elevation="15dp"
         android:orientation="vertical"
         android:paddingVertical="@dimen/fab_margin"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="@color/summary_page_item_bg"
         app:cardCornerRadius="10dp"
-        app:strokeColor="@color/gray"
+        app:strokeColor="@color/summary_page_item_border"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="6dp"
                 android:text="Clinical History"
-                android:textColor="@color/blue"
+                android:textColor="@color/summary_page_title_text"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 

@@ -214,10 +214,10 @@ class AddParentCaseActivity : AppCompatActivity() {
             }
 
             else -> {
-                    viewModel.savePatientData(
-                        questionnaireResponse,
-                        this@AddParentCaseActivity
-                    )
+                viewModel.savePatientData(
+                    questionnaireResponse,
+                    this@AddParentCaseActivity
+                )
             }
         }
 
@@ -317,7 +317,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                         }
                     )
 
-                    val userCounty = addUserCountyResponse("user_county", "county")
+                    childGroup.addItem(addUserCountyResponse("user_county", "county"))
 
                     val county = createCountyAnswer(
                         getAssignedLocation("county"),
@@ -333,7 +333,6 @@ class AddParentCaseActivity : AppCompatActivity() {
 
                     countyLevelGroup.addItem(county)
                     childGroup.addItem(countyLevelGroup)
-                    childGroup.addItem(userCounty)
                     resource.addItem(childGroup)
                 }
 

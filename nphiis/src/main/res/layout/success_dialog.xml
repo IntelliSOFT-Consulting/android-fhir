@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/white"
+    android:background="@color/success_dialog_background"
     android:padding="24dp">
 
     <TextView
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="Save Successful"
-        android:textColor="#000000"
+        android:textColor="@color/success_dialog_title_text"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -33,7 +33,7 @@
         android:layout_marginBottom="24dp"
         android:gravity="center"
         android:text="Your information has been saved and submitted successfully."
-        android:textColor="#444444"
+        android:textColor="@color/success_dialog_message_text"
         android:textSize="14sp" />
 
     <LinearLayout
@@ -51,10 +51,10 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="Cancel"
-            android:textColor="@android:color/black"
+            android:textColor="@color/success_dialog_cancel_text"
             android:textSize="14sp"
             app:cornerRadius="32dp"
-            app:strokeColor="@color/blue"
+            app:strokeColor="@color/success_dialog_cancel_stroke"
             app:strokeWidth="2dp" />
 
 
@@ -63,9 +63,9 @@
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/blue"
+            android:backgroundTint="@color/success_dialog_primary_action"
             android:text="Finish"
-            android:textColor="@android:color/white"
+            android:textColor="@color/success_dialog_primary_action_text"
             app:cornerRadius="32dp" />
     </LinearLayout>
 

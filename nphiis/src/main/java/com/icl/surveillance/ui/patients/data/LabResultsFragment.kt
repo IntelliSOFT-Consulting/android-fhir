@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -373,7 +374,7 @@ class LabResultsFragment : Fragment() {
         TextView(requireContext()).apply {
           text = item
           textSize = 14f
-          setTextColor(android.graphics.Color.BLUE)
+          setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_title_text))
           layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
     horizontalLayout.addView(label)
@@ -393,7 +394,7 @@ class LabResultsFragment : Fragment() {
                     topMargin = 8
                     bottomMargin = 8
                   }
-          setBackgroundColor(android.graphics.Color.parseColor("#CCCCCC"))
+          setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.summary_page_divider))
         }
     layout.addView(divider)
 
@@ -424,7 +425,7 @@ class LabResultsFragment : Fragment() {
         TextView(requireContext()).apply {
           text = item.text
           textSize = 12f
-          setTextColor(android.graphics.Color.BLACK)
+          setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_label_text))
           layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
     horizontalLayout.addView(label)
@@ -436,7 +437,7 @@ class LabResultsFragment : Fragment() {
           text = item.value // Assuming item.text is the dynamic text you want to show
           textSize = 13f
           textAlignment = TextView.TEXT_ALIGNMENT_TEXT_END
-          setTextColor(android.graphics.Color.BLACK)
+          setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_value_text))
           setTypeface(typeface, android.graphics.Typeface.BOLD)
           layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
@@ -457,7 +458,7 @@ class LabResultsFragment : Fragment() {
                     topMargin = 8
                     bottomMargin = 8
                   }
-          setBackgroundColor(android.graphics.Color.parseColor("#CCCCCC"))
+          setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.summary_page_divider))
         }
     layout.addView(divider)
 

@@ -31,13 +31,13 @@ import com.icl.surveillance.ui.patients.SummarizedActivity
 import com.icl.surveillance.ui.patients.responses.ResponseQuestionnaireActivity
 import com.icl.surveillance.utils.FormatterClass
 import java.util.Locale
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class CaseListingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCaseListingBinding
     private lateinit var fhirEngine: FhirEngine
-    private val items = mutableListOf<PatientListViewModel.PatientItem>()
     private lateinit var patientListViewModel: PatientListViewModel
     private var roleScopedCases: List<PatientListViewModel.PatientItem> = emptyList()
     private val selectedCounties = mutableSetOf<String>()
@@ -46,7 +46,9 @@ class CaseListingActivity : AppCompatActivity() {
     private var searchQuery: String = ""
     private var searchListenerAttached = false
     private var activeCaseAdapter: PatientItemRecyclerViewAdapter? = null
+    private var activeMpoxAdapter: MpoxPatientAdapter? = null
     private var showLocationFilterMenu: Boolean = false
+    private var mpoxPatientsCollectorJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,6 +98,8 @@ class CaseListingActivity : AppCompatActivity() {
             val slug = currentCase.toSlug()
             when (slug) {
                 "social-listening-and-rumor-tracking-tool" -> {
+                    mpoxPatientsCollectorJob?.cancel()
+                    activeMpoxAdapter = null
                     showLocationFilterMenu = false
                     invalidateOptionsMenu()
                     activeCaseAdapter = null
@@ -126,30 +130,33 @@ class CaseListingActivity : AppCompatActivity() {
                 }
 
                 "mpox-register" -> {
-                    showLocationFilterMenu = false
+                    showLocationFilterMenu = canShowLocationFilters(userRole)
+                    if (!showLocationFilterMenu) {
+                        selectedCounties.clear()
+                        selectedSubCounties.clear()
+                    }
                     invalidateOptionsMenu()
                     activeCaseAdapter = null
+                    mpoxPatientsCollectorJob?.cancel()
                     val adapterRegister = MpoxPatientAdapter(
-                        items,
+                        mutableListOf(),
                         this::onPatientItemClicked,
                         "$titleName",
                         this@CaseListingActivity
                     )
+                    activeMpoxAdapter = adapterRegister
                     recyclerView.adapter = adapterRegister
                     recyclerView.layoutManager = LinearLayoutManager(this@CaseListingActivity)
                     patientListViewModel.loadMpoxPatientList(slug, units, userRole)
 
 
-                    lifecycleScope.launch {
+                    mpoxPatientsCollectorJob = lifecycleScope.launch {
                         patientListViewModel.patients.collect { newList ->
-                            adapterRegister.addPatients(newList)
-                            if (newList.isNotEmpty()) {
-                                binding.apply {
-                                    count.visibility = View.VISIBLE
-                                    count.text = "Showing ${newList.size} Results"
-                                    patientListContainer.pbProgress.visibility = View.GONE
-                                }
-                            }
+                            roleScopedCases =
+                                applyRoleScope(newList, userRole, storedCounty, storedSubCounty)
+                            pruneSelectedFilters()
+                            applyCaseFilters()
+                            binding.patientListContainer.pbProgress.visibility = View.GONE
                         }
                     }
 
@@ -169,6 +176,8 @@ class CaseListingActivity : AppCompatActivity() {
                 }
 
                 else -> {
+                    mpoxPatientsCollectorJob?.cancel()
+                    activeMpoxAdapter = null
                     activeCaseAdapter = adapter
                     showLocationFilterMenu = canShowLocationFilters(userRole)
                     if (!showLocationFilterMenu) {
@@ -189,6 +198,8 @@ class CaseListingActivity : AppCompatActivity() {
                 }
             }
         } else {
+            mpoxPatientsCollectorJob?.cancel()
+            activeMpoxAdapter = null
             showLocationFilterMenu = false
             invalidateOptionsMenu()
         }
@@ -376,7 +387,9 @@ class CaseListingActivity : AppCompatActivity() {
     }
 
     private fun applyCaseFilters() {
-        val adapter = activeCaseAdapter ?: return
+        val adapter = activeCaseAdapter
+        val mpoxAdapter = activeMpoxAdapter
+        if (adapter == null && mpoxAdapter == null) return
 
         var filtered = roleScopedCases
         if (currentRole == UserRole.ADMINISTRATOR && selectedCounties.isNotEmpty()) {
@@ -395,7 +408,8 @@ class CaseListingActivity : AppCompatActivity() {
             }
         }
 
-        adapter.setData(filtered)
+        adapter?.setData(filtered)
+        mpoxAdapter?.setData(filtered)
         binding.count.visibility = View.VISIBLE
         binding.count.text = "Showing ${filtered.size} Results"
         binding.patientListContainer.emptyStateLayout.visibility =
@@ -412,6 +426,11 @@ class CaseListingActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override fun onDestroy() {
+        mpoxPatientsCollectorJob?.cancel()
+        super.onDestroy()
     }
 
     private fun onRumorItemClicked(patientItem: PatientListViewModel.RumorItem) {

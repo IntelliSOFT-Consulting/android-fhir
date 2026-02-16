@@ -15,4 +15,11 @@
     <color name="summary_tab_ripple">#339ED0FF</color>
     <color name="summary_card_border">#2A3A51</color>
     <color name="summary_card_bg">#162234</color>
+
+    <color name="summary_page_item_bg">#162234</color>
+    <color name="summary_page_item_border">#2A3A51</color>
+    <color name="summary_page_title_text">#9ED0FF</color>
+    <color name="summary_page_label_text">#B8CCE5</color>
+    <color name="summary_page_value_text">#EAF2FF</color>
+    <color name="summary_page_divider">#32465F</color>
 </resources>

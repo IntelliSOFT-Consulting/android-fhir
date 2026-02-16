@@ -3,8 +3,7 @@ package com.icl.surveillance.utils
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.widget.Button
-import com.google.android.fhir.datacapture.extensions.layoutInflater
+import android.view.LayoutInflater
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.common.reflect.TypeToken
@@ -31,6 +30,49 @@ class FormatterClass {
   private val KEYLOCATIONFACILITYMAP = "location_facility_map"
 
   private val KEY_SYNC_DONE = "sync_done"
+  fun generateUserAvatarInitials(
+    firstName: String?,
+    lastName: String?,
+    fullName: String?
+  ): String {
+
+    // Helper to extract initials from a name string
+    fun extractInitials(name: String?): String {
+      if (name.isNullOrBlank()) return ""
+
+      val parts = name.trim().split("\\s+".toRegex())
+
+      return when {
+        parts.size >= 2 -> {
+          "${parts[0].first()}${parts[1].first()}"
+        }
+        parts.size == 1 -> {
+          parts[0].take(2)
+        }
+        else -> ""
+      }
+    }
+
+    // Priority 1: firstName + lastName
+    if (!firstName.isNullOrBlank() || !lastName.isNullOrBlank()) {
+      val firstInitial = firstName?.trim()?.firstOrNull()?.toString() ?: ""
+      val lastInitial = lastName?.trim()?.firstOrNull()?.toString() ?: ""
+
+      val initials = firstInitial + lastInitial
+      if (initials.isNotBlank()) {
+        return initials.uppercase()
+      }
+    }
+
+    // Priority 2: fullName fallback
+    val fullInitials = extractInitials(fullName)
+    if (fullInitials.isNotBlank()) {
+      return fullInitials.uppercase()
+    }
+
+    // Default fallback
+    return "?"
+  }
 
   fun isSyncDone(context: Context): Boolean {
     return context
@@ -288,8 +330,8 @@ class FormatterClass {
 
   fun showComingSoon(context: Context) {
     try {
-      val dialog = BottomSheetDialog(context)
-      val view = context.layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
+      val dialog = BottomSheetDialog(context, R.style.BottomSheetDialogTheme)
+      val view = LayoutInflater.from(context).inflate(R.layout.dialog_bottom_sheet, null)
 
       dialog.setContentView(view)
       dialog.setCancelable(true)

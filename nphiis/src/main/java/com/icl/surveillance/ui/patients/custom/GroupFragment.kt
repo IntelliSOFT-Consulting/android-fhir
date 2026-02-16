@@ -200,7 +200,7 @@ class GroupFragment : Fragment() {
         val label = TextView(requireContext()).apply {
             text = item.text
             textSize = 12f
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_label_text))
             typeface = ResourcesCompat.getFont(requireContext(), R.font.inter)
             layoutParams = LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
@@ -215,7 +215,7 @@ class GroupFragment : Fragment() {
             text = item.value // Assuming item.text is the dynamic text you want to show
             textSize = 13f
             textAlignment = TextView.TEXT_ALIGNMENT_TEXT_END
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_value_text))
             setTypeface(customFont, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
@@ -235,7 +235,7 @@ class GroupFragment : Fragment() {
                 topMargin = 8
                 bottomMargin = 8
             }
-            setBackgroundColor(android.graphics.Color.parseColor("#CCCCCC"))
+            setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.summary_page_divider))
         }
         layout.addView(divider)
 
@@ -263,7 +263,7 @@ class GroupFragment : Fragment() {
         val label = TextView(requireContext()).apply {
             text = item.text
             textSize = 13f
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.blue))
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_title_text))
             setTypeface(customFont, Typeface.BOLD)
 
             layoutParams = LinearLayout.LayoutParams(
@@ -284,7 +284,7 @@ class GroupFragment : Fragment() {
                 topMargin = 8
                 bottomMargin = 8
             }
-            setBackgroundColor(android.graphics.Color.parseColor("#CCCCCC"))
+            setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.summary_page_divider))
         }
         layout.addView(divider)
 
@@ -311,7 +311,7 @@ class GroupFragment : Fragment() {
         val label = TextView(requireContext()).apply {
             text = item.value
             textSize = 12f
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_value_text))
             typeface = ResourcesCompat.getFont(requireContext(), R.font.inter)
             layoutParams = LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
@@ -333,7 +333,7 @@ class GroupFragment : Fragment() {
                 topMargin = 8
                 bottomMargin = 8
             }
-            setBackgroundColor(android.graphics.Color.parseColor("#CCCCCC"))
+            setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.summary_page_divider))
         }
         layout.addView(divider)
 

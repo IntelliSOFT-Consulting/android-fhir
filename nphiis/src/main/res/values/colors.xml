@@ -55,4 +55,21 @@
     <color name="summary_tab_ripple">@color/activeTabPressed</color>
     <color name="summary_card_border">@color/spinner_border</color>
     <color name="summary_card_bg">@color/white</color>
+
+    <!-- Summary details page -->
+    <color name="summary_page_item_bg">@color/white</color>
+    <color name="summary_page_item_border">@color/spinner_border</color>
+    <color name="summary_page_title_text">@color/blue</color>
+    <color name="summary_page_label_text">#1A1A1A</color>
+    <color name="summary_page_value_text">#111111</color>
+    <color name="summary_page_divider">#CCCCCC</color>
+
+    <!-- Save success dialog -->
+    <color name="success_dialog_background">@color/white</color>
+    <color name="success_dialog_title_text">@color/black</color>
+    <color name="success_dialog_message_text">#444444</color>
+    <color name="success_dialog_cancel_text">@color/black</color>
+    <color name="success_dialog_cancel_stroke">@color/blue</color>
+    <color name="success_dialog_primary_action">@color/blue</color>
+    <color name="success_dialog_primary_action_text">@color/white</color>
 </resources>
