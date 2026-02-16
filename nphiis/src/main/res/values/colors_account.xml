@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="account_surface_background">@color/home_surface_background</color>
+    <color name="account_card_background">@color/home_card_background</color>
+    <color name="account_card_stroke">@color/home_card_stroke</color>
+    <color name="account_primary_text">@color/home_card_title</color>
+    <color name="account_secondary_text">@color/home_card_subtitle</color>
+    <color name="account_primary_action">@color/home_icon_tint</color>
+    <color name="account_secondary_action">@color/home_card_chevron_tint</color>
+    <color name="account_danger_action">#C74848</color>
+    <color name="account_header_icon_bg">#33FFFFFF</color>
+    <color name="account_header_icon_tint">@color/home_header_text_primary</color>
+    <color name="account_header_divider">#40FFFFFF</color>
+    <color name="account_row_divider">#DCE7F3</color>
+    <color name="notification_empty_icon">@color/home_card_chevron_tint</color>
+    <color name="notification_card_bg">@color/home_card_background</color>
+    <color name="notification_card_stroke">@color/home_card_stroke</color>
+    <color name="notification_title">@color/home_card_title</color>
+    <color name="notification_message">@color/home_card_subtitle</color>
+    <color name="notification_time">@color/home_card_chevron_tint</color>
+    <color name="notification_icon_bg">@color/home_icon_container_background</color>
+    <color name="notification_icon_tint">@color/home_icon_tint</color>
+</resources>

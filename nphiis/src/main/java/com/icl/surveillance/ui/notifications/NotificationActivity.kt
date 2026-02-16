@@ -1,11 +1,15 @@
 package com.icl.surveillance.ui.notifications
 
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,9 +40,10 @@ class NotificationActivity : AppCompatActivity() {
 
         binding = ActivityNotificationBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySystemBarTheme()
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar.apply { title = "Notifications" }
+        supportActionBar.apply { title = getString(R.string.notifications_title) }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -102,15 +107,35 @@ class NotificationActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.GONE
         binding.recyclerView.visibility = View.GONE
         binding.emptyStateLayout.visibility = View.VISIBLE
-        binding.tvErrorText.text = "No notifications available."
+        binding.tvErrorText.text = getString(R.string.notifications_empty_message)
     }
 
     private fun showError(message: String) {
         binding.progressBar.visibility = View.GONE
         binding.recyclerView.visibility = View.GONE
         binding.emptyStateLayout.visibility = View.VISIBLE
-        binding.tvErrorText.text = "Error: $message"
+        binding.tvErrorText.text = getString(R.string.notifications_error, message)
     }
+
+    private fun applySystemBarTheme() {
+        val isDarkMode =
+            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                    Configuration.UI_MODE_NIGHT_YES
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.home_header_start)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.nav_bar_background)
+
+        WindowCompat.getInsetsController(window, window.decorView)?.apply {
+            isAppearanceLightStatusBars = !isDarkMode
+            isAppearanceLightNavigationBars = !isDarkMode
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed()
         return true

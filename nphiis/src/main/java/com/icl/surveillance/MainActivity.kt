@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
@@ -19,7 +20,9 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -117,6 +120,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySystemBarTheme()
         fhirEngine = FhirApplication.fhirEngine(this@MainActivity)
 
         backupSyncViewModel = PaginatedViewModel(fhirEngine)
@@ -198,6 +202,25 @@ class MainActivity : AppCompatActivity() {
         }
         checkLocationPermission()
         generateAreaOfJurisdiction()
+    }
+
+    private fun applySystemBarTheme() {
+        val isDarkMode =
+            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                    Configuration.UI_MODE_NIGHT_YES
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.home_header_start)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.nav_bar_background)
+
+        WindowCompat.getInsetsController(window, window.decorView)?.apply {
+            isAppearanceLightStatusBars = !isDarkMode
+            isAppearanceLightNavigationBars = !isDarkMode
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
     }
 
     private fun setupTokenRefresh() {

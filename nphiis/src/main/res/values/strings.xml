@@ -39,6 +39,7 @@
     <string name="please_select_an_option_below_to_proceed">Please select an option below to proceed.</string>
     <string name="case_selection">Case Selection!</string>
     <string name="select_reported_disease">Select reported disease</string>
+    <string name="select_case_type">Select Case Type</string>
     <string name="measles">Measles</string>
     <string name="afp">AFP</string>
     <string name="vl_forms">Visceral Leishmaniasis (Kala-azar) Case Management Form</string>
@@ -62,6 +63,9 @@
     <string name="home_subtitle_case_management">Manage follow-up and case outcomes.</string>
     <string name="home_subtitle_social">Record rumors and social investigation data.</string>
     <string name="home_subtitle_surveys">Run assessments and supervision checklists.</string>
+    <string name="flow_header_prompt">Select a form to proceed.</string>
+    <string name="flow_section_title">Available Forms</string>
+    <string name="case_flow_section_title">Case Actions</string>
     <string name="monthly_reported">Monthly Reportable\nDiseases</string>
     <string name="weekly_reported">Weekly Reportable\nDiseases</string>
     <string name="immediate_reportable">Immediate\nReportable Diseases</string>
@@ -149,6 +153,11 @@
     <string name="jane_doe_example_com">jane.doe@example.com</string>
     <string name="jane_doe">Jane Doe</string>
     <string name="profile_image">Profile Image</string>
+    <string name="profile_header_caption">Account overview</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_subtitle">Latest updates and alerts</string>
+    <string name="notifications_empty_message">No notifications available.</string>
+    <string name="notifications_error">Error: %1$s</string>
     <string name="no_notifications">No notifications</string>
     <string name="no_notifications_yet">No notifications yet</string>
     <string name="you_re_all_caught_up">You\'re all caught up.</string>

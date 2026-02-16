@@ -81,19 +81,28 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleUser() {
-        val name = getUserNameFromDetails()
-        val time = FormatterClass().getTimeOfDay()
-        val fullText = "$time, \n\n$name"
+        val formatter = FormatterClass()
+        val firstName = formatter.getSharedPref("firstName", requireContext())
+        val lastName = formatter.getSharedPref("lastName", requireContext())
+        val fullName = formatter.getSharedPref("fullNames", requireContext())
+        val name = getUserNameFromDetails(fullName, firstName, lastName)
+        val time = formatter.getTimeOfDay()
 
         binding.apply {
             greetingText.text = time
             usernameText.text = safeText(name)
+            userInitials.text = formatter.generateUserAvatarInitials(firstName, lastName, fullName)
         }
     }
 
-    private fun getUserNameFromDetails(): String {
-        val user = FormatterClass().getSharedPref("fullNames", requireContext())
-        return user ?: ""
+    private fun getUserNameFromDetails(fullName: String?, firstName: String?, lastName: String?): String {
+        if (!fullName.isNullOrBlank() && !fullName.equals("null", ignoreCase = true)) {
+            return fullName
+        }
+        return listOfNotNull(firstName, lastName)
+            .map { it.trim() }
+            .filter { it.isNotBlank() && !it.equals("null", ignoreCase = true) }
+            .joinToString(" ")
     }
 
     private fun onItemClick(layout: HomeViewModel.Layout) {
@@ -157,4 +166,3 @@ fun showComingSoon(){
         _binding = null
     }
 }
-

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="summary_bg_start">#0D1727</color>
+    <color name="summary_bg_end">#111F32</color>
+    <color name="summary_header_start">#1B3556</color>
+    <color name="summary_header_end">#2B4F7A</color>
+    <color name="summary_header_subtitle">#C3D5EE</color>
+    <color name="summary_header_icon">#E2ECFB</color>
+    <color name="summary_chip_bg">#2ED5E7FF</color>
+    <color name="summary_tab_selected_bg">#1E3856</color>
+    <color name="summary_tab_selected_border">#4C78A6</color>
+    <color name="summary_tab_unselected_border">#2A3A51</color>
+    <color name="summary_tab_selected_text">#D9EAFE</color>
+    <color name="summary_tab_unselected_text">#9AB3D2</color>
+    <color name="summary_tab_ripple">#339ED0FF</color>
+    <color name="summary_card_border">#2A3A51</color>
+    <color name="summary_card_bg">#162234</color>
+</resources>

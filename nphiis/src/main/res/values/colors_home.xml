@@ -16,4 +16,11 @@
     <color name="home_icon_tint">#0C6FD6</color>
     <color name="home_card_chevron_tint">#7A8FAD</color>
     <color name="home_card_ripple">#1A0C6FD6</color>
+    <color name="nav_bar_background">#FFFFFF</color>
+    <color name="nav_bar_stroke">#D6E1EF</color>
+    <color name="nav_item_checked">#0C6FD6</color>
+    <color name="nav_item_unchecked">#6F829E</color>
+    <color name="nav_item_active_background">#E8F2FF</color>
+    <color name="nav_item_indicator">#0C6FD6</color>
+    <color name="nav_item_ripple">#1A0C6FD6</color>
 </resources>
