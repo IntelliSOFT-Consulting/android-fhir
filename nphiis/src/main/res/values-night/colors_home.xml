@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="home_surface_background">#0E1726</color>
+    <color name="home_header_start">#142743</color>
+    <color name="home_header_end">#1D3E67</color>
+    <color name="home_header_text_primary">#EAF2FF</color>
+    <color name="home_header_text_secondary">#AEC4E5</color>
+    <color name="home_notification_background">#2A3D57</color>
+    <color name="home_badge">#FF7A66</color>
+    <color name="home_section_title">#D7E3F7</color>
+    <color name="home_card_background">#162234</color>
+    <color name="home_card_stroke">#2A3A51</color>
+    <color name="home_card_title">#E8F1FF</color>
+    <color name="home_card_subtitle">#9FB2CC</color>
+    <color name="home_icon_container_background">#243A57</color>
+    <color name="home_icon_tint">#9ED0FF</color>
+    <color name="home_card_chevron_tint">#9CB8D8</color>
+    <color name="home_card_ripple">#339ED0FF</color>
+</resources>
