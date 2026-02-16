@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -44,12 +45,25 @@ class LayoutViewHolder(
     private val onItemClick: (HomeViewModel.Layout) -> Unit,
     private val showIcon: Boolean,
 ) : RecyclerView.ViewHolder(binding.root) {
+    @StringRes
+    private fun subtitleText(layout: HomeViewModel.Layout): Int {
+        return when (layout) {
+            HomeViewModel.Layout.NOTIFIABLE -> R.string.home_subtitle_notifiable
+            HomeViewModel.Layout.MASS -> R.string.home_subtitle_mass
+            HomeViewModel.Layout.CASE -> R.string.home_subtitle_case_management
+            HomeViewModel.Layout.SOCIAL -> R.string.home_subtitle_social
+            HomeViewModel.Layout.SURVEY -> R.string.home_subtitle_surveys
+        }
+    }
+
     fun bind(layout: HomeViewModel.Layout) {
         if (!showIcon) {
+            binding.iconContainer.visibility = View.GONE
             binding.iconView.visibility = View.GONE
         }
         binding.iconView.setImageResource(layout.iconId)
         binding.textView.text = binding.textView.context.getString(layout.textId)
+        binding.subtitleView.text = binding.subtitleView.context.getString(subtitleText(layout))
         binding.root.setOnClickListener { onItemClick(layout) }
     }
 }
@@ -65,4 +79,3 @@ class LayoutDiffUtil : DiffUtil.ItemCallback<HomeViewModel.Layout>() {
         newLayout: HomeViewModel.Layout,
     ) = oldLayout == newLayout
 }
-

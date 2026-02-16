@@ -32,6 +32,8 @@
         <item name="android:windowBackground">@null</item>
     </style>
 
+    <style name="Theme.Surveillance.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
+
     <style name="BottomSheetDialogTheme" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
     </style>

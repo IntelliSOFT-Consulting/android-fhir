@@ -2,6 +2,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_filter"
+        android:icon="@drawable/baseline_filter_list_24"
+        android:title="@string/filter"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/action_filter_county"
+                android:title="@string/filter_county" />
+            <item
+                android:id="@+id/action_filter_sub_county"
+                android:title="@string/filter_sub_county" />
+            <item
+                android:id="@+id/action_reset_location_filters"
+                android:title="@string/reset_filters" />
+        </menu>
+    </item>
+    <item
         android:id="@+id/action_refresh"
         android:icon="@android:drawable/ic_menu_rotate"
         android:title="Upload"

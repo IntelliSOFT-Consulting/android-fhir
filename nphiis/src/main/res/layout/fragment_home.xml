@@ -1,82 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    android:orientation="vertical"
+    android:background="@color/home_surface_background"
     tools:context=".ui.home.HomeFragment">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/homeHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_home_header"
+        android:paddingStart="18dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Header / Top Banner -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:background="@color/blue"
-        android:padding="16dp">
-
-        <!-- Greeting Text -->
         <TextView
             android:id="@+id/greetingText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:fontFamily="@font/montserratbold"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textColor="@color/home_header_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Good Morning" />
 
-        <!-- Username Text -->
         <TextView
             android:id="@+id/usernameText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/greetingText"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/montserratregular"
-            android:textColor="@android:color/white"
-            android:textSize="13sp" />
+            android:textColor="@color/home_header_text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/greetingText"
+            tools:text="John Doe" />
 
-        <!-- Notification Icon with Badge -->
-        <FrameLayout
-            android:id="@+id/notificationLayout"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/homeHeaderPrompt"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/montserratregular"
+            android:text="@string/home_header_prompt"
+            android:textColor="@color/home_header_text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/usernameText" />
 
-            <!-- Notification Bell Icon -->
-            <ImageView
-                android:id="@+id/notificationIcon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/baseline_notifications_24"
-                app:tint="@android:color/white" />
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/notificationLayout"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            app:cardBackgroundColor="@color/home_notification_background"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Red Dot Badge -->
-            <View
-                android:id="@+id/badge"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_gravity="end|top"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@android:color/holo_red_light"
-                android:backgroundTint="@android:color/holo_red_light"
-                android:shape="oval" />
-        </FrameLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    </RelativeLayout>
+                <ImageView
+                    android:id="@+id/notificationIcon"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/baseline_notifications_24"
+                    app:tint="@color/home_header_text_primary" />
+
+                <View
+                    android:id="@+id/badge"
+                    android:layout_width="9dp"
+                    android:layout_height="9dp"
+                    android:layout_gravity="end|top"
+                    android:layout_marginTop="11dp"
+                    android:layout_marginEnd="11dp"
+                    android:background="@drawable/bg_home_badge" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/homeSectionTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginEnd="20dp"
+        android:fontFamily="@font/montserratbold"
+        android:text="@string/home_section_title"
+        android:textColor="@color/home_section_title"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/homeHeader" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/sdcLayoutsRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginHorizontal="@dimen/component_horizontal_margin"
-        android:layout_marginTop="20dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="8dp"
         android:clipToPadding="false"
-        android:padding="10dp"
-        android:paddingBottom="100dp"
+        android:paddingStart="4dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="110dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/homeSectionTitle"
         tools:listitem="@layout/landing_page_item" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -27,7 +27,9 @@ import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatch
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.ProgressDialogManager
 import com.icl.surveillance.viewmodels.AddClientViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.MeasureReport
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
@@ -122,7 +124,7 @@ class GeneralEditorActivity : AppCompatActivity() {
     }
 
     private fun addQuestionnaireFragment() {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.Default) {
             val patientId =
                 FormatterClass().getSharedPref("patientId", this@GeneralEditorActivity)
             if (patientId != null) {
@@ -184,22 +186,26 @@ class GeneralEditorActivity : AppCompatActivity() {
                     reportingSite.updateOrAddChild(userWard)
                     reportingSite.updateOrAddChild(userFacility)
 
+                    val updatedQuestionnaireResponseJson =
+                        FhirContext.forR4Cached().newJsonParser()
+                            .encodeResourceToString(questionnaireResponse)
+                    val questionnaireJson = viewModel.questionnaireJson
 
-                    if (supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) == null) {
+                    withContext(Dispatchers.Main) {
+                        if (supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) != null) {
+                            return@withContext
+                        }
                         supportFragmentManager.commit {
                             setReorderingAllowed(true)
                             val questionnaireFragmentBuilder =
                                 QuestionnaireFragment.builder().apply {
                                     setShowSubmitAnywayButton(false)
-                                    setQuestionnaireResponse(
-                                        FhirContext.forR4Cached().newJsonParser()
-                                            .encodeResourceToString(questionnaireResponse)
-                                    )
+                                    setQuestionnaireResponse(updatedQuestionnaireResponseJson)
                                     setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(
                                         ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
                                             .LOCATION_WIDGET_PROVIDER,
                                     )
-                                    setQuestionnaire(viewModel.questionnaireJson)
+                                    setQuestionnaire(questionnaireJson)
                                 }
                             add(
                                 R.id.add_patient_container,
@@ -210,11 +216,13 @@ class GeneralEditorActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                Toast.makeText(
-                    this@GeneralEditorActivity,
-                    "Record Not Found, Please Try Again.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@GeneralEditorActivity,
+                        "Record Not Found, Please Try Again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
 
