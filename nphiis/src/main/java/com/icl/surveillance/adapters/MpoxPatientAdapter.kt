@@ -100,4 +100,10 @@ class MpoxPatientAdapter(
         items.addAll(newItems)
         notifyItemRangeInserted(start, newItems.size)
     }
+
+    fun setData(newItems: List<PatientListViewModel.PatientItem>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
+    }
 }

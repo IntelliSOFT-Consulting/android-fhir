@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="success_dialog_background">#162234</color>
+    <color name="success_dialog_title_text">#EAF2FF</color>
+    <color name="success_dialog_message_text">#B7CBE6</color>
+    <color name="success_dialog_cancel_text">#9ED0FF</color>
+    <color name="success_dialog_cancel_stroke">#3F5F86</color>
+    <color name="success_dialog_primary_action">#2A78C8</color>
+    <color name="success_dialog_primary_action_text">#F3F8FF</color>
+</resources>

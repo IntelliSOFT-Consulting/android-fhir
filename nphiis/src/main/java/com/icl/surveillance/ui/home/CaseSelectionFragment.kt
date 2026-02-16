@@ -670,7 +670,21 @@ class CaseSelectionFragment : Fragment() {
                             units,
                             userRole
                         ) { allPatients ->
-                            caseOptions[1] = caseOptions[1].copy(count = allPatients.size)
+                            val scopedCount = when (userRole) {
+                                UserRole.ADMINISTRATOR -> allPatients.size
+                                UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                    allPatients.count { case ->
+                                        case.county.contains("$storedCounty", ignoreCase = true)
+                                    }
+                                }
+                                UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                    allPatients.count { case ->
+                                        case.subCounty.contains("$storedSubCounty", ignoreCase = true)
+                                    }
+                                }
+                                else -> allPatients.size
+                            }
+                            caseOptions[1] = caseOptions[1].copy(count = scopedCount)
                             recyclerView.adapter?.notifyDataSetChanged()
                         }
                     }
