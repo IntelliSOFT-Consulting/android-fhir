@@ -27,98 +27,117 @@
         android:id="@+id/frameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
+        android:background="@color/case_surface_bg"
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Label for Search -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="8dp"
             android:text="@string/search_patient_by"
             android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            android:textColor="@color/case_item_secondary_text"
             android:visibility="gone" />
 
-        <!-- Horizontal layout for Given Name and Family Name -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginVertical="10dp"
-            android:orientation="horizontal"
-            android:visibility="visible">
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="@color/case_list_card_bg"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/case_list_card_stroke"
+            app:strokeWidth="1dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_weight="1"
-                android:hint="@string/epid"
-                app:boxBackgroundMode="outline"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeColor="@android:color/black"
-                app:hintEnabled="true"
+                android:orientation="horizontal"
+                android:paddingStart="6dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="6dp"
+                android:visibility="visible">
 
-                app:startIconDrawable="@android:drawable/ic_menu_search"
-                app:startIconTint="@color/black">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/tv_epid_no"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:padding="12dp"
-                    android:paddingStart="40dp"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:hint="@string/epid"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeColor="@color/case_search_stroke"
+                    app:hintEnabled="true"
+                    app:hintTextColor="@color/case_search_hint"
+                    app:startIconDrawable="@android:drawable/ic_menu_search"
+                    app:startIconTint="@color/case_search_icon">
 
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/tv_epid_no"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName"
+                        android:padding="12dp"
+                        android:paddingStart="40dp"
+                        android:textColor="@color/case_search_text"
+                        android:textColorHint="@color/case_search_hint"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_weight="1"
-                android:hint="@string/patient_name"
-                android:visibility="gone"
-                app:boxBackgroundMode="outline"
-                app:hintEnabled="true">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/family_name_edit_text"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:padding="12dp"
-                    android:paddingStart="8dp"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:hint="@string/patient_name"
+                    android:visibility="gone"
+                    app:boxBackgroundMode="outline"
+                    app:boxStrokeColor="@color/case_search_stroke"
+                    app:hintEnabled="true"
+                    app:hintTextColor="@color/case_search_hint">
 
-        </LinearLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/family_name_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName"
+                        android:padding="12dp"
+                        android:paddingStart="8dp"
+                        android:textColor="@color/case_search_text"
+                        android:textColorHint="@color/case_search_hint"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/count"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
             android:layout_marginStart="20dp"
             android:text="Showing 0 Results"
-            android:textColor="@color/black"
+            android:textColor="@color/case_item_secondary_text"
             android:visibility="gone" />
-        <!-- Patient List -->
+
         <include
             android:id="@+id/patient_list_container"
             layout="@layout/patient_list_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="0dp"
+            android:layout_weight="1" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-
-    <!-- Background color (change as needed) -->
-    <solid android:color="@android:color/white" />
-
-    <!-- Top corners rounded only -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/case_surface_bg" />
     <corners
         android:bottomLeftRadius="0dp"
         android:bottomRightRadius="0dp"
-        android:topLeftRadius="16dp"
-        android:topRightRadius="16dp" />
+        android:topLeftRadius="28dp"
+        android:topRightRadius="28dp" />
 </shape>

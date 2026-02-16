@@ -1,7 +1,6 @@
 package com.icl.surveillance.holders
 
 import android.content.Context
-import android.graphics.Color
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -133,8 +132,9 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
             final = "Confirmed by EPI Linkage"
         }
         this.status.text = final
-        this.status.setTextColor(Color.BLACK)
-        this.labResults.setTextColor(Color.BLACK)
+        val defaultCaseTextColor = this.status.context.getColor(R.color.case_item_primary_text)
+        this.status.setTextColor(defaultCaseTextColor)
+        this.labResults.setTextColor(defaultCaseTextColor)
         when (final.trim()) {
             "Confirmed by lab" -> {
                 this.status.setTextColor(this.status.context.getColor(R.color.red))

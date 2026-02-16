@@ -130,6 +130,7 @@
                 app:tabGravity="fill"
                 app:tabIndicatorHeight="0dp"
                 app:tabMode="scrollable"
+                app:tabRippleColor="@color/summary_tab_ripple"
                 app:tabSelectedTextColor="@color/summary_tab_selected_text"
                 app:tabTextColor="@color/summary_tab_unselected_text" />
         </FrameLayout>

@@ -8,8 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
@@ -144,10 +144,12 @@ class ProfileFragment : Fragment() {
                 val phone = formatter.getSharedPref("phone", requireContext())
                 val email = formatter.getSharedPref("email", requireContext())
                 val role = formatter.getSharedPref("role", requireContext())
+                val fullNames = formatter.getSharedPref("fullNames", requireContext())
 
                 tvUserName.text = "${safeText(firstName)} ${safeText(lastName)}"
                 tvEmail.text = " ${safeText(email)}"
                 tvPhone.text = " ${safeText(phone)}"
+                profileInitials.text = formatter.generateUserAvatarInitials(firstName, lastName, fullNames)
 
 
                 // Set reusable items
@@ -230,7 +232,7 @@ class ProfileFragment : Fragment() {
         onConfirm: () -> Unit
     ) {
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(confirmText) { dialog, _ ->

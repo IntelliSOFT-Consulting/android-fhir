@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="auth_surface_background">#0D1625</color>
+    <color name="auth_bg_start">#0E1726</color>
+    <color name="auth_bg_end">#131F33</color>
+    <color name="auth_header_start">#1C3554</color>
+    <color name="auth_header_end">#2A4E76</color>
+    <color name="auth_header_title">#EAF2FF</color>
+    <color name="auth_header_subtitle">#B4C8E4</color>
+    <color name="auth_card_background">#162234</color>
+    <color name="auth_card_stroke">#2A3A51</color>
+    <color name="auth_primary_text">#E8F1FF</color>
+    <color name="auth_secondary_text">#9FB2CC</color>
+    <color name="auth_input_background">#1A293E</color>
+    <color name="auth_input_stroke">#365071</color>
+    <color name="auth_input_hint">#8EA6C5</color>
+    <color name="auth_input_text">#E8F1FF</color>
+    <color name="auth_link">#9ED0FF</color>
+    <color name="auth_primary_action">#2A78C8</color>
+    <color name="auth_primary_action_text">#F3F8FF</color>
+    <color name="auth_logo_bg">#223750</color>
+    <color name="auth_toolbar_title">#EAF2FF</color>
+</resources>

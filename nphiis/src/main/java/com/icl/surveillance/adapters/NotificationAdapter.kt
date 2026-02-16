@@ -1,20 +1,13 @@
 package com.icl.surveillance.adapters
 
-import android.text.format.DateUtils
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ItemNotificationBinding
 import com.icl.surveillance.models.Notification
-import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
-import java.util.Locale
-import java.util.TimeZone
 
 
 class NotificationAdapter(private var items: List<Notification>) :
@@ -34,10 +27,10 @@ class NotificationAdapter(private var items: List<Notification>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val notification = items[position]
-        holder.binding.tvMessage.text = notification.body
         val relativeTime = notification.createdAt.toTimeAgo()
         holder.binding.apply {
-            tvTitle.text=notification.title
+            tvTitle.text = notification.title.ifBlank { "Notification" }
+            tvMessage.text = notification.body
             tvTime.text = relativeTime
         }
     }

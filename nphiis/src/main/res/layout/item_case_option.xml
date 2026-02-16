@@ -4,83 +4,98 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:layout_marginHorizontal="@dimen/component_horizontal_margin"
-    android:layout_marginVertical="@dimen/component_vertical_margin"
-    android:minHeight="90dp"
-    android:orientation="vertical"
-    android:padding="20dp"
-    app:cardBackgroundColor="@color/blue"
-    app:cardCornerRadius="5dp"
-    app:cardElevation="10dp">
+    android:layout_marginStart="6dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="6dp"
+    android:layout_marginBottom="6dp"
+    android:minHeight="94dp"
+    app:cardBackgroundColor="@color/home_card_background"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:rippleColor="@color/home_card_ripple"
+    app:strokeColor="@color/home_card_stroke"
+    app:strokeWidth="1dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:padding="1dp"
-        android:weightSum="2">
+        android:paddingStart="14dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="12dp">
 
-        <!-- LEFT SIDE (1.5 weight) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:orientation="vertical"
-            android:padding="16dp">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/iconContainer"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            app:cardBackgroundColor="@color/home_icon_container_background"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
                 android:src="@drawable/useraddfill"
-                app:tint="@android:color/white" />
+                app:tint="@color/home_icon_tint" />
+        </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:fontFamily="@font/inter"
-                android:text="@string/add_new_measles_case"
-                android:textColor="@android:color/white"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- RIGHT SIDE (0.5 weight) -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/title"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/montserratbold"
+            android:maxLines="2"
+            android:text="@string/add_new_measles_case"
+            android:textColor="@color/home_card_title"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="@id/iconContainer"
+            app:layout_constraintEnd_toStartOf="@id/case_count_container"
+            app:layout_constraintStart_toEndOf="@id/iconContainer"
+            app:layout_constraintTop_toTopOf="@id/iconContainer" />
+
+        <LinearLayout
+            android:id="@+id/case_count_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <LinearLayout
-                android:id="@+id/case_count_container"
+            <TextView
+                android:id="@+id/case_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:fontFamily="@font/montserratbold"
+                android:text="@string/_0"
+                android:textColor="@color/home_card_title"
+                android:textSize="16sp" />
 
-                <TextView
-                    android:id="@+id/case_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter"
-                    android:text="@string/_0"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter"
-                    android:text="@string/cases"
-                    android:textColor="@android:color/white"
-                    android:textSize="12sp" />
-            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/montserratregular"
+                android:text="@string/cases"
+                android:textColor="@color/home_card_subtitle"
+                android:textSize="11sp" />
         </LinearLayout>
-    </LinearLayout>
+
+        <ImageView
+            android:id="@+id/chevronView"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/baseline_arrow_forward_ios_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/home_card_chevron_tint" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

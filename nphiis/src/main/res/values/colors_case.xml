@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="case_surface_bg">@color/home_surface_background</color>
+    <color name="case_list_card_bg">@color/home_card_background</color>
+    <color name="case_list_card_stroke">@color/home_card_stroke</color>
+    <color name="case_item_primary_text">@color/home_card_title</color>
+    <color name="case_item_secondary_text">@color/home_card_subtitle</color>
+    <color name="case_search_stroke">@color/home_card_stroke</color>
+    <color name="case_search_icon">@color/home_icon_tint</color>
+    <color name="case_search_hint">@color/home_card_subtitle</color>
+    <color name="case_search_text">@color/home_card_title</color>
+    <color name="case_empty_state_tint">@color/home_card_chevron_tint</color>
+    <color name="case_empty_state_text">@color/home_card_subtitle</color>
+
+    <color name="case_sheet_surface">@color/home_card_background</color>
+    <color name="case_sheet_handle">@color/home_card_stroke</color>
+    <color name="case_sheet_title">@color/home_card_title</color>
+    <color name="case_sheet_message">@color/home_card_subtitle</color>
+    <color name="case_sheet_icon_bg">@color/home_icon_container_background</color>
+    <color name="case_sheet_icon_tint">@color/home_icon_tint</color>
+    <color name="case_sheet_card_stroke">@color/home_card_stroke</color>
+</resources>

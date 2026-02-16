@@ -31,7 +31,7 @@
             android:textColor="@color/home_header_text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintEnd_toStartOf="@id/userAvatarLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Good Morning" />
@@ -44,7 +44,7 @@
             android:fontFamily="@font/montserratregular"
             android:textColor="@color/home_header_text_secondary"
             android:textSize="14sp"
-            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintEnd_toStartOf="@id/userAvatarLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/greetingText"
             tools:text="John Doe" />
@@ -58,9 +58,32 @@
             android:text="@string/home_header_prompt"
             android:textColor="@color/home_header_text_secondary"
             android:textSize="12sp"
-            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintEnd_toStartOf="@id/userAvatarLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/usernameText" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/userAvatarLayout"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            app:cardBackgroundColor="@color/home_notification_background"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/userInitials"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:importantForAccessibility="no"
+                android:text="JD"
+                android:textColor="@color/home_header_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/notificationLayout"

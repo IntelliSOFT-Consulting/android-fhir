@@ -4,15 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:background="@color/white"
-    android:backgroundTint="@color/white"
-    android:elevation="15dp"
+    android:layout_marginHorizontal="2dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:background="@color/case_list_card_bg"
+    android:backgroundTint="@color/case_list_card_bg"
+    android:elevation="0dp"
     android:orientation="vertical"
-    android:paddingVertical="@dimen/fab_margin"
-    app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="10dp"
-    app:strokeColor="@color/gray"
+    android:paddingVertical="6dp"
+    app:cardBackgroundColor="@color/case_list_card_bg"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="18dp"
+    app:strokeColor="@color/case_list_card_stroke"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -33,7 +36,7 @@
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
                 android:text="Reporting Cadre"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="normal" />
 
             <TextView
@@ -44,7 +47,7 @@
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
                 android:text="Agency"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="normal" />
 
         </LinearLayout>
@@ -62,7 +65,7 @@
                 android:layout_marginEnd="@dimen/small_text_margin"
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="bold"
                 tools:text="Navya Patel" />
 
@@ -75,7 +78,7 @@
                 android:layout_marginEnd="@dimen/small_text_margin"
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="bold"
                 tools:text="Navya Patel" />
         </LinearLayout>
@@ -93,7 +96,7 @@
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
                 android:text="Division"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="normal" />
 
             <TextView
@@ -104,7 +107,7 @@
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
                 android:text="Village/CHU"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="normal" />
 
         </LinearLayout>
@@ -122,7 +125,7 @@
                 android:layout_marginEnd="@dimen/small_text_margin"
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="bold"
                 tools:text="Navya Patel" />
 
@@ -136,7 +139,7 @@
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
                 android:text="Pending"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -154,7 +157,7 @@
                 android:layout_weight="1"
                 android:text="Sub County:"
 
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="normal" />
 
             <TextView
@@ -166,7 +169,7 @@
                 android:layout_weight="1"
                 android:text="County:"
 
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="normal" />
 
 
@@ -185,7 +188,7 @@
                 android:layout_marginEnd="@dimen/small_text_margin"
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="bold"
                 tools:text="Navya Patel" />
 
@@ -198,7 +201,7 @@
                 android:layout_marginBottom="@dimen/small_text_margin"
                 android:layout_weight="1"
 
-                android:textColor="@color/black"
+                android:textColor="@color/case_item_primary_text"
                 android:textStyle="bold"
                 tools:text="Navya Patel" />
 
