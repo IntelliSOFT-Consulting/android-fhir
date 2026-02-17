@@ -4,14 +4,14 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.icl.nphi",
+  "applicationId": "com.icl.surveillance",
   "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 9,
+      "versionCode": 10,
       "versionName": "1.0",
       "outputFile": "nphiis-release.apk"
     }

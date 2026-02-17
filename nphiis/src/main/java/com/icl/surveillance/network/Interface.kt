@@ -34,14 +34,14 @@ interface Interface {
     @GET
     suspend fun fetchBundle(
         @Url url: String,
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String
     ): FhirBundle
 
-    @POST("provider/fcm/token")
+    @POST("notifications/config")
     @Headers("Content-Type: application/json")
     suspend fun updateFCMToken(
         @Body body: FCMToken,
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String
     ): Response<Any>
 
     @PUT("Patient/{id}")
@@ -49,30 +49,30 @@ interface Interface {
     suspend fun sendPatientToServer(
         @Path("id") id: String,
         @Body payload: RequestBody,
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String
     ): Response<Any>
 
     @POST(BASE_URL)
     @Headers("Content-Type: application/json")
     suspend fun sendBundleToServer(
         @Body payload: RequestBody,
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String
     ): Response<Any>
 
     @GET("provider/me")
     suspend fun getUserInfo(
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String
     ): Response<UserResponse>
 
     @GET("notifications")
     suspend fun pullUserAlerts(
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String
     ): Response<NotificationResponse>
 
     @GET("provider/reset-password")
     suspend fun resetPassword(
         @Query("idNumber") idNumber: String,
-        @Query("email", encoded = true) email: String,
+        @Query("email", encoded = true) email: String
     ): Response<DbResetPassword>
 
     @POST("provider/reset-password")

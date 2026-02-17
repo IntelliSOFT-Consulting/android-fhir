@@ -57,7 +57,7 @@ class HomeFragment : Fragment() {
             ).apply { submitList(viewModel.getLayoutList()) }
         val recyclerView = requireView().findViewById<RecyclerView>(R.id.sdcLayoutsRecyclerView)
         recyclerView.adapter = adapter
-        recyclerView.layoutManager = GridLayoutManager(context, 2)
+        recyclerView.layoutManager = GridLayoutManager(requireContext(), requireContext().homeGridSpanCount())
 
         handleUser()
 

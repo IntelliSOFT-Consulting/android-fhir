@@ -26,3 +26,10 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 
+# Prevent Html.TagHandler linkage issues in minified builds.
+-keep class androidx.core.text.HtmlCompat { *; }
+-keep class androidx.core.text.HtmlCompat$* { *; }
+-keep class * implements android.text.Html$TagHandler { *; }
+-keepclassmembers class * implements android.text.Html$TagHandler {
+    public void handleTag(boolean, java.lang.String, android.text.Editable, org.xml.sax.XMLReader);
+}

@@ -87,30 +87,24 @@ class SingleCaseFragment : Fragment() {
           }
       greeting.text = titleName?.replace("\n", " ")
     }
-    val adapter =
-        DiseasesRecyclerViewAdapter(::onItemClick).apply {
-          if (stage != null) {
-            when (stage) {
-              "6" -> {
-                submitList(viewModel.getDiseasesList(6))
-              }
-
-              "100" -> {
-                submitList(viewModel.getMOHList())
-              }
-              "7" -> {
-                submitList(viewModel.getDiseasesList(700))
-              }
-
-              else -> {
-                println("Noting to Show")
-              }
+    val listItems =
+        if (stage != null) {
+          when (stage) {
+            "6" -> viewModel.getDiseasesList(6)
+            "100" -> viewModel.getMOHList()
+            "7" -> viewModel.getDiseasesList(700)
+            else -> {
+              println("Noting to Show")
+              emptyList()
             }
           }
+        } else {
+          emptyList()
         }
+    val adapter = DiseasesRecyclerViewAdapter(::onItemClick).apply { submitList(listItems) }
     val recyclerView = requireView().findViewById<RecyclerView>(R.id.sdcLayoutsRecyclerView)
     recyclerView.adapter = adapter
-    recyclerView.layoutManager = GridLayoutManager(context, 2)
+    recyclerView.layoutManager = GridLayoutManager(requireContext(), requireContext().homeGridSpanCount())
   }
 
   private fun onItemClick(layout: HomeViewModel.Diseases) {

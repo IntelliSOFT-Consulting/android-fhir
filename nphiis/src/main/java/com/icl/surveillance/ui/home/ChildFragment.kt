@@ -90,39 +90,24 @@ class ChildFragment : Fragment() {
                 }
             greeting.text = titleName?.replace("\n", " ")
         }
-        val adapter =
-            DiseasesRecyclerViewAdapter(::onItemClick).apply {
-                if (stage != null) {
-                    when (stage) {
-                        "0" -> {
-                            submitList(viewModel.getNotifiableList())
-                        }
-
-                        "1" -> {
-                            submitList(viewModel.getMassList())
-                        }
-
-                        "2" -> {
-                            submitList(viewModel.getCaseList())
-                        }
-
-                        "3" -> {
-                            submitList(viewModel.getSocialList())
-                        }
-
-                        "100" -> {
-                            submitList(viewModel.getMOHList())
-                        }
-
-                        else -> {
-
-                        }
-                    }
+        val listItems =
+            if (stage != null) {
+                when (stage) {
+                    "0" -> viewModel.getNotifiableList()
+                    "1" -> viewModel.getMassList()
+                    "2" -> viewModel.getCaseList()
+                    "3" -> viewModel.getSocialList()
+                    "100" -> viewModel.getMOHList()
+                    else -> emptyList()
                 }
+            } else {
+                emptyList()
             }
+
+        val adapter = DiseasesRecyclerViewAdapter(::onItemClick).apply { submitList(listItems) }
         val recyclerView = requireView().findViewById<RecyclerView>(R.id.sdcLayoutsRecyclerView)
         recyclerView.adapter = adapter
-        recyclerView.layoutManager = GridLayoutManager(context, 2)
+        recyclerView.layoutManager = GridLayoutManager(requireContext(), requireContext().homeGridSpanCount())
     }
 
     private fun onItemClick(layout: HomeViewModel.Diseases) {
