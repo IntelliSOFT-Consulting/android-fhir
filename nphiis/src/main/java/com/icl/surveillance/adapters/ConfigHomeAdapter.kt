@@ -39,13 +39,14 @@ class ConfigHomeViewHolder(
 	fun bind(item: ConfigItem, iconRes: Int) {
 		binding.textView.text = item.label
 		if (iconRes != 0) {
+			binding.iconContainer.visibility = View.VISIBLE
 			binding.iconView.visibility = View.VISIBLE
 			binding.iconView.setImageResource(iconRes)
 		} else {
+			binding.iconContainer.visibility = View.GONE
 			binding.iconView.visibility = View.GONE
 		}
 		binding.root.setOnClickListener { onItemClick(item) }
 	}
 }
-
 
