@@ -71,8 +71,12 @@ class AddParentCaseActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         fhirEngine = FhirApplication.fhirEngine(this@AddParentCaseActivity)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
         val titleName = FormatterClass().getSharedPref("AddParentTitle", this@AddParentCaseActivity)
-        supportActionBar.apply { title = titleName }
+        val resolvedTitle =
+            titleName?.trim().takeUnless { it.isNullOrBlank() }
+                ?: getString(R.string.new_case_description)
+        binding.toolbarTitle.text = resolvedTitle
 
 //        checkAndRequestLocationPermission()
         updateArguments()
@@ -562,6 +566,4 @@ class AddParentCaseActivity : AppCompatActivity() {
         return true
     }
 }
-
-
 

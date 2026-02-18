@@ -230,23 +230,23 @@ class RetrofitCallsAuthentication {
                                         accessToken = access_token,
                                         refreshToken = refresh_token,
                                     )
-                                    formatter.saveSharedPref("access_token", access_token, context)
-                                    formatter.saveSharedPref(
+                                    formatter.saveSharedPrefSync("access_token", access_token, context)
+                                    formatter.saveSharedPrefSync(
                                         "expires_in",
                                         expires_in,
                                         context
                                     )
-                                    formatter.saveSharedPref(
+                                    formatter.saveSharedPrefSync(
                                         "refresh_expires_in",
                                         refresh_expires_in,
                                         context
                                     )
-                                    formatter.saveSharedPref(
+                                    formatter.saveSharedPrefSync(
                                         "refresh_token",
                                         refresh_token,
                                         context
                                     )
-                                    formatter.saveSharedPref("isLoggedIn", "true", context)
+                                    formatter.saveSharedPrefSync("isLoggedIn", "true", context)
                                     getUserDetails(viewModel, context)
                                     messageToast = "Login successful."
 
@@ -359,7 +359,6 @@ class RetrofitCallsAuthentication {
                 if (token != null) {
                     val apiInterface = apiService.getUserInfo("Bearer $token")
                     if (apiInterface.isSuccessful) {
-                        viewModel.triggerOneTimeSync()
                         viewModel.setupPeriodicSync()
                         val statusCode = apiInterface.code()
                         val body = apiInterface.body()

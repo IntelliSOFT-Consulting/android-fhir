@@ -11,9 +11,7 @@ class NPHIISSyncTracker(
 ) {
     suspend fun startRun(): String {
         val runId = UUID.randomUUID().toString()
-        store.setRun(runId)
-        store.setLocationTarget(locationTarget)
-        store.setStatus(NPHIISSyncStatus.RUNNING, "Sync started")
+        store.startNewRun(runId = runId, locationTarget = locationTarget, message = "Sync started")
         return runId
     }
 

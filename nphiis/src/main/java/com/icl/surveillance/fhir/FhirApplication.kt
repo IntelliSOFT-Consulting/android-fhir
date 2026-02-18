@@ -21,6 +21,7 @@ import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
 import com.google.android.fhir.sync.remote.HttpLogger
 import com.google.firebase.FirebaseApp
+import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.monitor.FhirSyncService
 import com.icl.surveillance.monitor.NetworkModule
 import com.icl.surveillance.utils.Constants.BASE_URL
@@ -70,7 +71,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                             HttpLogger.Configuration(
                                 HttpLogger.Level.BASIC,
                             ),
-                        ) {line->
+                        ) { line ->
                             Timber.tag("App-HttpLog").e(line)
                             Timber.tag("FHIR-HTTP").d(line)
                         },
@@ -79,7 +80,6 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                 ),
             ),
         )
-//        setupPeriodicSync()
 
         try {
 
@@ -98,31 +98,6 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun setupPeriodicSync() {
-        appScope.launch {
-            try {
-                Sync.periodicSync<AppFhirSyncWorker>(
-                    this@FhirApplication,
-                    periodicSyncConfiguration = PeriodicSyncConfiguration(
-                        syncConstraints = Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build(),
-                        repeat = RepeatInterval(interval = 15, timeUnit = TimeUnit.MINUTES)
-                    )
-
-                ).catch { throwable ->
-                    Log.e(
-                        "FHIR_SYNC",
-                        "Error setting up periodic sync: ${throwable.message}",
-                        throwable
-                    )
-                }.collect { }
-            } catch (e: Exception) {
-                Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
-            }
-        }
-    }
 
     override fun onTerminate() {
         super.onTerminate()
@@ -130,9 +105,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     }
 
     fun retrieveStoredToken(): String {
-        return FormatterClass()
-            .getSharedPref("access_token", this@FhirApplication)
-            ?: TEST_TOKEN
+        val token = FormatterClass().getSharedPref("access_token", this@FhirApplication).orEmpty()
+        return if (token.isNotBlank()) token else if (BuildConfig.DEBUG) TEST_TOKEN else ""
     }
 
     private fun constructFhirEngine(): FhirEngine {
@@ -148,6 +122,4 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
     override fun getDataCaptureConfig(): DataCaptureConfig =
         dataCaptureConfig ?: DataCaptureConfig()
-
-
 }

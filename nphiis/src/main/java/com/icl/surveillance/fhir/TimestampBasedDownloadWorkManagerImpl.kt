@@ -1,6 +1,7 @@
 package com.icl.surveillance.fhir
 
 import android.content.Context
+import android.net.Uri
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.download.DownloadRequest
@@ -20,7 +21,6 @@ import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import java.time.ZoneOffset
 
 class TimestampBasedDownloadWorkManagerImpl(
     private val dataStore: DemoDataStore,
@@ -30,18 +30,16 @@ class TimestampBasedDownloadWorkManagerImpl(
 ) : DownloadWorkManager {
 
     private var seeded = false
-    private val resourceTypeList = ResourceType.values().map { it.name }
+    private val resourceTypeList = ResourceType.values().map { it.name }.toSet()
 
     // --- LIVE TRACKER ---
     private val locationMonitor = NPHIISSyncProgressStore(context)
     private val tracker = NPHIISSyncTracker(locationMonitor, locationTarget = 17000)
-    private var runId: String? = null
+    private var lastResolvedResourceType: ResourceType? = null
 
     private val FLOOR_2026 = "2026-01-01T00:00:00Z"
-    private val ISO_INSTANT: DateTimeFormatter =
-        DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC)
 
-    private val LOCATION_URL = "Location?_count=500&_sort=_lastUpdated"
+    private val LOCATION_URL = "Location?_count=950&_sort=_lastUpdated"
 
     // NOTE: keep your intended behavior; this is just as you had it.
     private val CORE_URLS =
@@ -52,7 +50,7 @@ class TimestampBasedDownloadWorkManagerImpl(
             )
         } else {
             listOf(
-                "Location?_count=500&_sort=_lastUpdated",
+                "Location?_count=950&_sort=_lastUpdated",
             )
         }
 
@@ -63,10 +61,12 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val enqueuedEverythingPatients = mutableSetOf<String>()   // PatientId -> enqueued once
     private val seenUrls = mutableSetOf<String>()                     // global guard (optional but strong)
 
-    private fun seedUrlsIfNeeded() {
+    private suspend fun seedUrlsIfNeeded() {
         if (seeded) return
 
         urls.clear()
+        tracker.startRun()
+        lastResolvedResourceType = null
 
         val isFirstTimeForLocation = !FormatterClass().isSyncDone(context)
         if (isFirstTimeForLocation) {
@@ -89,6 +89,7 @@ class TimestampBasedDownloadWorkManagerImpl(
                     // FormatterClass().setSyncDone(context)
                     shouldMarkLocationSeedDone = false
                 }
+                tracker.done()
                 return null
             }
 
@@ -97,14 +98,13 @@ class TimestampBasedDownloadWorkManagerImpl(
                 continue
             }
 
-            val typeHit = url.findAnyOf(resourceTypeList, ignoreCase = true)?.second
-                ?: return null
-
-            val resourceTypeToDownload = ResourceType.fromCode(typeHit)
-            locationMonitor.setCurrentType(resourceTypeToDownload.name)
+            val resourceTypeToDownload =
+                resolveResourceTypeFromUrl(url) ?: lastResolvedResourceType ?: continue
+            lastResolvedResourceType = resourceTypeToDownload
+            tracker.onTypeStart(resourceTypeToDownload.name)
 
             dataStore.getLastUpdateTimestamp(resourceTypeToDownload)?.let {
-                url = affixLastUpdatedTimestamp(url, it)
+                url = affixLastUpdatedTimestamp(url, it, resourceTypeToDownload)
             }
 
             return DownloadRequest.of(url)
@@ -112,10 +112,11 @@ class TimestampBasedDownloadWorkManagerImpl(
     }
 
     override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {
-        return urls.associate { url ->
-            val resourceType = ResourceType.fromCode(url.substringBefore("?"))
-            resourceType to url
-        }
+        return urls.mapNotNull { url ->
+            resolveResourceTypeFromUrl(url)?.let { resourceType ->
+                resourceType to url
+            }
+        }.toMap()
     }
 
     override suspend fun processResponse(response: Resource): Collection<Resource> {
@@ -140,12 +141,15 @@ class TimestampBasedDownloadWorkManagerImpl(
                 response.entry.mapNotNull { it.resource }
                     .count { it.resourceType == ResourceType.Location }
             if (locationInThisPage > 0) {
-                locationMonitor.addLocationDownloaded(locationInThisPage)
+                tracker.onLocationPageDownloaded(locationInThisPage)
             }
 
             // ✅ Detect: is this a Patient SEARCH page (Patient-only SEARCHSET)?
             val typesInBundle: Set<ResourceType> =
                 response.entry.mapNotNull { it.resource?.resourceType }.toSet()
+            if (typesInBundle.size == 1) {
+                lastResolvedResourceType = typesInBundle.first()
+            }
 
             val isPatientOnlySearchPage =
                 response.type == Bundle.BundleType.SEARCHSET &&
@@ -199,13 +203,17 @@ class TimestampBasedDownloadWorkManagerImpl(
             }
     }
 
-    private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String?): String {
+    private fun affixLastUpdatedTimestamp(
+        url: String,
+        lastUpdated: String?,
+        resourceType: ResourceType,
+    ): String {
         if (url.contains("&page_token")) return url
 
         val isEverything = url.contains("\$everything")
 
         // Keep your special Location behavior
-        if (url.contains("Location")) {
+        if (resourceType == ResourceType.Location) {
             if (!FormatterClass().isSyncDone(context)) {
                 return url
             }
@@ -258,6 +266,25 @@ class TimestampBasedDownloadWorkManagerImpl(
     private fun appendQueryParam(url: String, key: String, value: String): String {
         val sep = if (url.contains("?")) "&" else "?"
         return "$url$sep$key=$value"
+    }
+
+    private fun resolveResourceTypeFromUrl(url: String): ResourceType? {
+        val pathSegments = runCatching { Uri.parse(url).pathSegments }.getOrDefault(emptyList())
+        pathSegments.asReversed().forEach { segment ->
+            toResourceType(segment)?.let { return it }
+        }
+
+        val pathPart = url.substringBefore("?").substringAfterLast("/")
+        return toResourceType(pathPart)
+    }
+
+    private fun toResourceType(raw: String?): ResourceType? {
+        val candidate = raw?.trim().orEmpty()
+        if (candidate.isEmpty()) return null
+        val normalized = candidate.substringBefore("/")
+        val matchedName = resourceTypeList.firstOrNull { it.equals(normalized, ignoreCase = true) }
+            ?: return null
+        return runCatching { ResourceType.fromCode(matchedName) }.getOrNull()
     }
 
     private fun Date.toTimeZoneString(): String {

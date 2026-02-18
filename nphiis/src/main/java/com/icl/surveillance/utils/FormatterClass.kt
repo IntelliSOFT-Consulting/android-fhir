@@ -252,6 +252,17 @@ class FormatterClass {
     editor.apply()
   }
 
+  /**
+   * Synchronous variant for critical auth/session keys that are needed immediately after login.
+   */
+  fun saveSharedPrefSync(key: String, value: String, context: Context): Boolean {
+    val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences(context.getString(R.string.app_name), MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.putString(key, value)
+    return editor.commit()
+  }
+
   fun getSharedPref(key: String, context: Context): String? {
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(context.getString(R.string.app_name), MODE_PRIVATE)

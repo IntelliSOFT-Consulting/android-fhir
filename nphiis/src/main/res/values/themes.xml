@@ -66,4 +66,13 @@
         <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
+    <style
+        name="TextAppearance.Surveillance.Toolbar.Title.Compact"
+        parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:fontFamily">@font/intersemi</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+    </style>
+
 </resources>

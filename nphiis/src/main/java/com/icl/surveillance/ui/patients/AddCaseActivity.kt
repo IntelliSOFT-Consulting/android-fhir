@@ -56,8 +56,12 @@ class AddCaseActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         fhirEngine = FhirApplication.fhirEngine(this@AddCaseActivity)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
         val titleName = FormatterClass().getSharedPref("title", this@AddCaseActivity)
-        supportActionBar.apply { title = titleName }
+        val resolvedTitle =
+            titleName?.trim().takeUnless { it.isNullOrBlank() }
+                ?: getString(R.string.new_case_description)
+        binding.toolbarTitle.text = resolvedTitle
 
         val questionnaire = FormatterClass().getSharedPref("questionnaire", this@AddCaseActivity)
         if (isLabQuestionnaire(questionnaire) && !hasLabAccess()) {
