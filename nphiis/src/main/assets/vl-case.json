@@ -137,6 +137,30 @@
     {
       "url": "http://hl7.org/fhir/StructureDefinition/variable",
       "valueExpression": {
+        "name": "selectedCountyNameNational",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999_national').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyNameNational",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642_national').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardNameNational",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434_national').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
         "name": "selectedCountyNameSubCounty",
         "language": "text/fhirpath",
         "expression": "%resource.descendants().where(linkId='294367770999_sub_county').answer.value.reference"
@@ -174,154 +198,721 @@
           "text": "Hospital/Facility Location"
         },
         {
-          "type": "reference",
+          "linkId": "user_role",
+          "type": "string",
+          "text": "User Role",
           "extension": [
             {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof=Location/0&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ],
-          "linkId": "294367770999",
-          "text": "County ",
-          "required": true
-        },
-        {
-          "type": "reference",
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%countyName}}&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ],
-          "linkId": "819946803642",
-          "text": "Subcounty ",
-          "required": true
-        },
-        {
-          "type": "reference",
-          "linkId": "819943434",
-          "text": "Ward ",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%selectedSubCountyName}}&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
             }
           ]
         },
         {
-          "type": "reference",
-          "linkId": "819946803677",
-          "text": "Health Facility",
-          "required": true,
+          "linkId": "user_facility",
+          "type": "string",
+          "text": "User Facility",
           "extension": [
             {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%selectedWardName}}&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
             }
           ]
         },
         {
-          "type": "choice",
+          "linkId": "user_ward",
+          "type": "string",
+          "text": "User Ward",
           "extension": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "drop-down",
-                    "display": "Drop down"
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "user_sub_county",
+          "type": "string",
+          "text": "User Sub County",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "user_county",
+          "type": "string",
+          "text": "User County",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "facility_level",
+          "text": " ",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "VACCINATOR"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedCounty}}&_sort=name"
                   }
-                ]
-              }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803642",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedWard}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedFacility}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "drop-down",
+                        "display": "Drop down"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "linkId": "438862163919",
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "sub_county_level",
+          "text": "",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER"
             }
           ],
-          "linkId": "438862163919",
-          "text": "Type of health facility",
-          "required": true,
-          "answerOption": [
+          "item": [
             {
-              "valueCoding": {
-                "code": "Private",
-                "display": "Private"
-              }
+              "linkId": "294367770999_sub_county",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
             },
             {
-              "valueCoding": {
-                "code": "Public",
-                "display": "Public"
-              }
+              "type": "reference",
+              "linkId": "819946803642_sub_county",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
             },
             {
-              "valueCoding": {
-                "code": "Faith Based",
-                "display": "Faith Based"
-              }
+              "type": "reference",
+              "linkId": "819943434_sub_county",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedSubCountyNameSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677_sub_county",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedWardNameSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "linkId": "438862163919_sub_county",
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "drop-down",
+                        "display": "Drop down"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "county_level",
+          "text": " ",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "COUNTY_DISEASE_SURVEILLANCE_OFFICER"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999_county",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "linkId": "819946803642_county",
+              "type": "reference",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedCountyNameCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434_county",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedSubCountyNameCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677_county",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedWardNameCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "drop-down",
+                        "display": "Drop down"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "linkId": "438862163919_county",
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "national_level",
+          "text": " ",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "ADMINISTRATOR"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999_national",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof=Location/0&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "linkId": "819946803642_national",
+              "type": "reference",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedCountyNameNational}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434_national",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedSubCountyNameNational}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677_national",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedWardNameNational}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "drop-down",
+                        "display": "Drop down"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "linkId": "438862163919_national",
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
             }
           ]
         },
@@ -371,8 +962,8 @@
           }
         }
       ],
-      "linkId": "306799299376",
-      "text": "PRESENTATION PHASE "
+      "linkId": "151479012557",
+      "text": "PRESENTATION PHASE"
     },
     {
       "item": [

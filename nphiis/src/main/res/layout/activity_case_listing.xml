@@ -17,9 +17,31 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/compact_toolbar_height"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.Surveillance.PopupOverlay" />
+            android:paddingTop="@dimen/compact_toolbar_vertical_padding"
+            android:paddingBottom="@dimen/compact_toolbar_vertical_padding"
+            app:contentInsetStartWithNavigation="@dimen/compact_toolbar_title_margin"
+            app:popupTheme="@style/Theme.Surveillance.PopupOverlay">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/toolbarTitle"
+                style="@style/TextAppearance.Surveillance.Toolbar.Title.Compact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="@dimen/compact_toolbar_title_margin"
+                android:layout_marginEnd="56dp"
+                android:gravity="start|center_vertical"
+                android:includeFontPadding="false"
+                android:maxLines="3"
+                app:autoSizeMaxTextSize="14sp"
+                app:autoSizeMinTextSize="10sp"
+                app:autoSizeStepGranularity="1sp"
+                app:autoSizeTextType="uniform" />
+
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 

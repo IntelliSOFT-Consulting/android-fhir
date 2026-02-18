@@ -40,6 +40,19 @@ class NPHIISSyncProgressStore(private val context: Context) {
             )
         }
 
+    suspend fun startNewRun(runId: String, locationTarget: Int, message: String = "Sync started") {
+        context.syncDataStore.edit { p ->
+            p[Keys.RUN_ID] = runId
+            p[Keys.STATUS] = NPHIISSyncStatus.RUNNING.name
+            p[Keys.CURRENT_TYPE] = ""
+            p[Keys.LOCATION_DOWNLOADED] = 0
+            p[Keys.LOCATION_TARGET] = locationTarget
+            p[Keys.LAST_MESSAGE] = message
+            p[Keys.LOCATION_DONE] = false
+            p[Keys.UPDATED_AT] = System.currentTimeMillis()
+        }
+    }
+
     suspend fun setRun(runId: String) {
         context.syncDataStore.edit { p ->
             p[Keys.RUN_ID] = runId

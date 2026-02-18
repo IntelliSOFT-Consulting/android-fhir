@@ -6,52 +6,40 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.sync.PeriodicSyncConfiguration
-import com.google.android.fhir.sync.RepeatInterval
+import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import com.icl.surveillance.MainActivity
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityInitialSyncBinding
 import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.fhir.FhirApplication
-import com.icl.surveillance.fhir.LocationDownloadedWorker
 import com.icl.surveillance.fhir.NPHIISSyncProgressStore
-import com.icl.surveillance.models.NPHIISSyncProgress
 import com.icl.surveillance.utils.FhirBundleLoader
 import com.icl.surveillance.utils.FormatterClass
-import com.icl.surveillance.viewmodels.SyncFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import java.io.File
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.emptyList
-import kotlin.getValue
 
 class InitialSyncActivity : AppCompatActivity() {
     private lateinit var fhirEngine: FhirEngine
     private lateinit var binding: ActivityInitialSyncBinding
-    private val viewModel: SyncFragmentViewModel by viewModels()
 
     private lateinit var locationMonitor: NPHIISSyncProgressStore
-    private var locationSyncCompleted = false
+    private var hasNavigatedToMain = false
+    private var hasRetriedOneTimeSync = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,28 +53,58 @@ class InitialSyncActivity : AppCompatActivity() {
             insets
         }
         fhirEngine = FhirApplication.fhirEngine(this@InitialSyncActivity)
-        viewModel.triggerOneTimeSync()
         locationMonitor = NPHIISSyncProgressStore(applicationContext)
-        lifecycleScope.launch {
-            try {
-                Sync.oneTimeSync<AppFhirSyncWorker>(
-                    this@InitialSyncActivity
-
-                ).catch { throwable ->
-                    Log.e(
-                        "FHIR_SYNC",
-                        "Error setting up periodic sync: ${throwable.message}",
-                        throwable
-                    )
-                }.collect { }
-            } catch (e: Exception) {
-                Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
-            }
-        }
-        observeLocationProgress()
         if (FormatterClass().isSyncDone(this)) {
             startMain()
+            return
+        }
+        startOneTimeSync()
+        observeLocationProgress()
+    }
 
+    private fun startOneTimeSync() {
+        lifecycleScope.launch {
+            try {
+                Sync.oneTimeSync<AppFhirSyncWorker>(this@InitialSyncActivity)
+                    .catch { throwable ->
+                        Log.e("FHIR_SYNC", "Error running initial sync: ${throwable.message}", throwable)
+                        retryInitialSyncOnceOrShowError()
+                    }
+                    .collect { status ->
+                        when (status) {
+                            is CurrentSyncJobStatus.Succeeded -> completeInitialSync()
+                            is CurrentSyncJobStatus.Failed -> retryInitialSyncOnceOrShowError()
+                            else -> Unit
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("FHIR_SYNC", "Error launching initial sync: ${e.message}", e)
+                retryInitialSyncOnceOrShowError()
+            }
+        }
+    }
+
+    private fun retryInitialSyncOnceOrShowError() {
+        if (hasRetriedOneTimeSync) {
+            binding.syncStatusText.text = "Initial sync failed. Check network and retry."
+            return
+        }
+        hasRetriedOneTimeSync = true
+        binding.syncStatusText.text = "Retrying sync…"
+        lifecycleScope.launch {
+            delay(1500)
+            startOneTimeSync()
+        }
+    }
+
+    private fun completeInitialSync() {
+        if (hasNavigatedToMain) return
+        hasNavigatedToMain = true
+        FormatterClass().setSyncDone(this@InitialSyncActivity)
+        binding.syncStatusText.text = "All data imported successfully."
+        lifecycleScope.launch {
+            delay(2000)
+            startMain()
         }
     }
 
@@ -97,19 +115,10 @@ class InitialSyncActivity : AppCompatActivity() {
 
                     val count = progress.locationDownloaded
                     val type = progress.currentType
-                    val runId = progress.runId
-
-                    binding.syncStatusText.text = "Locations synced: $count"
-
-                    if (!locationSyncCompleted && count >= 16700) {
-                        locationSyncCompleted = true
-
-                        FormatterClass().setSyncDone(this@InitialSyncActivity)
-                        binding.syncStatusText.text = "All data imported successfully."
-                        lifecycleScope.launch {
-                            delay(2000)
-                            startMain()
-                        }
+                    if (!hasNavigatedToMain) {
+                        binding.syncStatusText.text =
+                            if (type.isBlank()) "Locations synced: $count"
+                            else "$type synced: $count"
                     }
                 }
             }

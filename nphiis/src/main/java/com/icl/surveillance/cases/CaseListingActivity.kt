@@ -60,9 +60,11 @@ class CaseListingActivity : AppCompatActivity() {
         val titleName = FormatterClass().getSharedPref("listingTitle", this)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.apply {
-            title = " $titleName"
-        }
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        val resolvedTitle =
+            titleName?.trim().takeUnless { it.isNullOrBlank() }
+                ?: getString(R.string.title_dashboard)
+        binding.toolbarTitle.text = resolvedTitle
 
 
         fhirEngine = FhirApplication.fhirEngine(this)

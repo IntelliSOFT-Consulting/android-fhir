@@ -1,30 +1,21 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.kts
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep useful stack traces in release.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve generic/annotation metadata used by Retrofit/Gson.
+-keepattributes Signature,*Annotation*
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-# Keep all models
+# App models are deserialized reflectively.
 -keep class com.icl.surveillance.models.** { *; }
+-keepclassmembers class com.icl.surveillance.models.** {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 
-# Keep Gson annotations
--keepattributes Signature
--keepattributes *Annotation*
+# Retrofit HTTP annotations are read reflectively.
+-keepclassmembers interface * {
+    @retrofit2.http.* <methods>;
+}
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
 # Prevent Html.TagHandler linkage issues in minified builds.
 -keep class androidx.core.text.HtmlCompat { *; }
@@ -33,3 +24,14 @@
 -keepclassmembers class * implements android.text.Html$TagHandler {
     public void handleTag(boolean, java.lang.String, android.text.Editable, org.xml.sax.XMLReader);
 }
+
+# HAPI FHIR + XML/StAX runtime stack used by sync/parsing.
+-keep class ca.uhn.fhir.** { *; }
+-keep class org.hl7.fhir.** { *; }
+-keep class com.ctc.wstx.** { *; }
+-keep class org.codehaus.stax2.** { *; }
+-keep class javax.xml.stream.** { *; }
+
+-dontwarn aQute.bnd.annotation.spi.ServiceProvider
+-dontwarn com.ctc.wstx.**
+-dontwarn org.codehaus.stax2.**
