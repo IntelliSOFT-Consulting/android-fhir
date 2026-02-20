@@ -36,6 +36,7 @@
                 android:gravity="start|center_vertical"
                 android:includeFontPadding="false"
                 android:maxLines="3"
+                android:textColor="@color/white"
                 app:autoSizeMaxTextSize="14sp"
                 app:autoSizeMinTextSize="10sp"
                 app:autoSizeStepGranularity="1sp"
