@@ -43,6 +43,43 @@ import java.util.Date
 class AddCaseActivity : AppCompatActivity() {
     private lateinit var fhirEngine: FhirEngine
 
+    private enum class SaveCaseType {
+        LAB,
+        CONTACT
+    }
+
+    private data class SaveCaseConfig(
+        val type: SaveCaseType,
+        val title: String? = null
+    )
+
+    companion object {
+        private const val TAG = "AddCaseActivity"
+
+        private val SAVE_CASE_CONFIGS = mapOf(
+            "measles-lab-results.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "Measles Lab Information"),
+            "measles-lab-reg-results.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "Measles Regional Lab Information"),
+            "afp-case-stool-lab-results.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "AFP Stool Lab Information"),
+            "afp-sixty-days.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "AFP 60 Day Follow Up"),
+            "afp-itd-lab.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "AFP ITD Lab Information"),
+            "vl-case-lab-information.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "VL Laboratory Examination"),
+            "vl-case-sixMonthsFollowup.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "VL Follow Up Information"),
+            "vl-case-hospitilization.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "VL Hospitalization Information"),
+            "afp-final-lab-results.json" to
+                    SaveCaseConfig(SaveCaseType.LAB, "AFP Final Lab Information"),
+            "afp-contact-tracing.json" to
+                    SaveCaseConfig(SaveCaseType.CONTACT)
+        )
+    }
+
 
     private val viewModel: ScreenerViewModel by viewModels()
     private lateinit var binding:
@@ -77,7 +114,6 @@ class AddCaseActivity : AppCompatActivity() {
         LocationUtils.requestCurrentLocation(
             this,
             onLocationReceived = { lat, lon ->
-                println("Latitude: $lat, Longitude: $lon")
 
                 val latitude = lat.toString()
                 val longitude = lon.toString()
@@ -125,7 +161,6 @@ class AddCaseActivity : AppCompatActivity() {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val questionnaireResponseString =
                 jsonParser.encodeResourceToString(questionnaireResponse)
-            Log.e("response", questionnaireResponseString)
             println("Response $questionnaireResponseString")
             saveCase(questionnaireFragment.getQuestionnaireResponse(), questionnaireResponseString)
         }
@@ -135,102 +170,60 @@ class AddCaseActivity : AppCompatActivity() {
         questionnaireResponse: QuestionnaireResponse,
         questionnaireResponseString: String
     ) {
+        val formatter = FormatterClass()
+        val patientId = formatter.getSharedPref("patientIdParent", this@AddCaseActivity)
+        val questionnaire = formatter.getSharedPref("questionnaire", this@AddCaseActivity)
+        val encounterId = formatter.getSharedPref("encounterId", this@AddCaseActivity)
 
-        val patientId = FormatterClass().getSharedPref("patientIdParent", this@AddCaseActivity)
-        val questionnaire = FormatterClass().getSharedPref("questionnaire", this@AddCaseActivity)
-        val encounter = FormatterClass().getSharedPref("encounterId", this@AddCaseActivity)
+        if (patientId.isNullOrBlank() || encounterId.isNullOrBlank()) {
+            Toast.makeText(
+                this@AddCaseActivity,
+                "Missing patient or encounter information. Please try again.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
 
-        println("Parent Encounter $encounter Patient Id $patientId")
-        when (questionnaire) {
+        val saveConfig = questionnaire?.let(SAVE_CASE_CONFIGS::get)
+        if (saveConfig == null) {
+            Log.w(TAG, "Unsupported questionnaire for saveCase: $questionnaire")
+            Toast.makeText(
+                this@AddCaseActivity,
+                "Unsupported questionnaire. Please try again.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
 
-            "measles-lab-results.json" -> {
+        when (saveConfig.type) {
+            SaveCaseType.LAB -> {
+                val title = saveConfig.title ?: run {
+                    Log.w(TAG, "Missing lab title for questionnaire: $questionnaire")
+                    Toast.makeText(
+                        this@AddCaseActivity,
+                        "Unable to save this questionnaire. Please try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return
+                }
+
                 viewModel.completeLabAssessment(
                     questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "Measles Lab Information",
-                    questionnaireResponseString, this@AddCaseActivity
+                    patientId,
+                    encounterId,
+                    title,
+                    questionnaireResponseString,
+                    this@AddCaseActivity
                 )
             }
 
-            "measles-lab-reg-results.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "Measles Regional Lab Information",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "afp-case-stool-lab-results.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "AFP Stool Lab Information",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "afp-sixty-days.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "AFP 60 Day Follow Up",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "afp-itd-lab.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "AFP ITD Lab Information",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "vl-case-lab-information.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "VL Laboratory Examination",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "vl-case-sixMonthsFollowup.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "VL Follow Up Information",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "vl-case-hospitilization.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "VL Hospitalization Information",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "afp-final-lab-results.json" ->
-                viewModel.completeLabAssessment(
-                    questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    "AFP Final Lab Information",
-                    questionnaireResponseString, this@AddCaseActivity
-                )
-
-            "afp-contact-tracing.json" -> {
+            SaveCaseType.CONTACT -> {
                 viewModel.completeContactAssessment(
                     questionnaireResponse,
-                    "$patientId",
-                    "$encounter",
-                    questionnaireResponseString, this@AddCaseActivity
+                    patientId,
+                    encounterId,
+                    questionnaireResponseString,
+                    this@AddCaseActivity
                 )
             }
         }
@@ -417,7 +410,10 @@ class AddCaseActivity : AppCompatActivity() {
     private fun hasLabAccess(): Boolean {
         val formatter = FormatterClass()
         val storedRole =
-            formatter.getSharedPref("practitionerRole", this) ?: formatter.getSharedPref("role", this)
+            formatter.getSharedPref("practitionerRole", this) ?: formatter.getSharedPref(
+                "role",
+                this
+            )
         if (storedRole.isNullOrBlank()) {
             return false
         }
