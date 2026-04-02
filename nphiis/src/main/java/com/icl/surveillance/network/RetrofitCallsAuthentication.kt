@@ -20,6 +20,7 @@ import com.icl.surveillance.utils.Constants.ALERTS_BASE_URL
 import com.icl.surveillance.utils.Constants.BASE_AUTH_URL
 import com.icl.surveillance.utils.Constants.BASE_URL
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.NetworkUtils
 import com.icl.surveillance.viewmodels.SyncFragmentViewModel
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +38,10 @@ class RetrofitCallsAuthentication {
     )
 
     fun loginUser(viewModel: SyncFragmentViewModel, context: Context, dbSignIn: DbSignIn) {
+        if (!NetworkUtils.isInternetAvailable(context)) {
+            showOfflineDialog(context)
+            return
+        }
         CoroutineScope(Dispatchers.Main).launch {
             val job = Job()
             CoroutineScope(Dispatchers.IO + job).launch { startLogin(viewModel, context, dbSignIn) }
@@ -45,6 +50,9 @@ class RetrofitCallsAuthentication {
     }
 
     fun getUserProfile(viewModel: SyncFragmentViewModel, context: Context) {
+        if (!canMakeApiCall(context, "getUserProfile")) {
+            return
+        }
 
         CoroutineScope(Dispatchers.Main).launch {
             val job = Job()
@@ -54,6 +62,9 @@ class RetrofitCallsAuthentication {
     }
 
     fun pullUserAlerts(context: Context) {
+        if (!canMakeApiCall(context, "pullUserAlerts")) {
+            return
+        }
 
         CoroutineScope(Dispatchers.Main).launch {
             val job = Job()
@@ -62,6 +73,9 @@ class RetrofitCallsAuthentication {
     }
 
     fun updateOrCreateToken(context: Context, token: String) {
+        if (!canMakeApiCall(context, "updateOrCreateToken")) {
+            return
+        }
 
         CoroutineScope(Dispatchers.Main).launch {
             val job = Job()
@@ -79,6 +93,9 @@ class RetrofitCallsAuthentication {
         payload: RequestBody,
         context: Context
     ) {
+        if (!canMakeApiCall(context, "sendPatientToServer")) {
+            return
+        }
         backgroundProcessingScope.launch {
             val baseUrl = BASE_URL//"https://hapi.fhir.org/baseR4/"
             val apiService =
@@ -114,6 +131,9 @@ class RetrofitCallsAuthentication {
     }
 
     fun sendBundleToServer(payload: RequestBody, context: Context) {
+        if (!canMakeApiCall(context, "sendBundleToServer")) {
+            return
+        }
         backgroundProcessingScope.launch {
             val baseUrl = BASE_URL
             val apiService =
@@ -185,7 +205,6 @@ class RetrofitCallsAuthentication {
                 }
                 .join()
             CoroutineScope(Dispatchers.Main).launch {
-
 //                Toast.makeText(context, messageToast, Toast.LENGTH_LONG).show()
             }
         }
@@ -247,6 +266,7 @@ class RetrofitCallsAuthentication {
                                         context
                                     )
                                     formatter.saveSharedPrefSync("isLoggedIn", "true", context)
+                                    SessionExpiryHandler.markSessionActive()
                                     getUserDetails(viewModel, context)
                                     messageToast = "Login successful."
 
@@ -349,6 +369,9 @@ class RetrofitCallsAuthentication {
 
 
     private fun getUserDetails(viewModel: SyncFragmentViewModel, context: Context) {
+        if (!canMakeApiCall(context, "getUserDetails")) {
+            return
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             val formatter = FormatterClass()
@@ -421,6 +444,9 @@ class RetrofitCallsAuthentication {
         context: Context,
         dbResetPasswordData: DbResetPasswordData
     ): Pair<Int, String> {
+        if (!NetworkUtils.isInternetAvailable(context)) {
+            return Pair(503, OFFLINE_MESSAGE)
+        }
 
         var messageToast = ""
         var messageCode = 400
@@ -479,6 +505,9 @@ class RetrofitCallsAuthentication {
         context: Context,
         dbSetPasswordReq: DbSetPasswordReq
     ): Pair<Int, String> {
+        if (!NetworkUtils.isInternetAvailable(context)) {
+            return Pair(503, OFFLINE_MESSAGE)
+        }
 
         var messageToast = ""
         var messageCode = 400
@@ -516,5 +545,28 @@ class RetrofitCallsAuthentication {
             messageToast = "Cannot set new password.."
         }
         return Pair(messageCode, messageToast)
+    }
+
+    private fun canMakeApiCall(context: Context, action: String): Boolean {
+        val isOnline = NetworkUtils.isInternetAvailable(context)
+        if (!isOnline) {
+            Log.d("RetrofitCallsAuth", "Skipping $action because device is offline")
+        }
+        return isOnline
+    }
+
+    private fun showOfflineDialog(context: Context) {
+        AlertDialog.Builder(context)
+            .setTitle("Network Unavailable")
+            .setMessage(OFFLINE_MESSAGE)
+            .setCancelable(true)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    companion object {
+        private const val OFFLINE_MESSAGE = "No internet connection. Connect and try again."
     }
 }

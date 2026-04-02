@@ -758,7 +758,7 @@ class CaseSelectionFragment : Fragment() {
             }
         }
 
-        return "add-case-sdc-extract.json"
+        return "add-case.json"
     }
 
     /**

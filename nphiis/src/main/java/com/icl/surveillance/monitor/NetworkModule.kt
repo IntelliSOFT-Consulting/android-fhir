@@ -3,6 +3,9 @@ package com.icl.surveillance.monitor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.icl.surveillance.BuildConfig
+import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.network.OfflineRequestInterceptor
+import com.icl.surveillance.network.UnauthorizedRedirectInterceptor
 import com.icl.surveillance.utils.Constants.BASE_URL
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,12 +22,14 @@ class NetworkModule {
             .readTimeout(5, TimeUnit.MINUTES)
             .writeTimeout(5, TimeUnit.MINUTES)
             .connectTimeout(2, TimeUnit.MINUTES)
+        clientBuilder.addInterceptor(OfflineRequestInterceptor(FhirApplication.appContext()))
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
             clientBuilder.addInterceptor(interceptor)
         }
+        clientBuilder.addInterceptor(UnauthorizedRedirectInterceptor(FhirApplication.appContext()))
         val client = clientBuilder.build()
 
 

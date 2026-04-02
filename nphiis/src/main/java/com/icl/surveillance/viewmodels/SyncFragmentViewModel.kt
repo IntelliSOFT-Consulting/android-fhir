@@ -14,6 +14,7 @@ import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
 import com.icl.surveillance.fhir.AppFhirSyncWorker
+import com.icl.surveillance.utils.NetworkUtils
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
@@ -38,6 +39,11 @@ class SyncFragmentViewModel(application: Application) : AndroidViewModel(applica
 
     // This function is now the single point of action to start a sync
     fun triggerOneTimeSync() {
+        if (!NetworkUtils.isInternetAvailable(getApplication())) {
+            _syncState.value = SyncState.Idle
+            return
+        }
+
         viewModelScope.launch {
             // Set initial state for UI
             _syncState.value = SyncState.Running

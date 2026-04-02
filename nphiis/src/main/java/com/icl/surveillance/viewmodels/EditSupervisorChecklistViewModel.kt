@@ -46,7 +46,9 @@ class EditSupervisorChecklistViewModel(
     private val questionnaire: String
 ) :
     AndroidViewModel(application) {
-    private val fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val fhirEngine: FhirEngine by lazy {
+        FhirApplication.fhirEngine(application.applicationContext)
+    }
     private val formatter = FormatterClass()
     private val backgroundProcessingScope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO + CoroutineName("BackgroundProcessing")

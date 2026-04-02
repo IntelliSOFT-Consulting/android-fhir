@@ -61,7 +61,9 @@ class AddParentCaseActivity : AppCompatActivity() {
         return assets.open(fileName).bufferedReader().use { it.readText() }
     }
 
-    private lateinit var fhirEngine: FhirEngine
+    private val fhirEngine: FhirEngine by lazy {
+        FhirApplication.fhirEngine(applicationContext)
+    }
     private val sdcQuestionnaireResponseSaver by lazy {
         SdcQuestionnaireResponseSaver(this@AddParentCaseActivity, fhirEngine)
     }
@@ -72,7 +74,6 @@ class AddParentCaseActivity : AppCompatActivity() {
         binding = ActivityAddParentCaseBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-        fhirEngine = FhirApplication.fhirEngine(this@AddParentCaseActivity)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         val titleName = FormatterClass().getSharedPref("AddParentTitle", this@AddParentCaseActivity)

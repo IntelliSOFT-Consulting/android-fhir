@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit
 
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
-    private val repo by lazy { FhirRepository(this) }
 
     // Only initiate the FhirEngine when used for the first time, not when the app is created.
     private val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
@@ -51,14 +50,11 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val fhirSyncService: FhirSyncService by lazy {
-        val fhirEngine = FhirEngineProvider.getInstance(this)
-        val dataSource = NetworkModule().provideFhirDataSource()
-        FhirSyncService(fhirEngine, dataSource)
-    }
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
+        hydrateAccessTokenCache()
         Timber.plant(Timber.DebugTree())
         FhirEngineProvider.init(
             FhirEngineConfiguration(
@@ -105,8 +101,18 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     }
 
     fun retrieveStoredToken(): String {
-        val token = FormatterClass().getSharedPref("access_token", this@FhirApplication).orEmpty()
+        val token = currentAccessToken()
+            ?: FormatterClass().getSharedPref("access_token", this@FhirApplication).orEmpty()
+                .also { storedToken ->
+                    if (storedToken.isNotBlank()) {
+                        updateAccessToken(storedToken)
+                    }
+                }
         return if (token.isNotBlank()) token else if (BuildConfig.DEBUG) TEST_TOKEN else ""
+    }
+
+    private fun hydrateAccessTokenCache() {
+        updateAccessToken(FormatterClass().getSharedPref("access_token", this))
     }
 
     private fun constructFhirEngine(): FhirEngine {
@@ -114,6 +120,22 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     }
 
     companion object {
+        @Volatile
+        private lateinit var instance: FhirApplication
+
+        @Volatile
+        private var accessTokenCache: String? = null
+
+        fun appContext(): Context = instance.applicationContext
+
+        fun currentAccessToken(): String? = accessTokenCache?.takeIf { it.isNotBlank() }
+
+        fun updateAccessToken(token: String?) {
+            accessTokenCache = token?.takeIf { it.isNotBlank() }
+        }
+
+        fun hasAccessToken(): Boolean = !currentAccessToken().isNullOrBlank()
+
         fun fhirEngine(context: Context) =
             (context.applicationContext as FhirApplication).fhirEngine
 

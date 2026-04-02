@@ -39,7 +39,9 @@ import kotlin.getValue
 class GeneralEditorActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGeneralEditorBinding
     private val viewModel: AddClientViewModel by viewModels()
-    private lateinit var fhirEngine: FhirEngine
+    private val fhirEngine: FhirEngine by lazy {
+        FhirApplication.fhirEngine(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +50,6 @@ class GeneralEditorActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        fhirEngine = FhirApplication.fhirEngine(this@GeneralEditorActivity)
         val titleName = FormatterClass().getSharedPref("AddParentTitle", this)
         supportActionBar.apply { title = titleName }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

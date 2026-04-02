@@ -15,6 +15,7 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import com.icl.surveillance.MainActivity
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityLauncherBinding
+import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.utils.FormatterClass
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,7 +58,7 @@ class LauncherActivity : AppCompatActivity() {
         lifecycleScope.launch {
             delay(3000) // 3 seconds
             val loggedIn = FormatterClass().getSharedPref("isLoggedIn", this@LauncherActivity)
-            if (loggedIn != null) {
+            if (loggedIn != null && FhirApplication.hasAccessToken()) {
                 if (FormatterClass().isSyncDone(this@LauncherActivity)) {
                     val intent = Intent(this@LauncherActivity, MainActivity::class.java)
                     startActivity(intent)
@@ -67,6 +68,7 @@ class LauncherActivity : AppCompatActivity() {
                 }
                 this@LauncherActivity.finish()
             } else {
+                FormatterClass().deleteSharedPref("isLoggedIn", this@LauncherActivity)
                 binding.getStartedButton.visibility = View.VISIBLE
             }
         }

@@ -24,9 +24,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavController
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
@@ -102,7 +103,8 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val isLoggedIn = FormatterClass().getSharedPref("isLoggedIn", this)
-        if (isLoggedIn == null || isLoggedIn != "true") {
+        if (isLoggedIn == null || isLoggedIn != "true" || !FhirApplication.hasAccessToken()) {
+            FormatterClass().deleteSharedPref("isLoggedIn", this)
             startActivity(
                 Intent(this, LoginActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -163,7 +165,7 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = binding.navView
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        val navController = resolveNavController()
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         val appBarConfiguration =
@@ -202,6 +204,17 @@ class MainActivity : AppCompatActivity() {
         }
         checkLocationPermission()
         generateAreaOfJurisdiction()
+    }
+
+    private fun resolveNavController(): NavController {
+        supportFragmentManager.executePendingTransactions()
+
+        val navHostFragment =
+            (supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as? NavHostFragment)
+                ?: supportFragmentManager.fragments.filterIsInstance<NavHostFragment>().firstOrNull()
+                ?: throw IllegalStateException("NavHostFragment was not found in activity_main")
+
+        return navHostFragment.navController
     }
 
     private fun applySystemBarTheme() {

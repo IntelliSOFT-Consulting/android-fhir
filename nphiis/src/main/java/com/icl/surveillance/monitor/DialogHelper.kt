@@ -7,6 +7,17 @@ import com.icl.surveillance.utils.NetworkUtils
 
 object DialogHelper {
 
+    fun showSyncRequiresInternetDialog(context: Context) {
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Internet Connection Required")
+            .setMessage("Please ensure internet access is available before syncing.")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(true)
+            .show()
+    }
+
     fun showNoInternetDialog(
         context: Context,
         onRetry: () -> Unit,

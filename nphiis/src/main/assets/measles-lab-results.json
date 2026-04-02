@@ -31,6 +31,12 @@
   ],
   "item": [
     {
+      "type": "string",
+      "linkId": "8732404074721",
+      "text": "Lab ID No",
+      "required": true
+    },
+    {
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",

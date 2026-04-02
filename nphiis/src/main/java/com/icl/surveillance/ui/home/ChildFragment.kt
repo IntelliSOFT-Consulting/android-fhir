@@ -9,7 +9,6 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -121,9 +120,10 @@ class ChildFragment : Fragment() {
                 FormatterClass().saveSharedPref("childTitle", title, requireContext())
                 FormatterClass().saveSharedPref("childStage", "6", requireContext())
 
-                findNavController().navigate(
-                    R.id.action_childFragment_to_singleCaseFragment,
-                    bundle
+                navigateIfActionAvailable(
+                    expectedDestinationId = R.id.childFragment,
+                    actionId = R.id.action_childFragment_to_singleCaseFragment,
+                    args = bundle,
                 )
             }
 
@@ -134,9 +134,10 @@ class ChildFragment : Fragment() {
                 FormatterClass().saveSharedPref("childTitle", title, requireContext())
                 FormatterClass().saveSharedPref("childStage", "7", requireContext())
 
-                findNavController().navigate(
-                    R.id.action_childFragment_to_singleCaseFragment,
-                    bundle
+                navigateIfActionAvailable(
+                    expectedDestinationId = R.id.childFragment,
+                    actionId = R.id.action_childFragment_to_singleCaseFragment,
+                    args = bundle,
                 )
             }
 
@@ -147,9 +148,10 @@ class ChildFragment : Fragment() {
                 FormatterClass().saveSharedPref("childTitle", title, requireContext())
                 FormatterClass().saveSharedPref("childStage", "100", requireContext())
 
-                findNavController().navigate(
-                    R.id.action_childFragment_to_singleCaseFragment,
-                    bundle
+                navigateIfActionAvailable(
+                    expectedDestinationId = R.id.childFragment,
+                    actionId = R.id.action_childFragment_to_singleCaseFragment,
+                    args = bundle,
                 )
             }
 
@@ -166,9 +168,10 @@ class ChildFragment : Fragment() {
                     )
                 FormatterClass().saveSharedPref("childStage", "6", requireContext())
 
-                findNavController().navigate(
-                    R.id.action_childFragment_to_caseSelectionFragment,
-                    bundle
+                navigateIfActionAvailable(
+                    expectedDestinationId = R.id.childFragment,
+                    actionId = R.id.action_childFragment_to_caseSelectionFragment,
+                    args = bundle,
                 )
             }
 
@@ -184,9 +187,10 @@ class ChildFragment : Fragment() {
                 )
                 FormatterClass().saveSharedPref("childStage", "60", requireContext())
 
-                findNavController().navigate(
-                    R.id.action_childFragment_to_caseSelectionFragment,
-                    bundle
+                navigateIfActionAvailable(
+                    expectedDestinationId = R.id.childFragment,
+                    actionId = R.id.action_childFragment_to_caseSelectionFragment,
+                    args = bundle,
                 )
             }
 
@@ -197,9 +201,10 @@ class ChildFragment : Fragment() {
                 FormatterClass().saveSharedPref("grandTitle", title, requireContext())
                 FormatterClass().saveSharedPref("childStage", "6", requireContext())
 
-                findNavController().navigate(
-                    R.id.action_childFragment_to_caseSelectionFragment,
-                    bundle
+                navigateIfActionAvailable(
+                    expectedDestinationId = R.id.childFragment,
+                    actionId = R.id.action_childFragment_to_caseSelectionFragment,
+                    args = bundle,
                 )
             }
 

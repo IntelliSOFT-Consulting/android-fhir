@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.utils.FormatterClass
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -34,6 +35,7 @@ object TokenStore {
         accessToken: String,
         refreshToken: String,
     ) {
+        FhirApplication.updateAccessToken(accessToken)
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN] = accessToken
             prefs[REFRESH_TOKEN] = refreshToken
@@ -43,6 +45,7 @@ object TokenStore {
     }
 
     suspend fun clear(context: Context) {
+        FhirApplication.updateAccessToken(null)
         context.dataStore.edit { it.clear() }
     }
 

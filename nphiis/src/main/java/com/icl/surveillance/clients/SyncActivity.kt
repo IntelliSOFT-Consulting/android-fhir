@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivitySyncBinding
+import com.icl.surveillance.monitor.DialogHelper
+import com.icl.surveillance.utils.NetworkUtils
 import com.icl.surveillance.viewmodels.PeriodicSyncViewModel
 import kotlinx.coroutines.launch
 
@@ -52,6 +54,10 @@ class SyncActivity : AppCompatActivity() {
         val cancelSyncButton = findViewById<Button>(R.id.cancel_sync_button)
         syncNowButton.apply {
             setOnClickListener {
+                if (!NetworkUtils.isInternetAvailable(this@SyncActivity)) {
+                    DialogHelper.showSyncRequiresInternetDialog(this@SyncActivity)
+                    return@setOnClickListener
+                }
                 periodicSyncViewModel.collectPeriodicSyncJobStatus()
                 toggleButtonVisibility(
                     hiddenButton = syncNowButton,

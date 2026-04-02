@@ -77,269 +77,8 @@ class PatientListViewModel(
 
     private var page = 0
     private val pageSize = 50
-    private var pageUpload = 0
-    private val pageSizeUpload = 50
     private var hasMore = true
     private var isLoading = false
-    private var hasMoreUpload = true
-    private var isUploadLoading = false
-
-    fun prepareListInBatches(nameQuery: String, context: Context) {
-        val isSummary = nameQuery.contains("mpox")
-        if (!hasMoreUpload || isUploadLoading) return
-        isUploadLoading = true
-        page++
-        val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val results = fhirEngine.search<Patient> {
-                sort(Patient.GIVEN, Order.ASCENDING)
-                count = pageSizeUpload
-                from = (pageUpload - 1) * pageSizeUpload
-            }
-
-            if (results.isEmpty()) {
-                hasMoreUpload = false
-            } else {
-                val bundle = Bundle()
-                bundle.type = Bundle.BundleType.TRANSACTION
-
-                results.forEach { patient ->
-                    val patientResource = patient.resource.copy() as Patient
-                    patientResource.nameFirstRep.family = "test-bundle-2"
-                    //  sendSingleEntry(jsonParser, patientResource)
-                    val bundleEntry = Bundle.BundleEntryComponent()
-                    bundleEntry.resource = patientResource
-                    bundleEntry.fullUrl = "Patient/${patientResource.idElement.idPart}"
-                    bundleEntry.request = Bundle.BundleEntryRequestComponent()
-                    bundleEntry.request.setMethod(Bundle.HTTPVerb.PUT)
-                    bundleEntry.request.url =
-                        "Patient/${patientResource.idElement.idPart}"
-                    bundle.addEntry(bundleEntry)
-                }
-                sendBundleToServer(jsonParser, bundle, context)
-            }
-            isUploadLoading = false
-        }
-    }
-
-    fun prepareEncountersBatches(nameQuery: String, context: Context) {
-        val isSummary = nameQuery.contains("mpox")
-        if (!hasMoreUpload || isUploadLoading) return
-        isUploadLoading = true
-        page++
-        val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val results = fhirEngine.search<Encounter> {
-                count = pageSizeUpload
-                from = (pageUpload - 1) * pageSizeUpload
-            }
-
-            if (results.isEmpty()) {
-                hasMoreUpload = false
-            } else {
-                val bundle = Bundle()
-                bundle.type = Bundle.BundleType.TRANSACTION
-
-                results.forEach { patient ->
-                    val patientResource = patient.resource.copy() as Encounter
-//                    patientResource.nameFirstRep.family = "test-bundle-2"
-                    //  sendSingleEntry(jsonParser, patientResource)
-                    val bundleEntry = Bundle.BundleEntryComponent()
-                    bundleEntry.resource = patientResource
-                    bundleEntry.fullUrl = "Encounter/${patientResource.idElement.idPart}"
-                    bundleEntry.request = Bundle.BundleEntryRequestComponent()
-                    bundleEntry.request.setMethod(Bundle.HTTPVerb.PUT)
-                    bundleEntry.request.url =
-                        "Encounter/${patientResource.idElement.idPart}"
-                    bundle.addEntry(bundleEntry)
-                }
-                sendBundleToServer(jsonParser, bundle, context)
-            }
-            isUploadLoading = false
-        }
-    }
-
-    fun prepareObsBatches(nameQuery: String, context: Context) {
-        val isSummary = nameQuery.contains("mpox")
-        if (!hasMoreUpload || isUploadLoading) return
-        isUploadLoading = true
-        page++
-        val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val results = fhirEngine.search<Observation> {
-                count = pageSizeUpload
-                from = (pageUpload - 1) * pageSizeUpload
-            }
-
-            if (results.isEmpty()) {
-                hasMoreUpload = false
-            } else {
-                val bundle = Bundle()
-                bundle.type = Bundle.BundleType.TRANSACTION
-
-                results.forEach { patient ->
-                    val patientResource = patient.resource.copy() as Observation
-//                    patientResource.nameFirstRep.family = "test-bundle-2"
-                    //  sendSingleEntry(jsonParser, patientResource)
-                    val bundleEntry = Bundle.BundleEntryComponent()
-                    bundleEntry.resource = patientResource
-                    bundleEntry.fullUrl = "Observation/${patientResource.idElement.idPart}"
-                    bundleEntry.request = Bundle.BundleEntryRequestComponent()
-                    bundleEntry.request.setMethod(Bundle.HTTPVerb.PUT)
-                    bundleEntry.request.url =
-                        "Observation/${patientResource.idElement.idPart}"
-                    bundle.addEntry(bundleEntry)
-                }
-                sendBundleToServer(jsonParser, bundle, context)
-            }
-            isUploadLoading = false
-        }
-    }
-
-    fun prepareQuestionnaireResponseBatches(nameQuery: String, context: Context) {
-        val isSummary = nameQuery.contains("mpox")
-        if (!hasMoreUpload || isUploadLoading) return
-        isUploadLoading = true
-        page++
-        val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val results = fhirEngine.search<QuestionnaireResponse> {
-                count = pageSizeUpload
-                from = (pageUpload - 1) * pageSizeUpload
-            }
-
-            if (results.isEmpty()) {
-                hasMoreUpload = false
-            } else {
-                val bundle = Bundle()
-                bundle.type = Bundle.BundleType.TRANSACTION
-
-                results.forEach { patient ->
-                    val patientResource = patient.resource.copy() as QuestionnaireResponse
-//                    patientResource.nameFirstRep.family = "test-bundle-2"
-                    //  sendSingleEntry(jsonParser, patientResource)
-                    val bundleEntry = Bundle.BundleEntryComponent()
-                    bundleEntry.resource = patientResource
-                    bundleEntry.fullUrl =
-                        "QuestionnaireResponse/${patientResource.idElement.idPart}"
-                    bundleEntry.request = Bundle.BundleEntryRequestComponent()
-                    bundleEntry.request.setMethod(Bundle.HTTPVerb.PUT)
-                    bundleEntry.request.url =
-                        "QuestionnaireResponse/${patientResource.idElement.idPart}"
-                    bundle.addEntry(bundleEntry)
-                }
-                sendBundleToServer(jsonParser, bundle, context)
-            }
-            isUploadLoading = false
-        }
-    }
-
-    fun prepareMeasureReportBatches(nameQuery: String, context: Context) {
-        val isSummary = nameQuery.contains("mpox")
-        if (!hasMoreUpload || isUploadLoading) return
-        isUploadLoading = true
-        page++
-        val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val results = fhirEngine.search<MeasureReport> {
-                count = pageSizeUpload
-                from = (pageUpload - 1) * pageSizeUpload
-            }
-
-            if (results.isEmpty()) {
-                hasMoreUpload = false
-            } else {
-                val bundle = Bundle()
-                bundle.type = Bundle.BundleType.TRANSACTION
-
-                results.forEach { patient ->
-                    val patientResource = patient.resource.copy() as QuestionnaireResponse
-//                    patientResource.nameFirstRep.family = "test-bundle-2"
-                    //  sendSingleEntry(jsonParser, patientResource)
-                    val bundleEntry = Bundle.BundleEntryComponent()
-                    bundleEntry.resource = patientResource
-                    bundleEntry.fullUrl = "MeasureReport/${patientResource.idElement.idPart}"
-                    bundleEntry.request = Bundle.BundleEntryRequestComponent()
-                    bundleEntry.request.setMethod(Bundle.HTTPVerb.PUT)
-                    bundleEntry.request.url =
-                        "MeasureReport/${patientResource.idElement.idPart}"
-                    bundle.addEntry(bundleEntry)
-                }
-                sendBundleToServer(jsonParser, bundle, context)
-            }
-            isUploadLoading = false
-        }
-    }
-
-    fun loadAllPatients(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-            val results = fhirEngine.search<Patient> {
-                sort(Patient.GIVEN, Order.ASCENDING)
-                count = 50
-                from = 0
-            }
-            if (results.isNotEmpty()) {
-                Log.e("Patient  Record ::::", " Count ${results.size}")
-                val bundle = Bundle()
-                bundle.type = Bundle.BundleType.TRANSACTION
-
-                results.forEach { patient ->
-
-                    val patientResource = patient.resource.copy() as Patient
-                    patientResource.nameFirstRep.family = "test-bundle-2"
-
-                    //  sendSingleEntry(jsonParser, patientResource)
-
-                    val bundleEntry = Bundle.BundleEntryComponent()
-                    bundleEntry.resource = patientResource
-                    bundleEntry.fullUrl = "Patient/${patientResource.idElement.idPart}"
-                    bundleEntry.request = Bundle.BundleEntryRequestComponent()
-                    bundleEntry.request.setMethod(Bundle.HTTPVerb.PUT)
-                    bundleEntry.request.url =
-                        "Patient/${patientResource.idElement.idPart}"
-                    bundle.addEntry(bundleEntry)
-
-                }
-                // handle API call
-                val payload = jsonParser.encodeResourceToString(bundle)
-                println("API Response:::: Ready to send bundle $payload")
-                sendBundleToServer(jsonParser, bundle, context)
-            }
-        }
-    }
-
-    private fun sendSingleEntry(jsonParser: IParser, patientResource: Patient, context: Context) {
-        viewModelScope.launch {
-            val payload = jsonParser.encodeResourceToString(patientResource)
-            val apiCall = RetrofitCallsAuthentication()
-
-            val json = jsonParser.encodeResourceToString(patientResource)
-            val requestBody = json.toRequestBody("application/json".toMediaType())
-            apiCall.sendPatientToServer(patientResource.idElement.idPart, requestBody, context)
-        }
-    }
-
-    private fun sendBundleToServer(
-        jsonParser: IParser,
-        bundle: Bundle,
-        context: Context
-    ) {
-        viewModelScope.launch {
-            println("API Response:::: Preparing data")
-            val payload = jsonParser.encodeResourceToString(bundle)
-            val apiCall = RetrofitCallsAuthentication()
-            val json = jsonParser.encodeResourceToString(bundle)
-            val requestBody = json.toRequestBody("application/json".toMediaType())
-            apiCall.sendBundleToServer(requestBody, context)
-        }
-    }
-
 
     fun simulateScrollUntilEnd(
         slug: String,
@@ -667,33 +406,7 @@ class PatientListViewModel(
     private suspend fun enrichLabResultsForAFP(
         childEncounters: List<EncounterItem>, data: PatientItem
     ): PatientItem {
-        // Find the child encounter specifically for AFP Final Lab Information
-        val childCaseInfoEncounter = childEncounters.firstOrNull {
-            it.reasonCode == "AFP Final Lab Information"
-        } ?: return data // nothing to enrich
-
-        // Load Observations for this encounter
-        val obsList = fhirEngine.search<Observation> {
-            filter(
-                Observation.ENCOUNTER, { value = "Encounter/${childCaseInfoEncounter.id}" })
-        }
-
-        // Extract AFP result with empty fallback
-        val afp =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "329949474707" }?.resource?.value?.asStringValue()
-                ?: ""
-
-        // Map AFP result to classification status
-        val status = when (afp) {
-            "WPV", "cVDPV", "aVDPV", "iVDPV" -> "Confirmed by lab"
-            "Discarded" -> "Discarded"
-            "Compatible" -> "Compatible"
-            else -> "" // no classification
-        }
-
-        return data.copy(
-            labResults = afp, status = status
-        )
+        return processAfpCase(fhirEngine, childEncounters, data)
     }
 
     private suspend fun enrichLabResultsForVL(
@@ -1190,30 +903,7 @@ class PatientListViewModel(
                             }
 
                             "afp-case-information" -> {
-                                // CLASSIFICATION FOR A AFP CASE
-                                val childCaseInfoEncounter = childEncounter.firstOrNull {
-                                    it.reasonCode == "AFP Final Lab Information"
-                                }
-
-                                childCaseInfoEncounter?.let { kk ->
-                                    val obs1 = fhirEngine.search<Observation> {
-                                        filter(
-                                            Observation.ENCOUNTER,
-                                            { value = "Encounter/${kk.id}" })
-                                    }
-                                    val afp =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "329949474707" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
-
-                                    data = data.copy(
-                                        labResults = afp, status = when (afp) {
-                                            "WPV", "cVDPV", "aVDPV", "iVDPV" -> "Confirmed by lab"
-                                            "Discarded" -> "Discarded"
-                                            "Compatible" -> "Compatible"
-                                            else -> "Pending"
-                                        }
-                                    )
-                                }
+                                data = processAfpCase(fhirEngine, childEncounter, data)
                             }
 
                             else -> {
@@ -1358,42 +1048,53 @@ class PatientListViewModel(
 
                 val encounter = loadEncounter(item.resourceId)
                 val caseInfoEncounter = encounter.firstOrNull {
-                    it.reasonCodeFirstRep.codingFirstRep.code == "Case Information"
+                    it.isCaseInformationEncounter() && !it.hasPartOf()
                 }
 
                 caseInfoEncounter?.let {
 
                     val childEncounter = loadChildEncounter(item.resourceId, it.logicalId)
+                    val hasAfpLabData = childEncounter.any { child ->
+                        child.reasonCode == "AFP Stool Lab Information" ||
+                                child.reasonCode == "AFP Final Lab Information"
+                    }
                     val childCaseInfoEncounter = childEncounter.firstOrNull {
                         it.reasonCode == "Measles Lab Information"
                     }
 
-                    childCaseInfoEncounter?.let { kk ->
-                        val obs1 = fhirEngine.search<Observation> {
-                            filter(
-                                Observation.ENCOUNTER, { value = "Encounter/${kk.id}" })
+                    when {
+                        hasAfpLabData -> {
+                            item = processAfpCase(fhirEngine, childEncounter, item)
                         }
 
-                        val measlesIgm =
-                            obs1.firstOrNull { it.resource.code.codingFirstRep.code == "measles-igm" }?.resource?.value?.asStringValue()
-                                ?: ""
+                        childCaseInfoEncounter != null -> {
+                            val obs1 = fhirEngine.search<Observation> {
+                                filter(
+                                    Observation.ENCOUNTER,
+                                    { value = "Encounter/${childCaseInfoEncounter.id}" })
+                            }
+
+                            val measlesIgm =
+                                obs1.firstOrNull { it.resource.code.codingFirstRep.code == "measles-igm" }?.resource?.value?.asStringValue()
+                                    ?: ""
 
 
-                        val finalClassification = when (measlesIgm.lowercase()) {
-                            "positive" -> obs1.firstOrNull {
-                                it.resource.code.codingFirstRep.code == "final-confirm-classification"
-                            }?.resource?.value?.asStringValue() ?: ""
+                            val finalClassification = when (measlesIgm.lowercase()) {
+                                "positive" -> obs1.firstOrNull {
+                                    it.resource.code.codingFirstRep.code == "final-confirm-classification"
+                                }?.resource?.value?.asStringValue() ?: ""
 
-                            "negative" -> obs1.firstOrNull {
-                                it.resource.code.codingFirstRep.code == "final-negative-classification"
-                            }?.resource?.value?.asStringValue() ?: ""
+                                "negative" -> obs1.firstOrNull {
+                                    it.resource.code.codingFirstRep.code == "final-negative-classification"
+                                }?.resource?.value?.asStringValue() ?: ""
 
-                            else -> obs1.firstOrNull {
-                                it.resource.code.codingFirstRep.code == "final-classification"
-                            }?.resource?.value?.asStringValue() ?: ""
+                                else -> obs1.firstOrNull {
+                                    it.resource.code.codingFirstRep.code == "final-classification"
+                                }?.resource?.value?.asStringValue() ?: ""
+                            }
+
+                            item = item.copy(labResults = measlesIgm, status = finalClassification)
                         }
-
-                        item = item.copy(labResults = measlesIgm, status = finalClassification)
                     }
 
                     // pull all Obs for this Encounter
@@ -1404,7 +1105,7 @@ class PatientListViewModel(
 
                     val epid =
                         obs.firstOrNull { it.resource.code.codingFirstRep.code == "EPID" }?.resource?.value?.asStringValue()
-                            ?: "still loading"
+                            ?: ""
                     val county =
                         obs.firstOrNull { it.resource.code.codingFirstRep.code == "a4-county" }?.resource?.value?.asStringValue()
                             ?: ""
@@ -1424,12 +1125,8 @@ class PatientListViewModel(
                     )
                 }
 
-                println("Found : None for Now")
-
             } catch (e: Exception) {
                 e.printStackTrace()
-
-                println("Error Loading Page : ${e.message}")
             }
             item
         }.let {
@@ -1600,25 +1297,37 @@ class PatientListViewModel(
     private suspend fun processAfpCase(
         fhirEngine: FhirEngine, childEncounters: List<EncounterItem>, data: PatientItem
     ): PatientItem {
-        val childCase =
-            childEncounters.firstOrNull { it.reasonCode == "AFP Final Lab Information" }
-                ?: return data
-
-        val obs1 = fhirEngine.search<Observation> {
-            filter(
-                Observation.ENCOUNTER, { value = "Encounter/${childCase.id}" })
+        val stoolLabEncounter = childEncounters.firstOrNull {
+            it.reasonCode == "AFP Stool Lab Information"
+        }
+        val finalLabEncounter = childEncounters.firstOrNull {
+            it.reasonCode == "AFP Final Lab Information"
         }
 
-        val afp = obs1.getValue("329949474707", "Pending")
-
-        val status = when (afp) {
-            "WPV", "cVDPV", "aVDPV", "iVDPV" -> "Confirmed by lab"
-            "Discarded" -> "Discarded"
-            "Compatible" -> "Compatible"
-            else -> "Pending"
+        if (stoolLabEncounter == null && finalLabEncounter == null) {
+            return data
         }
 
-        return data.copy(labResults = afp, status = status)
+        val afpResult = stoolLabEncounter?.let { encounter ->
+            val observations = fhirEngine.search<Observation> {
+                filter(
+                    Observation.ENCOUNTER,
+                    { value = "Encounter/${encounter.id}" })
+            }
+            observations.getValue("314664353334", "")
+        }.orEmpty()
+
+        val afpClassification = when (afpResult.lowercase()) {
+            "positive" -> "Confirmed by lab"
+            "negative" -> "Discarded"
+            else -> "Pending Results"
+
+        }
+
+        return data.copy(
+            labResults = afpResult.ifBlank { "Pending" },
+            status = afpClassification.ifBlank { "Pending Results" }
+        )
     }
 
     private suspend fun processMeaslesCase(
@@ -1820,28 +1529,7 @@ class PatientListViewModel(
     ): PatientItem {
         return try {
             val childEncounter = loadChildEncounter(data.resourceId, patientId)
-            val afpEncounter = childEncounter.firstOrNull { encounter ->
-                getEncounterReasonCode(encounter) == "AFP Final Lab Information"
-            }
-
-            if (afpEncounter != null) {
-                val encounterId = getEncounterId(afpEncounter)
-                val obs = fhirEngine.search<Observation> {
-                    filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
-                }
-
-                val afp = findObservationValue(obs, "329949474707") ?: "Pending"
-                val status = when (afp) {
-                    "WPV", "cVDPV", "aVDPV", "iVDPV" -> "Confirmed by lab"
-                    "Discarded" -> "Discarded"
-                    "Compatible" -> "Compatible"
-                    else -> "Pending"
-                }
-
-                data.copy(labResults = afp, status = status)
-            } else {
-                data
-            }
+            processAfpCase(fhirEngine, childEncounter, data)
         } catch (e: Exception) {
             println("Error processing AFP lab results: ${e.message}")
             data
@@ -1906,6 +1594,23 @@ class PatientListViewModel(
             // Add other cases based on your actual type
             else -> ""
         }
+    }
+
+    private fun Encounter.isCaseInformationEncounter(): Boolean {
+        return reasonCode.any { concept ->
+            concept.coding.any { coding ->
+                val code = coding.code
+                val display = coding.display
+                code.equals("case-information", ignoreCase = true) ||
+                        code.equals("Case Information", ignoreCase = true) ||
+                        display.equals("case-information", ignoreCase = true) ||
+                        display.equals("Case Information", ignoreCase = true) ||
+                        code?.endsWith("Case Information", ignoreCase = true) == true
+            } || concept.text?.equals("case-information", ignoreCase = true) == true
+        } || reasonCodeFirstRep.codingFirstRep.code?.equals(
+            "Case Information",
+            ignoreCase = true
+        ) == true
     }
 
     private fun findMatchingIdentifier(patient: Patient, nameQuery: String): Identifier? {

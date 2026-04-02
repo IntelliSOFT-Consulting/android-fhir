@@ -81,7 +81,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
         get() = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             .parseResource(questionnaireJson) as Questionnaire
 
-    private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val fhirEngine: FhirEngine by lazy {
+        FhirApplication.fhirEngine(application.applicationContext)
+    }
     private val formatter = FormatterClass()
 
     /**

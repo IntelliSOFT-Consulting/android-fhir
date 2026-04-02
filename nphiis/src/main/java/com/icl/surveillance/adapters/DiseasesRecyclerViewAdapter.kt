@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.LandingPageItemBinding
 import com.icl.surveillance.ui.home.HomeViewModel
+import com.icl.surveillance.utils.setSingleClickListener
 
 
 class DiseasesRecyclerViewAdapter(
@@ -69,7 +70,8 @@ class DiseaseViewHolder(
         binding.textView.letterSpacing = 0.01f
         binding.textView.typeface = ResourcesCompat.getFont(binding.root.context, R.font.montserratsemi)
         binding.textView.text = binding.textView.context.getString(layout.textId)
-        binding.root.setOnClickListener { onItemClick(layout) }
+        binding.root.isEnabled = true
+        binding.root.setSingleClickListener { onItemClick(layout) }
     }
 }
 
