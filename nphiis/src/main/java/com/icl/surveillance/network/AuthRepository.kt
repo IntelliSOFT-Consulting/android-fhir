@@ -3,10 +3,15 @@ package com.icl.surveillance.network
 import android.content.Context
 import com.icl.surveillance.models.RefreshToken
 import com.icl.surveillance.utils.Constants.BASE_AUTH_URL
+import com.icl.surveillance.utils.NetworkUtils
 
 class AuthRepository(private val context: Context) {
 
     suspend fun refreshToken(): Boolean {
+        if (!NetworkUtils.isInternetAvailable(context)) {
+            return false
+        }
+
         val refreshToken = TokenStore.getRefreshToken(context)
             ?: return false
 
@@ -26,10 +31,16 @@ class AuthRepository(private val context: Context) {
                             accessToken = body.access_token,
                             refreshToken = body.refresh_token,
                         )
+                        SessionExpiryHandler.markSessionActive()
+                        return true
                     }
                 }
+                return false
             }
-            return true
+            if (apiInterface.code() == 401) {
+                SessionExpiryHandler.handleUnauthorized(context)
+            }
+            return false
         } catch (e: Exception) {
             return false
         }

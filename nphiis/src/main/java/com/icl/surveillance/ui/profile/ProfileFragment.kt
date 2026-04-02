@@ -13,9 +13,11 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
+import com.icl.surveillance.monitor.DialogHelper
 import com.icl.surveillance.models.UserProfilePrefs
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.NetworkUtils
 import java.io.File
 
 class ProfileFragment : Fragment() {
@@ -69,7 +71,11 @@ class ProfileFragment : Fragment() {
             mapUserData()
 
             btnSync.setOnClickListener {
-                startActivity(Intent(requireContext(), SyncUploadActivity::class.java))
+                if (NetworkUtils.isInternetAvailable(requireContext())) {
+                    startActivity(Intent(requireContext(), SyncUploadActivity::class.java))
+                } else {
+                    DialogHelper.showSyncRequiresInternetDialog(requireContext())
+                }
             }
 
             btnClearCache.setOnClickListener {

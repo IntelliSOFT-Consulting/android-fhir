@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.LandingPageItemBinding
 import com.icl.surveillance.ui.home.HomeViewModel
+import com.icl.surveillance.utils.setSingleClickListener
 
 
 class HomeRecyclerViewAdapter(
@@ -64,7 +65,8 @@ class LayoutViewHolder(
         binding.iconView.setImageResource(layout.iconId)
         binding.textView.text = binding.textView.context.getString(layout.textId)
         binding.subtitleView.text = binding.subtitleView.context.getString(subtitleText(layout))
-        binding.root.setOnClickListener { onItemClick(layout) }
+        binding.root.isEnabled = true
+        binding.root.setSingleClickListener { onItemClick(layout) }
     }
 }
 

@@ -44,7 +44,9 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
     val isResourcesSaved = MutableLiveData<Boolean>()
 
     private var questionnaireJson: String? = null
-    private val fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val fhirEngine: FhirEngine by lazy {
+        FhirApplication.fhirEngine(application.applicationContext)
+    }
     private val formatter = FormatterClass()
 
     /**

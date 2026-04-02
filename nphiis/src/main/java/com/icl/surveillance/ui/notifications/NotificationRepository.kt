@@ -6,9 +6,13 @@ import com.icl.surveillance.network.Interface
 import com.icl.surveillance.network.RetrofitBuilder
 import com.icl.surveillance.utils.Constants.ALERTS_BASE_URL
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.NetworkUtils
 
 class NotificationRepository {
     suspend fun getNotifications(context: Context): NotificationResponse? {
+        if (!NetworkUtils.isInternetAvailable(context)) {
+            return null
+        }
 
         val formatter = FormatterClass()
         val apiService =

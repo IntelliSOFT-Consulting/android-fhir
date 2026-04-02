@@ -41,7 +41,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 
 class AddCaseActivity : AppCompatActivity() {
-    private lateinit var fhirEngine: FhirEngine
+    private val fhirEngine: FhirEngine by lazy {
+        FhirApplication.fhirEngine(applicationContext)
+    }
 
     private enum class SaveCaseType {
         LAB,
@@ -91,7 +93,6 @@ class AddCaseActivity : AppCompatActivity() {
         binding = ActivityAddCaseBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-        fhirEngine = FhirApplication.fhirEngine(this@AddCaseActivity)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         val titleName = FormatterClass().getSharedPref("title", this@AddCaseActivity)
@@ -111,25 +112,9 @@ class AddCaseActivity : AppCompatActivity() {
             return
         }
 
-        LocationUtils.requestCurrentLocation(
-            this,
-            onLocationReceived = { lat, lon ->
-
-                val latitude = lat.toString()
-                val longitude = lon.toString()
-                FormatterClass().saveSharedPref("latitude", latitude, this)
-                FormatterClass().saveSharedPref("longitude", longitude, this)
-            },
-            onError = { error ->
-                println("Error: $error")
-            }
-        )
-
         updateArguments()
-        if (savedInstanceState == null) {
-            addQuestionnaireFragment()
-        }
         observePatientSaveAction()
+        deferStartupWork(savedInstanceState)
         supportFragmentManager.setFragmentResultListener(
             QuestionnaireFragment.SUBMIT_REQUEST_KEY,
             this@AddCaseActivity,
@@ -142,6 +127,34 @@ class AddCaseActivity : AppCompatActivity() {
         ) { _, _ ->
             onBackPressed()
         }
+    }
+
+    private fun deferStartupWork(savedInstanceState: Bundle?) {
+        binding.root.post {
+            if (isFinishing || isDestroyed) {
+                return@post
+            }
+
+            requestCurrentLocationSafely()
+            if (savedInstanceState == null) {
+                addQuestionnaireFragment()
+            }
+        }
+    }
+
+    private fun requestCurrentLocationSafely() {
+        LocationUtils.requestCurrentLocation(
+            this,
+            onLocationReceived = { lat, lon ->
+                val latitude = lat.toString()
+                val longitude = lon.toString()
+                FormatterClass().saveSharedPref("latitude", latitude, this)
+                FormatterClass().saveSharedPref("longitude", longitude, this)
+            },
+            onError = { error ->
+                println("Error: $error")
+            },
+        )
     }
 
     override fun onSupportNavigateUp(): Boolean {

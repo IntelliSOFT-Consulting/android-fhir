@@ -146,8 +146,8 @@ class SummarizedActivity : AppCompatActivity() {
             "afp-case-information" -> {
                 listOf(
                     "Stool Specimen Results" to LocalLabFragment(),
-                    "ITD Lab Results" to ITDLabFragment(),
-                    "Final Laboratory Results" to RegionalLabFragment(),
+//                    "ITD Lab Results" to ITDLabFragment(),
+//                    "Final Laboratory Results" to RegionalLabFragment(),
                     "60 Day Follow Up" to AFPFollowUpFragment(),
                     "Contact Information" to ContactInformationFragment()
                 )

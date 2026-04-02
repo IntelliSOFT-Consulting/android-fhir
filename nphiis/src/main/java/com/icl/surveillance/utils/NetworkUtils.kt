@@ -25,17 +25,18 @@ object NetworkUtils {
 
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                // For Android M and above
                 val network = connectivityManager.activeNetwork
                 val capabilities = connectivityManager.getNetworkCapabilities(network)
-                capabilities != null && (
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
-                                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-                        )
+                capabilities != null &&
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
+                        (
+                                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+                                )
             } else {
-                // For older Android versions
                 @Suppress("DEPRECATION")
                 val networkInfo = connectivityManager.activeNetworkInfo
                 networkInfo != null && networkInfo.isConnected

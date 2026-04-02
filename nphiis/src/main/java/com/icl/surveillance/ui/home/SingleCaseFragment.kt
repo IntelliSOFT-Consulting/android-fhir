@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.icl.surveillance.R
@@ -116,8 +115,11 @@ class SingleCaseFragment : Fragment() {
 
         FormatterClass().saveSharedPref("grandTitle", title, requireContext())
         FormatterClass().saveSharedPref("questionnaire", "add-case.json", requireContext())
-        findNavController()
-            .navigate(R.id.action_singleCaseFragment_to_caseSelectionFragment, bundle)
+        navigateIfActionAvailable(
+            expectedDestinationId = R.id.singleCaseFragment,
+            actionId = R.id.action_singleCaseFragment_to_caseSelectionFragment,
+            args = bundle,
+        )
       }
       100 -> {
         FormatterClass().showComingSoon(requireContext())
@@ -129,8 +131,11 @@ class SingleCaseFragment : Fragment() {
 
         FormatterClass().saveSharedPref("grandTitle", title, requireContext())
         FormatterClass().saveSharedPref("questionnaire", "afp-case.json", requireContext())
-        findNavController()
-            .navigate(R.id.action_singleCaseFragment_to_caseSelectionFragment, bundle)
+        navigateIfActionAvailable(
+            expectedDestinationId = R.id.singleCaseFragment,
+            actionId = R.id.action_singleCaseFragment_to_caseSelectionFragment,
+            args = bundle,
+        )
       }
     }
   }

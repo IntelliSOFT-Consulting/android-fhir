@@ -2,6 +2,7 @@ package com.icl.surveillance.network
 
 import android.util.Log
 import com.icl.surveillance.BuildConfig
+import com.icl.surveillance.fhir.FhirApplication
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -30,11 +31,14 @@ object RetrofitBuilder {
                     )
                 )
 
+        builder.addInterceptor(OfflineRequestInterceptor(FhirApplication.appContext()))
+
         val interceptor =
             HttpLoggingInterceptor { message ->
                 Log.e("API_RELEASE", message)
             }.apply { level = HttpLoggingInterceptor.Level.BODY }
         builder.addInterceptor(interceptor)
+        builder.addInterceptor(UnauthorizedRedirectInterceptor(FhirApplication.appContext()))
 
 
         val client = builder.build()
