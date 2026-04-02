@@ -20,20 +20,16 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
-import com.fasterxml.jackson.databind.type.ReferenceType
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
-import com.google.android.fhir.search.StringFilterModifier
-import com.google.android.fhir.search.search
 import com.google.android.material.button.MaterialButton
 import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FRAGMENT_TAG
 import com.icl.surveillance.databinding.ActivityAddParentCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
-import com.icl.surveillance.models.FacilityInfo
-import com.icl.surveillance.models.QuestionnaireAnswer
+import com.icl.surveillance.fhir.SdcQuestionnaireResponseSaver
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
 import com.icl.surveillance.utils.FormatterClass
@@ -43,16 +39,19 @@ import com.icl.surveillance.viewmodels.AddClientViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Location
-import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
-import org.json.JSONObject
+import timber.log.Timber
 
 class AddParentCaseActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "AddParentCaseActivity"
+        private const val SDC_EXTRACT_QUESTIONNAIRE = "add-case-sdc-extract.json"
+    }
+
     private val LOCATION_PERMISSION_REQUEST_CODE = 100
     private val viewModel: AddClientViewModel by viewModels()
     private lateinit var binding:
@@ -63,6 +62,10 @@ class AddParentCaseActivity : AppCompatActivity() {
     }
 
     private lateinit var fhirEngine: FhirEngine
+    private val sdcQuestionnaireResponseSaver by lazy {
+        SdcQuestionnaireResponseSaver(this@AddParentCaseActivity, fhirEngine)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -187,8 +190,78 @@ class AddParentCaseActivity : AppCompatActivity() {
                 supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG)
                         as QuestionnaireFragment
 
+            val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
+            // Print the response to the log
+            val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+            val questionnaireResponseString =
+                jsonParser.encodeResourceToString(questionnaireResponse)
+            println("Response Data Here $questionnaireResponseString")
 
-            saveCase(questionnaireFragment.getQuestionnaireResponse())
+            var extractedQuestionnaire: Questionnaire? = null
+            var extractedBundle: org.hl7.fhir.r4.model.Bundle? = null
+            if (usesSdcExtraction()) {
+                try {
+                    val questionnaire =
+                        jsonParser.parseResource(viewModel.questionnaireJson) as Questionnaire
+                    extractedQuestionnaire = questionnaire
+                    val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
+                    if (bundle.entry.isEmpty()) {
+                        Log.w(TAG, "SDC extraction returned an empty bundle.")
+                        ProgressDialogManager.dismiss()
+                        Toast.makeText(
+                            this@AddParentCaseActivity,
+                            "No resources were extracted from this questionnaire response.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@launch
+                    }
+                    extractedBundle = bundle
+                    logExtractedBundle(bundle, jsonParser)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to extract SDC bundle", e)
+                    ProgressDialogManager.dismiss()
+                    Toast.makeText(
+                        this@AddParentCaseActivity,
+                        "Failed to extract the SDC resources. Please review the questionnaire draft.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@launch
+                }
+            }
+
+            saveCase(questionnaireResponse, extractedQuestionnaire, extractedBundle)
+        }
+    }
+
+    private fun usesSdcExtraction(): Boolean {
+        val questionnaireFile = FormatterClass().getSharedPref("questionnaire", this)
+            ?: intent.getStringExtra(QUESTIONNAIRE_FILE_PATH_KEY)
+        return questionnaireFile == SDC_EXTRACT_QUESTIONNAIRE
+    }
+
+    private fun logExtractedBundle(
+        bundle: org.hl7.fhir.r4.model.Bundle,
+        jsonParser: ca.uhn.fhir.parser.IParser
+    ) {
+        if (bundle.entry.isEmpty()) {
+            Log.w(TAG, "SDC extraction returned an empty bundle.")
+            return
+        }
+
+        val summary = bundle.entry
+            .mapNotNull { it.resource?.fhirType() }
+            .groupingBy { it }
+            .eachCount()
+            .entries
+            .joinToString(", ") { "${it.key}=${it.value}" }
+
+        Log.d(TAG, "SDC extraction bundle summary: $summary")
+        Log.d(TAG, "SDC extraction bundle: ${jsonParser.encodeResourceToString(bundle)}")
+
+        bundle.entry.forEach { resourceInfo ->
+            resourceInfo.resource?.let { resource ->
+                Timber.d("SDC extracted resource ${jsonParser.encodeResourceToString(resource)}")
+            }
         }
     }
 
@@ -206,9 +279,40 @@ class AddParentCaseActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun saveCase(
-        questionnaireResponse: QuestionnaireResponse
+    private suspend fun saveCase(
+        questionnaireResponse: QuestionnaireResponse,
+        extractedQuestionnaire: Questionnaire? = null,
+        extractedBundle: org.hl7.fhir.r4.model.Bundle? = null
     ) {
+        if (usesSdcExtraction()) {
+            if (extractedQuestionnaire == null || extractedBundle == null) {
+                ProgressDialogManager.dismiss()
+                Toast.makeText(
+                    this@AddParentCaseActivity,
+                    "Unable to save because no extracted resources were found.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+
+            val saveResult = sdcQuestionnaireResponseSaver.save(
+                questionnaire = extractedQuestionnaire,
+                questionnaireResponse = questionnaireResponse,
+                extractedBundle = extractedBundle
+            )
+            ProgressDialogManager.dismiss()
+            if (!saveResult.isSuccess) {
+                Toast.makeText(
+                    this@AddParentCaseActivity,
+                    saveResult.userMessage ?: "Failed to save the extracted SDC resources.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+            showSuccessDialog(this@AddParentCaseActivity)
+            return
+        }
+
         val case = FormatterClass().getSharedPref("currentCase", this@AddParentCaseActivity)
 
         when (case) {
@@ -566,4 +670,3 @@ class AddParentCaseActivity : AppCompatActivity() {
         return true
     }
 }
-

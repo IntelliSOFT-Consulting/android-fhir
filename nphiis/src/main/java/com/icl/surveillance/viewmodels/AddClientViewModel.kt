@@ -1537,7 +1537,6 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }
     }
 
-
     private fun String.toSlug(): String {
         return this.trim() // remove leading/trailing spaces
             .lowercase() // make all lowercase
