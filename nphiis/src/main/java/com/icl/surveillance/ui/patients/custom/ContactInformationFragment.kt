@@ -36,6 +36,7 @@ import com.icl.surveillance.models.QuestionnaireItem
 import com.icl.surveillance.ui.patients.AddCaseActivity
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.setSingleClickListener
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 import kotlin.collections.forEach
@@ -128,11 +129,11 @@ class ContactInformationFragment : Fragment() {
     val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
     val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
     binding.apply {
-      getStartedButton.setOnClickListener {
+      getStartedButton.setSingleClickListener {
         println("Click button here ")
         handleCase(currentCase)
       }
-      fab.setOnClickListener {
+      fab.setSingleClickListener {
         println("Click button here fab")
         handleCase(currentCase)
       }

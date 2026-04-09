@@ -142,6 +142,7 @@ class MainActivity : AppCompatActivity() {
 
             insets
         }
+        handleTokenRefresh()
         getUserProfile()
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -204,6 +205,13 @@ class MainActivity : AppCompatActivity() {
         }
         checkLocationPermission()
         generateAreaOfJurisdiction()
+    }
+
+    private fun handleTokenRefresh() {
+        val isLoggedIn = FormatterClass().getSharedPref("isLoggedIn", this)
+        if (isLoggedIn == null || isLoggedIn != "true" || !FhirApplication.hasAccessToken()) {
+
+        }
     }
 
     private fun resolveNavController(): NavController {

@@ -17,6 +17,7 @@ import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityLauncherBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.setSingleClickListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -74,7 +75,7 @@ class LauncherActivity : AppCompatActivity() {
         }
         binding.apply {
             getStartedButton.apply {
-                setOnClickListener {
+                setSingleClickListener {
                     FormatterClass().clearCache(this@LauncherActivity)
                     FormatterClass().deleteSharedPref("isLoggedIn", this@LauncherActivity)
                     val intent = Intent(this@LauncherActivity, LoginActivity::class.java)
