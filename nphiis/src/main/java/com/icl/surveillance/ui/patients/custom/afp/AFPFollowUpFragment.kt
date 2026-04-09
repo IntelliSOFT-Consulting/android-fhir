@@ -30,6 +30,7 @@ import com.icl.surveillance.models.QuestionnaireItem
 import com.icl.surveillance.ui.patients.AddCaseActivity
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.setSingleClickListener
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 import kotlin.collections.forEach
@@ -160,9 +161,9 @@ class AFPFollowUpFragment : Fragment() {
     }
 
     binding.apply {
-      fab.setOnClickListener { handleCase(currentCase) }
+      fab.setSingleClickListener { handleCase(currentCase) }
 
-      getStartedButton.setOnClickListener { handleCase(currentCase) }
+      getStartedButton.setSingleClickListener { handleCase(currentCase) }
     }
   }
 
