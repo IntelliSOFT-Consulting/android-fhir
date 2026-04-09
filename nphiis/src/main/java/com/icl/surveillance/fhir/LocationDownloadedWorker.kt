@@ -3,6 +3,7 @@ package com.icl.surveillance.fhir
 
 import android.content.Context
 import android.util.Log
+import androidx.work.CoroutineWorker
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -38,10 +39,10 @@ import java.util.TimeZone
 class LocationDownloadedWorker(
     context: Context,
     workerParams: WorkerParameters
-) : Worker(context, workerParams) {
+) : CoroutineWorker(context, workerParams) {
 
 
-    override fun doWork(): Result = try {
+    override suspend fun doWork(): Result = try {
         val context = applicationContext
         val fhirEngine = FhirApplication.fhirEngine(context)
         val currentUrl = Constants.getNextUrl(context) ?: LOCATION_STARTER
