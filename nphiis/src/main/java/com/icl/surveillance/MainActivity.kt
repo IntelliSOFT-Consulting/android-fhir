@@ -57,6 +57,7 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.messaging.FirebaseMessaging
 
 import com.icl.surveillance.auth.LoginActivity
+import com.icl.surveillance.auth.tokenizer.NPHIISTokenWorker
 import com.icl.surveillance.fhir.DemoDataStore
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.monitor.FhirBundleService
@@ -209,9 +210,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleTokenRefresh() {
         val isLoggedIn = FormatterClass().getSharedPref("isLoggedIn", this)
-        if (isLoggedIn == null || isLoggedIn != "true" || !FhirApplication.hasAccessToken()) {
 
-        }
+        if (isLoggedIn != "true") return
+
+        val workRequest = PeriodicWorkRequestBuilder<NPHIISTokenWorker>(
+            15, TimeUnit.MINUTES
+        ).apply {
+            setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+        }.build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "NPHIISTokenWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
     }
 
     private fun resolveNavController(): NavController {
@@ -219,7 +235,8 @@ class MainActivity : AppCompatActivity() {
 
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as? NavHostFragment)
-                ?: supportFragmentManager.fragments.filterIsInstance<NavHostFragment>().firstOrNull()
+                ?: supportFragmentManager.fragments.filterIsInstance<NavHostFragment>()
+                    .firstOrNull()
                 ?: throw IllegalStateException("NavHostFragment was not found in activity_main")
 
         return navHostFragment.navController

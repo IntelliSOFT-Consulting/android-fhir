@@ -1,6 +1,7 @@
 package com.icl.surveillance.fhir
 
 import android.content.Context
+import androidx.work.CoroutineWorker
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.CoroutineScope
@@ -12,10 +13,10 @@ import kotlinx.coroutines.runBlocking
 class MpoxSyncWorker(
     appContext: Context,
     workerParams: WorkerParameters,
-) : Worker(appContext, workerParams) {
+) : CoroutineWorker(appContext, workerParams) {
     private val repo = FhirRepository(appContext)
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         return try {
             runBlocking {
                 // Step 1: Upload Patients

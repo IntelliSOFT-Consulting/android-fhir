@@ -1149,7 +1149,7 @@
           "required": true
         },
         {
-          "type": "string",
+          "type": "text",
           "linkId": "560083852118",
           "text": "Report of Negative Comments, Rumors, Misinformation, Disinformation on Health Interventions shared in the community",
           "required": true
@@ -1563,7 +1563,7 @@
           "required": true
         },
         {
-          "type": "string",
+          "type": "text",
           "linkId": "801665079239",
           "text": "Additional Observations/Comments",
           "required": true
@@ -1582,6 +1582,10 @@
                   }
                 ]
               }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
             }
           ],
           "linkId": "735623392446",
@@ -1666,6 +1670,28 @@
           "linkId": "investigator-phone",
           "text": "Phone Number of Investigator",
           "type": "string",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid mobile number. Strings and special characters aren't allowed"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^\\d{10,10}$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            }
+          ],
           "enableWhen": [
             {
               "question": "735623392446",
@@ -1764,6 +1790,35 @@
                   }
                 ]
               }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "constraint-1"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "This date should be after start date"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='date-from').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "This date should be after start date"
+                },
+                {
+                  "url": "location",
+                  "valueString": "date-from"
+                }
+              ]
             }
           ],
           "enableWhen": [
@@ -1796,6 +1851,24 @@
           "linkId": "results",
           "text": "Results of the investigation",
           "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
           "answerOption": [
             {
               "valueCoding": {
@@ -1845,7 +1918,7 @@
         {
           "linkId": "conclusion",
           "text": "Conclusion/recommendations (action taken or directives given)",
-          "type": "string",
+          "type": "text",
           "enableWhen": [
             {
               "question": "735623392446",
