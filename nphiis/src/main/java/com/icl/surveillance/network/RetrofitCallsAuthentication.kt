@@ -271,7 +271,12 @@ class RetrofitCallsAuthentication {
                                         refresh_token,
                                         context
                                     )
-                                    val intent = if (!body.firstLogin) {
+                                    val intent = if (body.firstLogin) {
+                                        formatter.saveSharedPrefSync(
+                                            "idNumber",
+                                            dbSignIn.idNumber,
+                                            context
+                                        )
                                         Intent(context, PinLockActivity::class.java)
                                     } else {
                                         formatter.saveSharedPrefSync("isLoggedIn", "true", context)
@@ -325,7 +330,6 @@ class RetrofitCallsAuthentication {
             }
         }
     }
-
 
 
     private fun startPullingUserAlerts(context: Context) {
@@ -512,6 +516,7 @@ class RetrofitCallsAuthentication {
     fun setPassword(context: Context, dbSetPasswordReq: DbSetPasswordReq) = runBlocking {
         setPasswordBac(context, dbSetPasswordReq)
     }
+
     fun setNewPassword(context: Context, dbSetPasswordReq: SetNewPasswordReq) = runBlocking {
         setNewPasswordBac(context, dbSetPasswordReq)
     }

@@ -149,7 +149,7 @@ data class SearchInfo(
 
 data class DbSetPasswordReq(val resetCode: String, val idNumber: String, val password: String)
 data class SetNewPasswordReq(
-    val current_Password: String,
+    val temporaryPassword: String,
     val idNumber: String,
     val password: String
 )

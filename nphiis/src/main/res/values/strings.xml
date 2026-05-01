@@ -185,4 +185,8 @@
     <string name="okay">Okay</string>
     <string name="matching_cases_single">Matching cases found: %1$d</string>
     <string name="summary">Summary</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="submit">Submit</string>
 </resources>
