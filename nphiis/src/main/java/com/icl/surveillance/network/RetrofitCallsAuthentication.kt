@@ -10,11 +10,13 @@ import androidx.appcompat.app.AlertDialog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.icl.surveillance.auth.InitialSyncActivity
+import com.icl.surveillance.auth.PinLockActivity
 import com.icl.surveillance.models.DbResetPasswordData
 import com.icl.surveillance.models.DbResponseError
 import com.icl.surveillance.models.DbSetPasswordReq
 import com.icl.surveillance.models.DbSignIn
 import com.icl.surveillance.models.FCMToken
+import com.icl.surveillance.models.SetNewPasswordReq
 import com.icl.surveillance.models.User
 import com.icl.surveillance.utils.Constants.ALERTS_BASE_URL
 import com.icl.surveillance.utils.Constants.BASE_AUTH_URL
@@ -249,7 +251,11 @@ class RetrofitCallsAuthentication {
                                         accessToken = access_token,
                                         refreshToken = refresh_token,
                                     )
-                                    formatter.saveSharedPrefSync("access_token", access_token, context)
+                                    formatter.saveSharedPrefSync(
+                                        "access_token",
+                                        access_token,
+                                        context
+                                    )
                                     formatter.saveSharedPrefSync(
                                         "expires_in",
                                         expires_in,
@@ -265,16 +271,20 @@ class RetrofitCallsAuthentication {
                                         refresh_token,
                                         context
                                     )
-                                    formatter.saveSharedPrefSync("isLoggedIn", "true", context)
-                                    SessionExpiryHandler.markSessionActive()
-                                    getUserDetails(viewModel, context)
-                                    messageToast = "Login successful."
+                                    val intent = if (!body.firstLogin) {
+                                        Intent(context, PinLockActivity::class.java)
+                                    } else {
+                                        formatter.saveSharedPrefSync("isLoggedIn", "true", context)
+                                        SessionExpiryHandler.markSessionActive()
+                                        getUserDetails(viewModel, context)
+                                        messageToast = "Login successful."
 
-                                    val intent = Intent(context, InitialSyncActivity::class.java)
-                                    intent.addFlags(
-                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                    )
+                                        Intent(context, InitialSyncActivity::class.java)
+                                    }
+
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                     context.startActivity(intent)
+
                                     if (context is Activity) {
                                         context.finish()
                                     }
@@ -315,6 +325,8 @@ class RetrofitCallsAuthentication {
             }
         }
     }
+
+
 
     private fun startPullingUserAlerts(context: Context) {
 
@@ -500,6 +512,56 @@ class RetrofitCallsAuthentication {
     fun setPassword(context: Context, dbSetPasswordReq: DbSetPasswordReq) = runBlocking {
         setPasswordBac(context, dbSetPasswordReq)
     }
+    fun setNewPassword(context: Context, dbSetPasswordReq: SetNewPasswordReq) = runBlocking {
+        setNewPasswordBac(context, dbSetPasswordReq)
+    }
+
+    private suspend fun setNewPasswordBac(
+        context: Context,
+        dbSetPasswordReq: SetNewPasswordReq
+    ): Pair<Int, String> {
+        if (!NetworkUtils.isInternetAvailable(context)) {
+            return Pair(503, OFFLINE_MESSAGE)
+        }
+
+        var messageToast = ""
+        var messageCode = 400
+
+        val formatter = FormatterClass()
+
+        val apiService = RetrofitBuilder.getRetrofit(BASE_AUTH_URL).create(Interface::class.java)
+        try {
+
+            val apiInterface = apiService.setPassword(dbSetPasswordReq)
+            if (apiInterface.isSuccessful) {
+
+                val statusCode = apiInterface.code()
+                val body = apiInterface.body()
+                messageCode = statusCode
+
+                messageToast =
+                    if (statusCode == 200 || statusCode == 201) {
+                        if (body != null) {
+                            "Password Reset was successful.."
+                        } else {
+                            "Password Reset was not successful. Try again later"
+                        }
+                    } else {
+                        "The request was not successful. Try again!"
+                    }
+            } else {
+                // Parse the error response
+                val errorResponse = parseError(apiInterface)
+                messageToast = errorResponse?.error ?: "Cannot reset user password! Try again"
+            }
+        } catch (e: Exception) {
+
+
+            messageToast = "Cannot set new password.."
+        }
+        return Pair(messageCode, messageToast)
+    }
+
 
     private suspend fun setPasswordBac(
         context: Context,

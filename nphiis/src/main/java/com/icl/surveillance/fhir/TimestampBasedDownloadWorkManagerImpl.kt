@@ -57,9 +57,8 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val urls: LinkedList<String> = LinkedList()
     private var shouldMarkLocationSeedDone = false
 
-    // ✅ Prevent infinite loops
-    private val enqueuedEverythingPatients = mutableSetOf<String>()   // PatientId -> enqueued once
-    private val seenUrls = mutableSetOf<String>()                     // global guard (optional but strong)
+    private val enqueuedEverythingPatients = mutableSetOf<String>()
+    private val seenUrls = mutableSetOf<String>()
 
     private suspend fun seedUrlsIfNeeded() {
         if (seeded) return
@@ -84,16 +83,14 @@ class TimestampBasedDownloadWorkManagerImpl(
 
         while (true) {
             var url = urls.poll() ?: run {
-                // ✅ All queued work done for this run
                 if (shouldMarkLocationSeedDone) {
-                    // FormatterClass().setSyncDone(context)
+                    FormatterClass().setSyncDone(context)
                     shouldMarkLocationSeedDone = false
                 }
                 tracker.done()
                 return null
             }
 
-            // ✅ Hard stop: never execute the exact same URL twice in the same run
             if (!seenUrls.add(url)) {
                 continue
             }
@@ -136,7 +133,6 @@ class TimestampBasedDownloadWorkManagerImpl(
         }
 
         if (response is Bundle) {
-            // ---- Location monitoring: count Location entries in this page ----
             val locationInThisPage =
                 response.entry.mapNotNull { it.resource }
                     .count { it.resourceType == ResourceType.Location }
@@ -144,7 +140,6 @@ class TimestampBasedDownloadWorkManagerImpl(
                 tracker.onLocationPageDownloaded(locationInThisPage)
             }
 
-            // ✅ Detect: is this a Patient SEARCH page (Patient-only SEARCHSET)?
             val typesInBundle: Set<ResourceType> =
                 response.entry.mapNotNull { it.resource?.resourceType }.toSet()
             if (typesInBundle.size == 1) {
@@ -155,9 +150,6 @@ class TimestampBasedDownloadWorkManagerImpl(
                 response.type == Bundle.BundleType.SEARCHSET &&
                         typesInBundle.size == 1 &&
                         typesInBundle.contains(ResourceType.Patient)
-
-            // ✅ Only enqueue $everything from Patient search pages
-            // (Never enqueue from $everything bundles, which are mixed types and often include Patient again)
             if (isPatientOnlySearchPage) {
                 for (entry in response.entry) {
                     val res = entry.resource ?: continue
@@ -169,15 +161,12 @@ class TimestampBasedDownloadWorkManagerImpl(
                     }
                 }
             }
-
-            // pagination for ANY searchset (including Patient search pages)
             val nextUrl = response.link.firstOrNull { it.relation == "next" }?.url
             if (nextUrl != null) {
                 urls.add(nextUrl)
             }
         }
 
-        // Finally, extract resources
         var bundleCollection: Collection<Resource> = mutableListOf()
         if (response is Bundle && response.type == Bundle.BundleType.SEARCHSET) {
             bundleCollection =
@@ -212,7 +201,6 @@ class TimestampBasedDownloadWorkManagerImpl(
 
         val isEverything = url.contains("\$everything")
 
-        // Keep your special Location behavior
         if (resourceType == ResourceType.Location) {
             if (!FormatterClass().isSyncDone(context)) {
                 return url

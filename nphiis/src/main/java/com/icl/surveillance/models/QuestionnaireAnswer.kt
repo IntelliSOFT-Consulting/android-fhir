@@ -148,11 +148,18 @@ data class SearchInfo(
 )
 
 data class DbSetPasswordReq(val resetCode: String, val idNumber: String, val password: String)
+data class SetNewPasswordReq(
+    val current_Password: String,
+    val idNumber: String,
+    val password: String
+)
+
 data class DbSignInResponse(
     val access_token: String,
     val expires_in: String,
     val refresh_expires_in: String,
     val refresh_token: String,
+    val firstLogin: Boolean,
 )
 
 data class DbResetPassword(
