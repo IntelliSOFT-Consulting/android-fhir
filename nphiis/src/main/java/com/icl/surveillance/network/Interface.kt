@@ -9,6 +9,7 @@ import com.icl.surveillance.models.FCMToken
 import com.icl.surveillance.models.FhirBundle
 import com.icl.surveillance.models.NotificationResponse
 import com.icl.surveillance.models.RefreshToken
+import com.icl.surveillance.models.SetNewPasswordReq
 import com.icl.surveillance.models.UserResponse
 import com.icl.surveillance.utils.Constants.BASE_URL
 import okhttp3.RequestBody
@@ -77,4 +78,7 @@ interface Interface {
 
     @POST("provider/reset-password")
     suspend fun setNewPassword(@Body dbSetPasswordReq: DbSetPasswordReq): Response<Any>
+
+    @POST("provider/reset-password")
+    suspend fun setPassword(@Body dbSetPasswordReq: SetNewPasswordReq): Response<Any>
 }

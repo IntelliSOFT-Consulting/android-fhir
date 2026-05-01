@@ -111,7 +111,7 @@ class LoginActivity : AppCompatActivity() {
     private fun configureEnvironmentLabel() {
         val normalizedUrl = BASE_URL.trim().trimEnd('/')
         val isLive = normalizedUrl == "https://auth.nphiis.health.go.ke/fhir"
-        val isTest = normalizedUrl == "https://dsrfhir.intellisoftkenya.com/hapi/fhir"
+        val isTest = normalizedUrl == "https://dsrkeycloak.intellisoftkenya.com/auth/fhir/"
 
         val label = when {
             isLive -> "LIVE APP"
