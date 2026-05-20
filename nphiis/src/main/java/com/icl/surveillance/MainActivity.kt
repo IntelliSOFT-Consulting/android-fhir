@@ -158,7 +158,6 @@ class MainActivity : AppCompatActivity() {
             retrofitCallsAuthentication.updateOrCreateToken(this, token)
         }
 
-        viewModel.triggerOneTimeSync()
 //        updateSourceFacility()
         setupTokenRefresh()
         appUpdateManager = AppUpdateManagerFactory.create(this)

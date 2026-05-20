@@ -30,12 +30,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
+import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
+import org.hl7.fhir.r4.model.SampledData
+import org.hl7.fhir.r4.model.TimeType
+import timber.log.Timber
 import kotlin.String
 
 class ClientDetailsViewModel(
@@ -1129,11 +1133,12 @@ class ClientDetailsViewModel(
         parent: String
     ): List<PatientListViewModel.LabResults> {
         val encounters: MutableList<PatientListViewModel.LabResults> = mutableListOf()
-        println("Dealing with case:::: starter patient $patientId")
-        fhirEngine
-            .search<Encounter> {
-                filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
-                filter(Encounter.PART_OF, { value = "Encounter/$parent" })
+        val isMeasles = reason.contains("Measles", ignoreCase = true)
+        val measlesCodes = setOf("measles-lab-results", "Measles Lab Information")
+        fhirEngine.search<Encounter> {
+            filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
+            filter(Encounter.PART_OF, { value = "Encounter/$parent" })
+            if (!isMeasles) {
                 filter(
                     Encounter.REASON_CODE,
                     {
@@ -1141,32 +1146,41 @@ class ClientDetailsViewModel(
                             code = reason
                         })
                     })
-                sort(Encounter.DATE, Order.ASCENDING)
             }
+            sort(Encounter.DATE, Order.ASCENDING)
+        }
             .take(500)
-            .map { enc ->
-
-                Log.e(
-                    "Lab Results: ",
-                    "Lab results coming here Parent ${enc.resource.logicalId}"
-                )
+            .filter { searchResult ->
+                val encounter = searchResult.resource
+                if (isMeasles) {
+                    encounter.reasonCode.any { codeableConcept ->
+                        codeableConcept.coding.any { coding ->
+                            coding.code in measlesCodes || coding.display in measlesCodes
+                        } || codeableConcept.text in measlesCodes
+                    }
+                } else {
+                    true
+                }
+            }
+            .forEach { enc ->
                 val observations: MutableList<PatientListViewModel.ObservationItem> =
                     mutableListOf()
                 fhirEngine.search<Observation> {
                     filter(
                         Observation.ENCOUNTER,
                         { value = "Encounter/${enc.resource.logicalId}" })
-                }.map { ob ->
-                    val value =
-                        if (ob.resource.hasValueQuantity()) {
-                            ob.resource.valueQuantity.value.toString()
-                        } else if (ob.resource.hasValueCodeableConcept()) {
-                            ob.resource.valueCodeableConcept.coding.firstOrNull()?.display ?: ""
-                        } else if (ob.resource.hasValueStringType()) {
-                            ob.resource.valueStringType.valueAsString
-                        } else {
-                            ""
-                        }
+                }.forEach { ob ->
+//                    val value =
+//                        if (ob.resource.hasValueQuantity()) {
+//                            ob.resource.valueQuantity.value.toString()
+//                        } else if (ob.resource.hasValueCodeableConcept()) {
+//                            ob.resource.valueCodeableConcept.coding.firstOrNull()?.display ?: ""
+//                        } else if (ob.resource.hasValueStringType()) {
+//                            ob.resource.valueStringType.valueAsString
+//                        } else {
+//                            "rr"
+//                        }
+                    val value = getObservationValue(ob.resource)
                     val created =
                         if (ob.resource.hasIssued()) ob.resource.issuedElement.value.toString() else ""
                     val item = PatientListViewModel.ObservationItem(
@@ -1177,8 +1191,6 @@ class ClientDetailsViewModel(
                     )
                     observations.add(item)
                 }
-
-
                 val lab = PatientListViewModel.LabResults(
                     encounterId = enc.resource.logicalId,
                     observations = observations
@@ -1187,6 +1199,127 @@ class ClientDetailsViewModel(
                 encounters.add(lab)
             }
         return encounters
+    }
+
+    fun getObservationValue(observation: Observation): String {
+        // Check if value is present
+        if (!observation.hasValue()) {
+            // Return data absent reason if available
+            return if (observation.hasDataAbsentReason()) {
+                observation.dataAbsentReason.coding.firstOrNull()?.display
+                    ?: observation.dataAbsentReason.text
+                    ?: ""
+            } else {
+                ""
+            }
+        }
+
+        val value = observation.value
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+
+        return when (value) {
+            // Quantity (most common for measurements)
+            is org.hl7.fhir.r4.model.Quantity -> {
+                val numericValue = value.value?.toPlainString() ?: "?"
+                val unit = if (value.hasUnit()) value.unit else ""
+                if (unit.isNotBlank()) "$numericValue $unit" else numericValue
+            }
+
+            // CodeableConcept (coded values)
+            is org.hl7.fhir.r4.model.CodeableConcept -> {
+                // Try to get display from coding first
+                value.coding.firstOrNull()?.display
+                // Fall back to text
+                    ?: value.text
+                    // Last resort: show the code itself
+                    ?: value.coding.firstOrNull()?.code
+                    ?: ""
+            }
+
+            // String (simple text)
+            is org.hl7.fhir.r4.model.StringType -> {
+                value.asStringValue() ?: ""
+            }
+
+            // Boolean (true/false)
+            is org.hl7.fhir.r4.model.BooleanType -> {
+                if (value.booleanValue()) "Yes" else "No"
+            }
+
+            // Integer (whole number)
+            is org.hl7.fhir.r4.model.IntegerType -> {
+                value.value?.toString() ?: "?"
+            }
+
+            // Decimal (floating point number)
+            is org.hl7.fhir.r4.model.DecimalType -> {
+                value.value?.toPlainString() ?: "?"
+            }
+
+            // Range (low to high)
+            is org.hl7.fhir.r4.model.Range -> {
+                val low = value.low
+                val high = value.high
+                when {
+                    low.hasValue() && high.hasValue() ->
+                        "${low.value.toPlainString()} - ${high.value.toPlainString()} ${low.unit ?: high.unit ?: ""}"
+
+                    low.hasValue() ->
+                        "≥ ${low.value.toPlainString()} ${low.unit ?: ""}"
+
+                    high.hasValue() ->
+                        "≤ ${high.value.toPlainString()} ${high.unit ?: ""}"
+
+                    else -> "Range value"
+                }
+            }
+
+            // Ratio (numerator/denominator)
+            is org.hl7.fhir.r4.model.Ratio -> {
+                val numerator = value.numerator
+                val denominator = value.denominator
+                when {
+                    numerator.hasValue() && denominator.hasValue() ->
+                        "${numerator.value.toPlainString()} ${numerator.unit ?: ""} / " +
+                                "${denominator.value.toPlainString()} ${denominator.unit ?: ""}"
+
+                    numerator.hasValue() ->
+                        "${numerator.value.toPlainString()} ${numerator.unit ?: ""} (ratio)"
+
+                    else -> "Ratio value"
+                }
+            }
+
+            // SampledData (waveforms, series data)
+            is SampledData -> {
+                val origin = value.origin
+                val period = value.period?.toPlainString()
+                val dimensions = value.dimensions
+                "Sampled data (${dimensions} dimensions, period: ${period ?: "?"}s)"
+            }
+
+            // Time (HH:MM:SS)
+            is TimeType -> {
+                value.asStringValue() ?: "?"
+            }
+
+            // DateTime
+            is DateTimeType -> {
+                value.value?.let { dateFormat.format(it) } ?: "?"
+            }
+
+            // Period (start - end)
+            is org.hl7.fhir.r4.model.Period -> {
+                val start = value.start?.let { dateFormat.format(it) } ?: "?"
+                val end = value.end?.let { dateFormat.format(it) } ?: "?"
+                "$start to $end"
+            }
+
+            // Fallback for any other type
+            else -> {
+                value.primitiveValue() ?: ""
+            }
+        }
     }
 
     private suspend fun getPatientDiseaseDataInformation(

@@ -96,7 +96,6 @@ class LabResultsFragment : Fragment() {
       val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
       if (currentCase != null) {
         val slug = currentCase.toSlug()
-        println("Dealing with case:::: starter $encounterId")
         when (slug) {
           "measles-case-information" -> {
             patientDetailsViewModel.getPatientResultsDiseaseData(

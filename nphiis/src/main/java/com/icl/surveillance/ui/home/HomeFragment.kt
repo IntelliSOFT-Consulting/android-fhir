@@ -1,6 +1,7 @@
 package com.icl.surveillance.ui.home
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +21,17 @@ class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val viewModel: HomeViewModel by viewModels()
+    private var userPrefs: SharedPreferences? = null
+
+    private val trackedProfileKeys =
+        setOf("firstName", "lastName", "fullNames", "id", "role", "practitionerRole")
+
+    private val userPrefChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key in trackedProfileKeys) {
+                handleUser()
+            }
+        }
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -55,6 +67,7 @@ class HomeFragment : Fragment() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = GridLayoutManager(requireContext(), requireContext().homeGridSpanCount())
 
+        registerUserPrefListener()
         handleUser()
 
     }
@@ -76,6 +89,27 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun registerUserPrefListener() {
+        val prefs =
+            requireContext().getSharedPreferences(
+                getString(R.string.app_name),
+                android.content.Context.MODE_PRIVATE
+            )
+        userPrefs?.unregisterOnSharedPreferenceChangeListener(userPrefChangeListener)
+        prefs.registerOnSharedPreferenceChangeListener(userPrefChangeListener)
+        userPrefs = prefs
+    }
+
+    private fun hasMeaningfulValue(value: String?): Boolean {
+        return !value.isNullOrBlank() && !value.equals("null", ignoreCase = true)
+    }
+
+    private fun isProfileLoaded(formatter: FormatterClass): Boolean {
+        return hasMeaningfulValue(formatter.getSharedPref("id", requireContext())) ||
+            hasMeaningfulValue(formatter.getSharedPref("role", requireContext())) ||
+            hasMeaningfulValue(formatter.getSharedPref("practitionerRole", requireContext()))
+    }
+
     private fun handleUser() {
         val formatter = FormatterClass()
         val firstName = formatter.getSharedPref("firstName", requireContext())
@@ -83,10 +117,12 @@ class HomeFragment : Fragment() {
         val fullName = formatter.getSharedPref("fullNames", requireContext())
         val name = getUserNameFromDetails(fullName, firstName, lastName)
         val time = formatter.getTimeOfDay()
+        val isLoadingProfile = !isProfileLoaded(formatter) && name.isBlank()
 
         binding.apply {
             greetingText.text = time
-            usernameText.text = safeText(name)
+            usernameText.text = if (isLoadingProfile) "\u00A0" else safeText(name)
+            usernameLoadingIndicator.visibility = if (isLoadingProfile) View.VISIBLE else View.GONE
         }
     }
 
@@ -158,6 +194,8 @@ fun showComingSoon(){
     }
 
     override fun onDestroyView() {
+        userPrefs?.unregisterOnSharedPreferenceChangeListener(userPrefChangeListener)
+        userPrefs = null
         super.onDestroyView()
         _binding = null
     }
