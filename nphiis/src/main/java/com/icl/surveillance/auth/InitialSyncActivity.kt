@@ -94,11 +94,12 @@ class InitialSyncActivity : AppCompatActivity() {
 
     private fun retryInitialSyncOnceOrShowError() {
         if (hasRetriedOneTimeSync) {
-            binding.syncStatusText.text = "Initial sync failed. Check network and retry."
+            binding.syncStatusText.text =
+                getString(R.string.initial_sync_failed_check_network_and_retry)
             return
         }
         hasRetriedOneTimeSync = true
-        binding.syncStatusText.text = "Retrying sync…"
+        binding.syncStatusText.text = getString(R.string.retrying_sync)
         lifecycleScope.launch {
             delay(1500)
             startOneTimeSync()
@@ -109,7 +110,7 @@ class InitialSyncActivity : AppCompatActivity() {
         if (hasNavigatedToMain) return
         hasNavigatedToMain = true
         FormatterClass().setSyncDone(this@InitialSyncActivity)
-        binding.syncStatusText.text = "All data imported successfully."
+        binding.syncStatusText.text = getString(R.string.all_data_imported_successfully)
         lifecycleScope.launch {
             delay(2000)
             FormatterClass().setSyncDone(this@InitialSyncActivity)
@@ -121,7 +122,6 @@ class InitialSyncActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 locationMonitor.progress.collect { progress ->
-
                     val count = progress.locationDownloaded
                     val type = progress.currentType
                     if (!hasNavigatedToMain) {

@@ -33,31 +33,40 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Good Morning" />
 
-        <TextView
-            android:id="@+id/usernameText"
+        <LinearLayout
+            android:id="@+id/usernameRow"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:fontFamily="@font/montserratregular"
-            android:textColor="@color/home_header_text_secondary"
-            android:textSize="14sp"
+            android:orientation="vertical"
             app:layout_constraintEnd_toStartOf="@id/notificationLayout"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/greetingText"
-            tools:text="John Doe" />
+            app:layout_constraintTop_toBottomOf="@id/greetingText">
 
-        <TextView
-            android:id="@+id/homeHeaderPrompt"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:fontFamily="@font/montserratregular"
-            android:text="@string/home_header_prompt"
-            android:textColor="@color/home_header_text_secondary"
-            android:textSize="12sp"
-            app:layout_constraintEnd_toStartOf="@id/notificationLayout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/usernameText" />
+            <TextView
+                android:id="@+id/usernameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/montserratregular"
+                android:maxLines="1"
+                android:textColor="@color/home_header_text_secondary"
+                android:textSize="14sp"
+                tools:text="John Doe" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/usernameLoadingIndicator"
+                android:layout_width="40dp"
+                android:layout_height="2dp"
+                android:layout_marginTop="6dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@color/home_header_text_secondary"
+                app:trackColor="@color/home_notification_background"
+                app:trackCornerRadius="1dp"
+                app:trackThickness="2dp" />
+        </LinearLayout>
+
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/notificationLayout"

@@ -295,6 +295,10 @@ class FormatterClass {
         prefs(context).edit().clear().apply()
         prefsLocal.edit().clear().apply()
 
+        clearSessionState(context)
+    }
+
+    fun clearSessionState(context: Context) {
         val sharedPreferences: SharedPreferences =
             context.getSharedPreferences(context.getString(R.string.app_name), MODE_PRIVATE)
         val editor = sharedPreferences.edit()

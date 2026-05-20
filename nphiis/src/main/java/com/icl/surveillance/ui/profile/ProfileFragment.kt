@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.databinding.FragmentProfileBinding
@@ -16,9 +17,11 @@ import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.monitor.DialogHelper
 import com.icl.surveillance.models.UserProfilePrefs
 import com.icl.surveillance.models.UserRole
+import com.icl.surveillance.network.SessionManager
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.NetworkUtils
 import java.io.File
+import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
 
@@ -272,13 +275,17 @@ class ProfileFragment : Fragment() {
     }
 
     private fun logoutUser() {
-        FormatterClass().clearCache(requireContext())
-        FormatterClass().deleteSharedPref("isLoggedIn", requireContext())
-        startActivity(
-            Intent(requireContext(), LoginActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
-        requireActivity().finish()
+        val activity = requireActivity()
+        val appContext = requireContext().applicationContext
+
+        lifecycleScope.launch {
+            SessionManager.clearAuthenticatedSession(appContext)
+            activity.startActivity(
+                Intent(activity, LoginActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            activity.finish()
+        }
     }
 
     override fun onDestroyView() {

@@ -189,4 +189,7 @@
     <string name="new_password">New Password</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="submit">Submit</string>
+    <string name="all_data_imported_successfully">All data imported successfully.</string>
+    <string name="initial_sync_failed_check_network_and_retry">Initial sync failed. Check network and retry.</string>
+    <string name="retrying_sync">Retrying sync…</string>
 </resources>

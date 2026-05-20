@@ -7,7 +7,6 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import com.icl.surveillance.auth.LoginActivity
-import com.icl.surveillance.utils.FormatterClass
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.runBlocking
 
@@ -20,10 +19,8 @@ object SessionExpiryHandler {
             return
         }
 
-        FormatterClass().clearCache(appContext)
-        FormatterClass().deleteSharedPref("isLoggedIn", appContext)
         runBlocking {
-            TokenStore.clear(appContext)
+            SessionManager.clearAuthenticatedSession(appContext)
         }
 
         Handler(Looper.getMainLooper()).post {

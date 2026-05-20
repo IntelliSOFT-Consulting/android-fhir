@@ -16,6 +16,7 @@ import com.icl.surveillance.MainActivity
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityLauncherBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.network.SessionManager
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.setSingleClickListener
 import kotlinx.coroutines.delay
@@ -69,15 +70,13 @@ class LauncherActivity : AppCompatActivity() {
                 }
                 this@LauncherActivity.finish()
             } else {
-                FormatterClass().deleteSharedPref("isLoggedIn", this@LauncherActivity)
+                SessionManager.clearAuthenticatedSession(applicationContext)
                 binding.getStartedButton.visibility = View.VISIBLE
             }
         }
         binding.apply {
             getStartedButton.apply {
                 setSingleClickListener {
-                    FormatterClass().clearCache(this@LauncherActivity)
-                    FormatterClass().deleteSharedPref("isLoggedIn", this@LauncherActivity)
                     val intent = Intent(this@LauncherActivity, LoginActivity::class.java)
                     startActivity(intent)
                     this@LauncherActivity.finish()
