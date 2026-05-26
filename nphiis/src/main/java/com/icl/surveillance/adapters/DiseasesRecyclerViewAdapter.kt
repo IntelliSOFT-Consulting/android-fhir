@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePaddingRelative
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -48,10 +50,31 @@ class DiseaseViewHolder(
     private val onItemClick: (HomeViewModel.Diseases) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(layout: HomeViewModel.Diseases) {
+        val resources = binding.root.resources
+        val compactMargin = resources.getDimensionPixelSize(R.dimen.home_card_disease_margin)
+        val compactHorizontalPadding =
+            resources.getDimensionPixelSize(R.dimen.home_card_disease_padding_horizontal)
+        val compactVerticalPadding =
+            resources.getDimensionPixelSize(R.dimen.home_card_disease_padding_vertical)
+
         binding.iconContainer.visibility = View.GONE
         binding.iconView.visibility = View.GONE
         binding.subtitleView.visibility = View.GONE
         binding.chevronView.visibility = View.GONE
+        binding.root.minimumHeight =
+            resources.getDimensionPixelSize(R.dimen.home_card_disease_min_height)
+        binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            marginStart = compactMargin
+            topMargin = compactMargin
+            marginEnd = compactMargin
+            bottomMargin = compactMargin
+        }
+        binding.contentContainer.updatePaddingRelative(
+            start = compactHorizontalPadding,
+            top = compactVerticalPadding,
+            end = compactHorizontalPadding,
+            bottom = compactVerticalPadding,
+        )
 
         val textLayoutParams = binding.textView.layoutParams as ConstraintLayout.LayoutParams
         textLayoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
@@ -65,8 +88,8 @@ class DiseaseViewHolder(
         textLayoutParams.marginEnd = 0
         binding.textView.layoutParams = textLayoutParams
         binding.textView.setAutoSizeTextTypeUniformWithConfiguration(11, 17, 1, TypedValue.COMPLEX_UNIT_SP)
-        binding.textView.maxLines = 4
-        binding.textView.setLineSpacing(0f, 1.12f)
+        binding.textView.maxLines = 3
+        binding.textView.setLineSpacing(0f, 1.08f)
         binding.textView.letterSpacing = 0.01f
         binding.textView.typeface = ResourcesCompat.getFont(binding.root.context, R.font.montserratsemi)
         binding.textView.text = binding.textView.context.getString(layout.textId)

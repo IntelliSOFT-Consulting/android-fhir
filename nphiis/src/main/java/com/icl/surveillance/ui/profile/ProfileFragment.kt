@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.auth.LoginActivity
+import com.icl.surveillance.auth.PinLockActivity
 import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.monitor.DialogHelper
@@ -102,6 +103,14 @@ class ProfileFragment : Fragment() {
                     title = "Logout Confirmation?",
                     message = "Are you sure you want to Logout?",
                     onConfirm = { logoutUser() }
+                )
+            }
+
+            btnChangePassword.setOnClickListener {
+                startActivity(
+                    Intent(requireContext(), PinLockActivity::class.java).apply {
+                        putExtra(PinLockActivity.EXTRA_IS_PROFILE_PASSWORD_CHANGE, true)
+                    }
                 )
             }
 

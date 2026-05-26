@@ -279,6 +279,25 @@
                     android:textStyle="bold" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnChangePassword"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:fontFamily="@font/montserratregular"
+                    android:gravity="start|center_vertical"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="@string/change_password"
+                    android:textAllCaps="false"
+                    android:textColor="@color/account_primary_action"
+                    android:textSize="14sp"
+                    app:icon="@drawable/baseline_edit_24"
+                    app:iconGravity="textStart"
+                    app:iconPadding="10dp"
+                    app:iconTint="@color/account_primary_action" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLogout"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
