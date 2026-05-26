@@ -5,11 +5,11 @@
     android:id="@+id/card_holder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginBottom="8dp"
-    android:minHeight="146dp"
+    android:layout_marginStart="@dimen/home_card_margin"
+    android:layout_marginTop="@dimen/home_card_margin"
+    android:layout_marginEnd="@dimen/home_card_margin"
+    android:layout_marginBottom="@dimen/home_card_margin"
+    android:minHeight="@dimen/home_card_min_height"
     app:cardBackgroundColor="@color/home_card_background"
     app:cardCornerRadius="18dp"
     app:cardElevation="0dp"
@@ -18,12 +18,13 @@
     app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/contentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="16dp">
+        android:paddingStart="@dimen/home_card_content_padding"
+        android:paddingTop="@dimen/home_card_content_padding"
+        android:paddingEnd="@dimen/home_card_content_padding"
+        android:paddingBottom="@dimen/home_card_content_padding">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/iconContainer"
@@ -58,8 +59,8 @@
             android:id="@+id/text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="6dp"
             android:autoSizeMaxTextSize="15sp"
             android:autoSizeMinTextSize="12sp"
             android:autoSizeStepGranularity="1sp"
@@ -79,7 +80,7 @@
             android:id="@+id/subtitleView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="6dp"
             android:layout_marginTop="4dp"
             android:autoSizeMaxTextSize="12sp"
             android:autoSizeMinTextSize="10sp"
@@ -88,7 +89,7 @@
             android:ellipsize="end"
             android:fontFamily="@font/montserratregular"
             android:includeFontPadding="false"
-            android:maxLines="3"
+            android:maxLines="2"
             android:textColor="@color/home_card_subtitle"
             android:textSize="11sp"
             app:layout_constraintEnd_toStartOf="@id/chevronView"

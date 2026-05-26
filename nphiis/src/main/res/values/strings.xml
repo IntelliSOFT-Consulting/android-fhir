@@ -66,9 +66,9 @@
     <string name="flow_header_prompt">Select a form to proceed.</string>
     <string name="flow_section_title">Available Forms</string>
     <string name="case_flow_section_title">Case Actions</string>
-    <string name="monthly_reported">Monthly Reportable\nDiseases</string>
-    <string name="weekly_reported">Weekly Reportable\nDiseases</string>
-    <string name="immediate_reportable">Immediate\nReportable Diseases</string>
+    <string name="monthly_reported">Monthly Reportable Diseases</string>
+    <string name="weekly_reported">Weekly Reportable Diseases</string>
+    <string name="immediate_reportable">Immediate Reportable Diseases</string>
     <string name="polio">Polio Immunization (OPV)</string>
     <string name="measles_imm">Measles Immunization</string>
     <string name="cholera">Cholera Immunization</string>
@@ -179,6 +179,8 @@
     <string name="data_management">Data Management</string>
     <string name="sync_data">Sync Data</string>
     <string name="edit_profile">Edit Profile</string>
+    <string name="change_password">Change Password</string>
+    <string name="set_new_password">Set New Password</string>
     <string name="forgot_password_label">Forgot Password</string>
     <string name="coming_soon">Coming Soon</string>
     <string name="this_feature_is_currently_under_development_and_will_be_available_in_a_future_update">This feature is currently under development and will be available in a future update.</string>

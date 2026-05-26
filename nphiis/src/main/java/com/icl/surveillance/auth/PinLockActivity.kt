@@ -15,7 +15,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivityPinLockBinding
-import com.icl.surveillance.models.DbSetPasswordReq
 import com.icl.surveillance.models.SetNewPasswordReq
 import com.icl.surveillance.network.RetrofitCallsAuthentication
 import com.icl.surveillance.utils.FormatterClass
@@ -27,6 +26,9 @@ import kotlinx.coroutines.launch
 class PinLockActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPinLockBinding
     private var retrofitCallsAuthentication = RetrofitCallsAuthentication()
+    private val isProfilePasswordChange by lazy {
+        intent.getBooleanExtra(EXTRA_IS_PROFILE_PASSWORD_CHANGE, false)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,11 +42,10 @@ class PinLockActivity : AppCompatActivity() {
         }
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.apply {
-            title = "Set New Password"
-        }
+        val screenTitle = getString(if (isProfilePasswordChange) R.string.change_password else R.string.set_new_password)
+        supportActionBar?.title = screenTitle
         binding.apply {
-
+            tvTitle.text = screenTitle
 
             currentPasswordEditText.clearErrorOnTextChange(binding.currentPasswordInputLayout)
             passwordEditText.clearErrorOnTextChange(binding.passwordInputLayout)
@@ -115,13 +116,7 @@ class PinLockActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                             if (messageCode == 200 || messageCode == 201) {
-                                val intent = Intent(
-                                    this@PinLockActivity,
-                                    LoginActivity::class.java
-                                ).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                }
-                                startActivity(intent)
+                                handleSuccessfulPasswordChange()
                             }
                         }
                     }.join()
@@ -145,12 +140,29 @@ class PinLockActivity : AppCompatActivity() {
 
     // Handles the toolbar Up button
     override fun onSupportNavigateUp(): Boolean {
-        navigateToLoginAndClearStack()
+        handleExitAction()
         return true
     }
 
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
+        handleExitAction()
+    }
+
+    private fun handleSuccessfulPasswordChange() {
+        if (isProfilePasswordChange) {
+            setResult(RESULT_OK)
+            finish()
+            return
+        }
+        navigateToLoginAndClearStack()
+    }
+
+    private fun handleExitAction() {
+        if (isProfilePasswordChange) {
+            finish()
+            return
+        }
         navigateToLoginAndClearStack()
     }
 
@@ -160,5 +172,9 @@ class PinLockActivity : AppCompatActivity() {
         }
         startActivity(intent)
         finish()
+    }
+
+    companion object {
+        const val EXTRA_IS_PROFILE_PASSWORD_CHANGE = "extra_is_profile_password_change"
     }
 }

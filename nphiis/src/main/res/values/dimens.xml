@@ -15,4 +15,22 @@
     <dimen name="compact_toolbar_height">52dp</dimen>
     <dimen name="compact_toolbar_title_margin">8dp</dimen>
     <dimen name="compact_toolbar_vertical_padding">6dp</dimen>
+    <dimen name="home_section_margin_horizontal">20dp</dimen>
+    <dimen name="home_section_margin_top">14dp</dimen>
+    <dimen name="home_list_margin_horizontal">8dp</dimen>
+    <dimen name="home_list_margin_top">4dp</dimen>
+    <dimen name="home_list_padding_horizontal">4dp</dimen>
+    <dimen name="home_list_padding_top">4dp</dimen>
+    <dimen name="home_list_padding_bottom">96dp</dimen>
+    <dimen name="home_card_margin">6dp</dimen>
+    <dimen name="home_card_content_padding">14dp</dimen>
+    <dimen name="home_card_min_height">132dp</dimen>
+    <dimen name="home_card_disease_margin">4dp</dimen>
+    <dimen name="home_card_disease_min_height">88dp</dimen>
+    <dimen name="home_card_disease_padding_horizontal">12dp</dimen>
+    <dimen name="home_card_disease_padding_vertical">10dp</dimen>
+    <dimen name="case_option_margin">4dp</dimen>
+    <dimen name="case_option_min_height">86dp</dimen>
+    <dimen name="case_option_padding_horizontal">12dp</dimen>
+    <dimen name="case_option_padding_vertical">10dp</dimen>
 </resources>
