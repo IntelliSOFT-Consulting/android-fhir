@@ -20,4 +20,12 @@
     <color name="notification_time">@color/home_card_chevron_tint</color>
     <color name="notification_icon_bg">@color/home_icon_container_background</color>
     <color name="notification_icon_tint">@color/home_icon_tint</color>
+    <color name="notification_tab_container_bg">@color/account_card_background</color>
+    <color name="notification_tab_container_stroke">@color/account_card_stroke</color>
+    <color name="notification_tab_selected_bg">@color/notification_icon_bg</color>
+    <color name="notification_tab_selected_border">@color/notification_icon_tint</color>
+    <color name="notification_tab_selected_text">@color/notification_icon_tint</color>
+    <color name="notification_tab_unselected_border">@color/account_card_stroke</color>
+    <color name="notification_tab_unselected_text">@color/account_secondary_text</color>
+    <color name="notification_tab_ripple">@color/notification_icon_bg</color>
 </resources>

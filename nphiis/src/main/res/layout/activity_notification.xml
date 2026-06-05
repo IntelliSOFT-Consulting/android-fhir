@@ -39,6 +39,7 @@
             app:cardBackgroundColor="@color/account_card_background"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -109,7 +110,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/inboxHeaderCard">
+            app:layout_constraintTop_toBottomOf="@id/monthChipScrollView">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="76dp"
@@ -128,6 +129,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
+                android:id="@+id/tvEmptyTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -148,6 +150,34 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <HorizontalScrollView
+            android:id="@+id/monthChipScrollView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:fadeScrollbars="false"
+            android:overScrollMode="never"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
+            android:scrollbars="none"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/inboxHeaderCard">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/monthChipGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="8dp"
+                app:chipSpacingVertical="4dp"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true"
+                tools:ignore="TouchTargetSizeCheck" />
+        </HorizontalScrollView>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
@@ -159,7 +189,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/inboxHeaderCard"
+            app:layout_constraintTop_toBottomOf="@id/monthChipScrollView"
             tools:itemCount="4"
             tools:listitem="@layout/item_notification" />
 
@@ -172,6 +202,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/inboxHeaderCard" />
+            app:layout_constraintTop_toBottomOf="@id/monthChipScrollView" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
