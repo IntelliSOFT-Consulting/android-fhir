@@ -10,6 +10,7 @@
         android:id="@+id/action_restart"
         android:icon="@android:drawable/ic_menu_rotate"
         android:title="Restart Sync"
+        android:visible="false"
         app:showAsAction="never" />
 
 </menu>

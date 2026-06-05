@@ -324,7 +324,7 @@ class CaseSelectionFragment : Fragment() {
                         startActivity(intent)
                     }
 
-                    "Add New Recordx" -> {
+                    "Add New Recordxx" -> { /* Remember to bring it down*/
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
@@ -677,11 +677,16 @@ class CaseSelectionFragment : Fragment() {
                                         case.county.contains("$storedCounty", ignoreCase = true)
                                     }
                                 }
+
                                 UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
                                     allPatients.count { case ->
-                                        case.subCounty.contains("$storedSubCounty", ignoreCase = true)
+                                        case.subCounty.contains(
+                                            "$storedSubCounty",
+                                            ignoreCase = true
+                                        )
                                     }
                                 }
+
                                 else -> allPatients.size
                             }
                             caseOptions[1] = caseOptions[1].copy(count = scopedCount)

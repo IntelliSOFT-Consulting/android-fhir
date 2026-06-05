@@ -123,6 +123,16 @@ class SingleCaseFragment : Fragment() {
       }
       100 -> {
         FormatterClass().showComingSoon(requireContext())
+
+//        val bundle = Bundle().apply { putString(QUESTIONNAIRE_FILE_PATH_KEY, "moh505.json") }
+//
+//        FormatterClass().saveSharedPref("grandTitle", title, requireContext())
+//        FormatterClass().saveSharedPref("questionnaire", "moh505.json", requireContext())
+//        navigateIfActionAvailable(
+//          expectedDestinationId = R.id.singleCaseFragment,
+//          actionId = R.id.action_singleCaseFragment_to_caseSelectionFragment,
+//          args = bundle,
+//        )
       }
 
       else -> {
