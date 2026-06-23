@@ -182,6 +182,7 @@
     <string name="retry">Retry</string>
     <string name="upload_all_bundles">Upload All Bundles</string>
     <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
     <string name="upload_all_pending_resources_from_all_types_as_a_single_bundle">Upload all pending resources from all types as a single bundle</string>
     <string name="upload_all_resource_types">Upload All Resource Types</string>
     <string name="upload_options">Upload Options</string>
@@ -191,6 +192,19 @@
     <string name="personal_information">Personal Information</string>
     <string name="data_management">Data Management</string>
     <string name="sync_data">Sync Data</string>
+    <string name="reset_resource_sync_title">Reset Resource Sync</string>
+    <string name="reset_resource_sync_description">Clear the stored last sync timestamps for specific resources. The next sync will download those resource types again.</string>
+    <string name="no_sync_resources_selected">No resources selected yet.</string>
+    <string name="selected_sync_resources">Selected resources: %1$s</string>
+    <string name="select_sync_resources">Select Resources</string>
+    <string name="clear_selected_sync_timestamps">Clear Selected Sync Timestamps</string>
+    <string name="resource_sync_selection_title">Choose resources to reset</string>
+    <string name="select_all">Select All</string>
+    <string name="resource_sync_select_at_least_one">Select at least one resource.</string>
+    <string name="resource_sync_reset_confirmation">Clear saved last sync timestamps for %1$s?\n\nThe next sync will download these resources again.</string>
+    <string name="resource_sync_reset_confirm_action">Clear Timestamps</string>
+    <string name="resource_sync_reset_success">Cleared sync timestamps for %1$s.</string>
+    <string name="resource_sync_reset_failed">Unable to clear the selected sync timestamps.</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="change_password">Change Password</string>
     <string name="set_new_password">Set New Password</string>

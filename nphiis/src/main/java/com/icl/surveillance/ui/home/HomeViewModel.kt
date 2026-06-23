@@ -117,11 +117,11 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
             R.string.afp, 6, 0
         ),
 
-
-        MPOX_REGISTER(
-            R.drawable.searching,
-            R.string.mpox_register, 700, 0
-        ),
+//
+//        MPOX_REGISTER(
+//            R.drawable.searching,
+//            R.string.mpox_register, 700, 0
+//        ),
         TALLY_SHEET(
             R.drawable.searching,
             R.string.tally, 700, 0

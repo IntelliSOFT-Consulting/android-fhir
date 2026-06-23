@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
+import timber.log.Timber
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.GZIPInputStream
@@ -67,7 +68,8 @@ class FhirBundleLoader(private val context: Context) {
                                 processed++
                             } catch (e: Exception) {
                                 failed++
-                                Log.e("FHIR", "Failed to import ${entry.resource.id}: ${e.message}")
+                                Timber.tag("FHIR")
+                                    .e("Failed to import ${entry.resource.id}: ${e.message}")
                             }
                             if ((index + 1) % progressInterval == 0 || index == bundle.entry.lastIndex) {
                                 val currentProcessed = processed

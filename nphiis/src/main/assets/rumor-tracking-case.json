@@ -1605,66 +1605,57 @@
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "investigator_details",
+      "text": "Investigator Details",
+      "enableWhen": [
+        {
+          "question": "735623392446",
+          "operator": "=",
+          "answerCoding": {
+            "code": "yes",
+            "display": "Yes"
+          }
+        }
+      ],
+      "item": [
         {
           "linkId": "investigator-name",
           "text": "Name of Investigator",
-          "type": "display",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "display"
         },
         {
           "linkId": "investigator-name-first",
           "text": "First Name",
-          "type": "string",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "string"
         },
         {
           "linkId": "investigator-name-middle",
           "text": "Middle Name",
-          "type": "string",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "string"
         },
         {
           "linkId": "investigator-name-surname",
           "text": "Surname Name",
-          "type": "string",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "string"
         },
         {
           "linkId": "investigator-phone",
@@ -1691,47 +1682,48 @@
                 ]
               }
             }
-          ],
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
           ]
         },
         {
           "linkId": "investigator-role",
           "text": "Function/Role of Investigator",
-          "type": "string",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
               }
-            }
-          ]
-        },
+            ]
+          }
+        }
+      ],
+      "linkId": "investigation_period",
+      "text": "Investigation Details",
+      "enableWhen": [
+        {
+          "question": "735623392446",
+          "operator": "=",
+          "answerCoding": {
+            "code": "yes",
+            "display": "Yes"
+          }
+        }
+      ],
+      "item": [
         {
           "linkId": "investigation-period",
           "text": "Date of the investigation (from – to)",
-          "type": "display",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "display"
         },
         {
           "linkId": "date-from",
@@ -1754,16 +1746,6 @@
                     }
                   }
                 ]
-              }
-            }
-          ],
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
               }
             }
           ]
@@ -1820,32 +1802,12 @@
                 }
               ]
             }
-          ],
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
           ]
         },
         {
           "linkId": "activities",
           "text": "Main activities carried out (places visited, persons met, etc.)",
-          "type": "string",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "string"
         },
         {
           "linkId": "results",
@@ -1888,47 +1850,17 @@
                 "display": "Rumour"
               }
             }
-          ],
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
           ]
         },
         {
           "linkId": "rumour-diagnosis",
           "text": "Diagnosis",
-          "type": "string",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "string"
         },
         {
           "linkId": "conclusion",
           "text": "Conclusion/recommendations (action taken or directives given)",
-          "type": "text",
-          "enableWhen": [
-            {
-              "question": "735623392446",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
-              }
-            }
-          ]
+          "type": "text"
         }
       ]
     }

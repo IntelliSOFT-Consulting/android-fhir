@@ -59,6 +59,7 @@ import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.TimeType
 import org.hl7.fhir.r4.model.UriType
 import org.json.JSONObject
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -1181,7 +1182,37 @@ class PatientListViewModel(
                     agency = agencyOther
                 }
 
-                var response = RumorItem(
+                val countyLinkIds = listOf(
+                    "294367770999",
+                    "294367770999_sub_county",
+                    "294367770999_county",
+                    "294367770999_national"
+                ) // check in order
+                val subCountyLinkIds = listOf(
+                    "819946803642",
+                    "819946803642_sub_county",
+                    "819946803642_county",
+                    "819946803642_national"
+                )
+
+                val county = try {
+                    countyLinkIds.firstNotNullOfOrNull { id ->
+                        obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.asStringValue()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    ""
+                }
+                val subCounty = try {
+                    subCountyLinkIds.firstNotNullOfOrNull { id ->
+                        obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.asStringValue()
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    ""
+                }
+                val response = RumorItem(
                     id = data.id,
                     resourceId = data.resourceId,
                     encounterId = matchingIdentifier.value,
@@ -1192,10 +1223,8 @@ class PatientListViewModel(
                         ?: "",
                     village = obs.firstOrNull { it.resource.code.codingFirstRep.code == "871818396498" }?.resource?.value?.asStringValue()
                         ?: "",
-                    subCounty = obs.firstOrNull { it.resource.code.codingFirstRep.code == "a3-sub-county" }?.resource?.value?.asStringValue()
-                        ?: "",
-                    county = obs.firstOrNull { it.resource.code.codingFirstRep.code == "a4-county" }?.resource?.value?.asStringValue()
-                        ?: "",
+                    subCounty = subCounty ?: "",
+                    county = county ?: "",
                     lastUpdated = data.lastUpdated,
                     sourceTag = "$tag"
                 )
@@ -2035,7 +2064,7 @@ class PatientListViewModel(
                 JSONObject(questionnaireResponseString)
             )
         } catch (e: Exception) {
-            Log.e("PatientListViewModel", "Failed to parse questionnaire response JSON", e)
+            Timber.tag("PatientListViewModel").e(e, "Failed to parse questionnaire response JSON")
             emptyList()
         }
     }
