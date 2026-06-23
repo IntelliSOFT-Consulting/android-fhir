@@ -144,12 +144,7 @@
       ]
     },
     {
-      "type": "display",
-      "linkId": "469240673826",
-      "text": "Lab Results"
-    },
-    {
-      "type": "choice",
+      "type": "group",
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -157,324 +152,366 @@
             "coding": [
               {
                 "system": "http://hl7.org/fhir/questionnaire-item-control",
-                "code": "drop-down",
-                "display": "Drop down"
+                "code": "page",
+                "display": "Page"
               }
             ]
           }
         }
       ],
-      "linkId": "measles-igm",
-      "text": "Measles IgM results",
-      "answerOption": [
-        {
-          "valueCoding": {
-            "code": "Positive",
-            "display": "Positive"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Negative",
-            "display": "Negative"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Indeterminate",
-            "display": "Indeterminate"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Not Done",
-            "display": "Not Done"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Pending",
-            "display": "Pending"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Unknown",
-            "display": "Unknown"
-          }
-        }
-      ]
-    },
-    {
-      "type": "choice",
-      "extension": [
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-          "valueCodeableConcept": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/questionnaire-item-control",
-                "code": "drop-down",
-                "display": "Drop down"
-              }
-            ]
-          }
-        }
-      ],
-      "linkId": "rubella-igm",
-      "text": "Rubella IgM results",
+      "linkId": "adequate_specimen",
+      "text": "",
       "enableWhen": [
         {
-          "question": "measles-igm",
-          "operator": "!=",
-          "answerCoding": {
-            "code": "Positive",
-            "display": "Positive"
-          }
-        }
-      ],
-      "answerOption": [
-        {
-          "valueCoding": {
-            "code": "Positive",
-            "display": "Positive"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Negative",
-            "display": "Negative"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Indeterminate",
-            "display": "Indeterminate"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Not Done",
-            "display": "Not Done"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Pending",
-            "display": "Pending"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "Unknown",
-            "display": "Unknown"
-          }
-        }
-      ]
-    },
-    {
-      "type": "date",
-      "extension": [
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-          "valueString": "d/M/y"
-        },
-        {
-          "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-          "valueString": "Cannot be a date in the future"
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
-          "valueDate": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
-                "valueExpression": {
-                  "language": "text/fhirpath",
-                  "expression": "today()"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
-          "extension": [
-            {
-              "url": "key",
-              "valueId": "constraint-1"
-            },
-            {
-              "url": "requirements",
-              "valueString": "The date should be after the date the specimen was received at the lab"
-            },
-            {
-              "url": "severity",
-              "valueCode": "error"
-            },
-            {
-              "url": "expression",
-              "valueString": "%context.answer.value >= %resource.descendants().where(linkId='date-specimen-received').answer.value"
-            },
-            {
-              "url": "human",
-              "valueString": "The date should be after the date the specimen was received at the lab"
-            },
-            {
-              "url": "location",
-              "valueString": "date-specimen-received"
-            }
-          ]
-        }
-      ],
-      "linkId": "date-lab-sent-results",
-      "text": "Date lab sent out results to EPI/Surv Unit",
-      "required": true
-    },
-    {
-      "type": "choice",
-      "linkId": "139172422437",
-      "text": "Was specimen sent to regional lab?",
-      "required": true,
-      "answerOption": [
-        {
-          "valueCoding": {
-            "code": "yes",
-            "display": "Yes"
-          }
-        },
-        {
-          "valueCoding": {
-            "code": "no",
-            "display": "No"
-          }
-        }
-      ],
-      "extension": [
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-          "valueCodeableConcept": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/questionnaire-item-control",
-                "code": "radio-button",
-                "display": "Radio Button"
-              }
-            ]
-          }
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
-          "valueCode": "horizontal"
-        }
-      ]
-    },
-    {
-      "type": "date",
-      "linkId": "655865451155",
-      "text": "Date Serum specimen was sent to regional lab for IgM confirmation",
-      "enableWhen": [
-        {
-          "question": "139172422437",
+          "question": "specimen-condition",
           "operator": "=",
           "answerCoding": {
-            "code": "yes",
-            "display": "Yes"
+            "code": "Adequate",
+            "display": "Adequate"
           }
         }
       ],
-      "required": true,
-      "extension": [
+      "item": [
         {
-          "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-          "valueString": "d/M/y"
+          "type": "display",
+          "linkId": "469240673826",
+          "text": "Lab Results"
         },
         {
-          "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-          "valueString": "Cannot be a date in the future"
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
-          "valueDate": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
-                "valueExpression": {
-                  "language": "text/fhirpath",
-                  "expression": "today()"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+          "type": "choice",
           "extension": [
             {
-              "url": "key",
-              "valueId": "constraint-1"
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "measles-igm",
+          "text": "Measles IgM results",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Positive",
+                "display": "Positive"
+              }
             },
             {
-              "url": "requirements",
-              "valueString": "The date should be after the date the specimen was received at the lab"
+              "valueCoding": {
+                "code": "Negative",
+                "display": "Negative"
+              }
             },
             {
-              "url": "severity",
-              "valueCode": "error"
+              "valueCoding": {
+                "code": "Indeterminate",
+                "display": "Indeterminate"
+              }
             },
             {
-              "url": "expression",
-              "valueString": "%context.answer.value >= %resource.descendants().where(linkId='date-specimen-received').answer.value"
+              "valueCoding": {
+                "code": "Not Done",
+                "display": "Not Done"
+              }
             },
             {
-              "url": "human",
-              "valueString": "The date should be after the date the specimen was received at the lab"
+              "valueCoding": {
+                "code": "Pending",
+                "display": "Pending"
+              }
             },
             {
-              "url": "location",
-              "valueString": "date-specimen-received"
+              "valueCoding": {
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "linkId": "rubella-igm",
+          "text": "Rubella IgM results",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "Positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Indeterminate",
+                "display": "Indeterminate"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Not Done",
+                "display": "Not Done"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Pending",
+                "display": "Pending"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "d/M/y"
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "constraint-1"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "The date should be after the date the specimen was received at the lab"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='date-specimen-received').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "The date should be after the date the specimen was received at the lab"
+                },
+                {
+                  "url": "location",
+                  "valueString": "date-specimen-received"
+                }
+              ]
+            }
+          ],
+          "linkId": "date-lab-sent-results",
+          "text": "Date lab sent out results to EPI/Surv Unit",
+          "required": true
+        },
+        {
+          "type": "choice",
+          "linkId": "139172422437",
+          "text": "Was specimen sent to regional lab?",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "linkId": "655865451155",
+          "text": "Date Serum specimen was sent to regional lab for IgM confirmation",
+          "enableWhen": [
+            {
+              "question": "139172422437",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "d/M/y"
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "constraint-1"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "The date should be after the date the specimen was received at the lab"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='date-specimen-received').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "The date should be after the date the specimen was received at the lab"
+                },
+                {
+                  "url": "location",
+                  "valueString": "date-specimen-received"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "final-classification",
+          "text": "Final Classification. Case classification after investigation (e.g., confirmed, compatible, discarded)",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ],
+          "initial": [
+            {
+              "valueCoding": {
+                "code": "lab-results-pending",
+                "display": "Lab results pending"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "measles-igm",
+              "operator": "!=",
+              "answerCoding": {
+                "code": "Positive",
+                "display": "Positive"
+              }
             }
           ]
         }
       ]
     },
     {
-      "linkId": "final-classification",
-      "text": "Final Classification. Case classification after investigation (e.g., confirmed, compatible, discarded)",
-      "type": "choice",
-      "extension": [
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-          "valueCodeableConcept": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/questionnaire-item-control",
-                "code": "drop-down",
-                "display": "Drop down"
-              }
-            ]
-          }
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-          "valueBoolean": true
-        }
-      ],
-      "initial": [
-        {
-          "valueCoding": {
-            "code": "lab-results-pending",
-            "display": "Lab results pending"
-          }
-        }
-      ],
+      "type": "text",
+      "linkId": "inadequate_specimen",
+      "text": "Reasons",
+      "required": true,
       "enableWhen": [
         {
-          "question": "measles-igm",
-          "operator": "!=",
+          "question": "specimen-condition",
+          "operator": "=",
           "answerCoding": {
-            "code": "Positive",
-            "display": "Positive"
+            "code": "Inadequate",
+            "display": "Inadequate"
           }
         }
       ]

@@ -14,6 +14,21 @@ preferencesDataStore(name = "surveilance_app_storage")
 
 class DemoDataStore(private val context: Context) {
 
+    companion object {
+        val resettableResourceTypes =
+            listOf(
+                ResourceType.Patient,
+                ResourceType.Location,
+                ResourceType.Encounter,
+                ResourceType.Observation,
+                ResourceType.QuestionnaireResponse,
+                ResourceType.MeasureReport,
+                ResourceType.Specimen,
+                ResourceType.Condition,
+                ResourceType.Immunization,
+            )
+    }
+
     suspend fun saveLastUpdatedTimestamp(resourceType: ResourceType, timestamp: String) {
         context.dataStorage.edit { pref ->
             pref[stringPreferencesKey(resourceType.name)] = timestamp
@@ -24,12 +39,16 @@ class DemoDataStore(private val context: Context) {
         return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
     }
 
-    suspend fun clearAllTimestamps(resourceTypes: List<ResourceType>) {
+    suspend fun clearTimestamps(resourceTypes: Collection<ResourceType>) {
         context.dataStorage.edit { pref ->
             resourceTypes.forEach { type ->
                 pref.remove(stringPreferencesKey(type.name))
             }
         }
+    }
+
+    suspend fun clearAllTimestamps(resourceTypes: List<ResourceType>) {
+        clearTimestamps(resourceTypes)
     }
 
 }
