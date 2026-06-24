@@ -15,7 +15,7 @@ class PatientItemRecyclerViewAdapter(
     private val context: Context
 ) : ListAdapter<PatientListViewModel.PatientItem, PatientItemViewHolder>(
     PatientItemDiffCallback()
-) {
+), CaseListDataAdapter {
     // Keep a full copy of the unfiltered list
     private var fullList: List<PatientListViewModel.PatientItem> = emptyList()
 
@@ -49,7 +49,7 @@ class PatientItemRecyclerViewAdapter(
     /**
      * Store full list and display it
      */
-    fun setData(list: List<PatientListViewModel.PatientItem>) {
+    override fun setData(list: List<PatientListViewModel.PatientItem>) {
         fullList = list
         submitList(list)
     }
@@ -69,4 +69,3 @@ class PatientItemRecyclerViewAdapter(
         submitList(filteredList)
     }
 }
-

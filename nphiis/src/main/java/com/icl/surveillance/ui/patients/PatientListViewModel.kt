@@ -800,7 +800,92 @@ class PatientListViewModel(
                         val childEncounter = loadChildEncounter(data.resourceId, logicalId)
 
                         when (nameQuery) {
+                            "rcce" -> {
+                                val res = fhirEngine.search<QuestionnaireResponse> {
+                                    filter(
+                                        QuestionnaireResponse.SUBJECT,
+                                        { value = "Patient/${data.resourceId}" })
+                                }.take(5)
 
+                                if (res.isNotEmpty()) {
+                                    val response = res.first().resource
+                                    val extractedAnswers = extractStructuredAnswers(response)
+                                    val countyLinkIds = listOf(
+                                        "294367770999",
+                                        "294367770999_sub_county",
+                                        "294367770999_county",
+                                        "294367770999_national"
+                                    )
+                                    val subCountyLinkIds = listOf(
+                                        "819946803642",
+                                        "819946803642_sub_county",
+                                        "819946803642_county",
+                                        "819946803642_national"
+                                    )
+                                    val wardLinkIds = listOf(
+                                        "819943434",
+                                        "819943434_sub_county",
+                                        "819943434_county",
+                                        "819943434_national"
+                                    )
+                                    val reportingSiteLinkIds = listOf(
+                                        "819946803677",
+                                        "819946803677_sub_county",
+                                        "819946803677_county",
+                                        "819946803677_national"
+                                    )
+                                    val facilityTypeLinkIds = listOf(
+                                        "438862163919",
+                                        "438862163919_sub_county",
+                                        "438862163919_county",
+                                        "438862163919_national"
+                                    )
+
+                                    county = findFirstAnswer(extractedAnswers, countyLinkIds).ifBlank { county }
+                                    subCounty = findFirstAnswer(extractedAnswers, subCountyLinkIds).ifBlank { subCounty }
+
+                                    var socialOccupation =
+                                        findFirstAnswer(extractedAnswers, listOf("occupation"))
+                                            .ifBlank { occupation }
+                                    if (socialOccupation.equals("Other", ignoreCase = true) &&
+                                        occupation.isNotBlank()
+                                    ) {
+                                        socialOccupation = occupation
+                                    }
+
+                                    val respondentSex =
+                                        findFirstAnswer(extractedAnswers, listOf("929966324957"))
+                                    val respondentAge =
+                                        findFirstAnswer(extractedAnswers, listOf("age"))
+                                    val village =
+                                        findFirstAnswer(extractedAnswers, listOf("village"))
+                                    val ward =
+                                        findFirstAnswer(extractedAnswers, wardLinkIds)
+                                    val reportingSite =
+                                        findFirstAnswer(extractedAnswers, reportingSiteLinkIds)
+                                    val facilityType =
+                                        findFirstAnswer(extractedAnswers, facilityTypeLinkIds)
+
+                                    val authoredFormatter =
+                                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                    val authoredDateTime =
+                                        formatAuthoredDate(response.authored, authoredFormatter)
+                                    val authoredDate =
+                                        formatAuthoredDateAsDate(response.authored)
+
+                                    data = data.copy(
+                                        gender = respondentSex.ifBlank { data.gender },
+                                        occupation = socialOccupation,
+                                        respondentAge = respondentAge,
+                                        village = village,
+                                        ward = ward,
+                                        reportingSite = reportingSite,
+                                        facilityType = facilityType,
+                                        lastUpdated = authoredDateTime.ifBlank { data.lastUpdated },
+                                        caseOnsetDate = authoredDate.ifBlank { data.caseOnsetDate }
+                                    )
+                                }
+                            }
 
                             "moh-505-reporting-form" -> {
 
@@ -1658,6 +1743,15 @@ class PatientListViewModel(
         return observations.firstOrNull { it.resource.code.codingFirstRep.code == code }?.resource?.value?.asStringValue()
     }
 
+    private fun findFirstAnswer(
+        answers: List<QuestionnaireAnswer>,
+        linkIds: List<String>
+    ): String {
+        return linkIds.firstNotNullOfOrNull { linkId ->
+            answers.firstOrNull { it.linkId == linkId }?.answer?.takeIf { it.isNotBlank() }
+        }.orEmpty()
+    }
+
     private fun formatAuthoredDate(authored: Date?, formatter: DateTimeFormatter): String {
         return try {
             authored?.let {
@@ -1723,7 +1817,12 @@ class PatientListViewModel(
         val vaccinationCenter: String = "",
         val occupation: String = "",
         val syncStatus: String = "Pending",
-        val sourceTag: String
+        val sourceTag: String,
+        val ward: String = "",
+        val reportingSite: String = "",
+        val facilityType: String = "",
+        val village: String = "",
+        val respondentAge: String = "",
     ) {
         override fun toString(): String = name
     }

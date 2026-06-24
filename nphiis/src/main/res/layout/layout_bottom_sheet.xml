@@ -1,38 +1,267 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!-- Any root container works. ConstraintLayout is common -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/sheetRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="20dp"
-    android:background="@color/white"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:paddingStart="14dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="16dp">
 
     <View
-        android:layout_width="40dp"
+        android:layout_width="52dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/drag_handle_shape" />
-    <!-- Put your sheet UI here -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_county"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="@string/county_sub_county"
-        android:textAllCaps="false"
-        app:cornerRadius="20dp" />
+        android:background="@drawable/coming_soon_handle_background" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_community"
-        style="?attr/materialButtonOutlinedStyle"
+    <TextView
+        android:id="@+id/tvSheetBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/selection_sheet_badge_background"
+        android:fontFamily="@font/intersemi"
+        android:paddingStart="10dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="5dp"
+
+        android:text="@string/selection_sheet_badge"
+        android:textAllCaps="true"
+        android:textColor="@color/selection_sheet_badge_text"
+        android:textSize="10sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvSheetTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/community_tool"
-        android:textAllCaps="false"
-        app:cornerRadius="20dp" />
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/intersemi"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:text="@string/selection_sheet_title"
+        android:textColor="@color/case_sheet_title"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvSheetSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:lineSpacingExtra="2dp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:text="@string/selection_sheet_subtitle"
+        android:textColor="@color/case_sheet_message"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_county"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/case_sheet_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:rippleColor="@color/home_card_ripple"
+            app:strokeColor="@color/case_sheet_card_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="152dp"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="12dp">
+
+                <View
+                    android:layout_width="28dp"
+                    android:layout_height="3dp"
+                    android:background="@drawable/selection_sheet_card_primary_background" />
+
+                <FrameLayout
+                    android:id="@+id/fl_county_icon_container"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/selection_sheet_icon_primary_background">
+
+                    <ImageView
+                        android:id="@+id/iv_county_icon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tv_county_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/intersemi"
+                    android:maxLines="3"
+                    android:text="@string/county_sub_county"
+                    android:textColor="@color/case_sheet_title"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_county_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="2dp"
+                    android:maxLines="3"
+                    android:text="@string/selection_sheet_subtitle_county_assessment"
+                    android:textColor="@color/case_sheet_message"
+                    android:textSize="11sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/intersemi"
+                        android:text="@string/selection_sheet_open_option"
+                        android:textColor="@color/selection_sheet_primary_icon_tint"
+                        android:textSize="11sp" />
+
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="6dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/baseline_arrow_forward_ios_24"
+                        app:tint="@color/selection_sheet_primary_icon_tint" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_community"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/case_sheet_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:rippleColor="@color/home_card_ripple"
+            app:strokeColor="@color/case_sheet_card_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="152dp"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="12dp">
+
+                <View
+                    android:layout_width="28dp"
+                    android:layout_height="3dp"
+                    android:background="@drawable/selection_sheet_card_secondary_background" />
+
+                <FrameLayout
+                    android:id="@+id/fl_community_icon_container"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/selection_sheet_icon_secondary_background">
+
+                    <ImageView
+                        android:id="@+id/iv_community_icon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tv_community_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/intersemi"
+                    android:maxLines="3"
+                    android:text="@string/community_tool"
+                    android:textColor="@color/case_sheet_title"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_community_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="2dp"
+                    android:maxLines="3"
+                    android:text="@string/selection_sheet_subtitle_community_questionnaire"
+                    android:textColor="@color/case_sheet_message"
+                    android:textSize="11sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/intersemi"
+                        android:text="@string/selection_sheet_open_option"
+                        android:textColor="@color/selection_sheet_secondary_icon_tint"
+                        android:textSize="11sp" />
+
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="6dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/baseline_arrow_forward_ios_24"
+                        app:tint="@color/selection_sheet_secondary_icon_tint" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 </LinearLayout>
