@@ -99,7 +99,7 @@ class CaseListingActivity : AppCompatActivity() {
         if (currentCase != null) {
             val slug = currentCase.toSlug()
             when (slug) {
-                "social-listening-and-rumor-tracking-tool" -> {
+                 "social-listening-and-rumor-tracking-tool" -> {
                     mpoxPatientsCollectorJob?.cancel()
                     activeMpoxAdapter = null
                     showLocationFilterMenu = false
@@ -406,7 +406,7 @@ class CaseListingActivity : AppCompatActivity() {
         if (searchQuery.isNotBlank()) {
             filtered = filtered.filter {
                 it.epid.contains(searchQuery, ignoreCase = true) ||
-                    it.name.contains(searchQuery, ignoreCase = true)
+                        it.name.contains(searchQuery, ignoreCase = true)
             }
         }
 
@@ -535,7 +535,7 @@ class CaseListingActivity : AppCompatActivity() {
             currentRole == UserRole.ADMINISTRATOR
         filterItem?.subMenu?.findItem(R.id.action_filter_sub_county)?.isVisible =
             currentRole == UserRole.ADMINISTRATOR ||
-                currentRole == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER
+                    currentRole == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER
         filterItem?.subMenu?.findItem(R.id.action_reset_location_filters)?.isVisible =
             selectedCounties.isNotEmpty() || selectedSubCounties.isNotEmpty()
         return super.onPrepareOptionsMenu(menu)
