@@ -694,6 +694,41 @@ class CaseSelectionFragment : Fragment() {
                         }
                     }
 
+                    "social-listening-and-rumor-tracking-tool" -> {
+                        patientListViewModel.handleCurrentRumorCaseListing(it, units, userRole)
+                        patientListViewModel.liveRumorCases.observe(viewLifecycleOwner) { cases ->
+                            /**
+                             * Let's update based on roles
+                             * */
+
+                            when (userRole) {
+                                UserRole.ADMINISTRATOR -> {
+                                    caseOptions[1] = caseOptions[1].copy(count = cases.size)
+
+                                }
+
+                                UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                    val filtered = cases.filter { case ->
+                                        case.county.contains("$storedCounty")
+                                    }
+                                    caseOptions[1] = caseOptions[1].copy(count = filtered.size)
+                                }
+
+                                UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                    val filtered = cases.filter { case ->
+                                        case.subCounty.contains("$storedSubCounty")
+                                    }
+                                    caseOptions[1] = caseOptions[1].copy(count = filtered.size)
+                                }
+
+                                else -> {
+
+                                }
+                            }
+
+                        }
+                    }
+
                     else -> {
                         patientListViewModel.handleCurrentCaseListing(it, units, userRole)
                         patientListViewModel.liveSearchedCases.observe(viewLifecycleOwner) { cases ->
