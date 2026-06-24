@@ -71,6 +71,7 @@
             android:maxLines="2"
             android:textColor="@color/case_item_primary_text"
             android:textSize="16sp"
+            android:visibility="gone"
             tools:text="Kawangware Health Centre" />
 
         <TextView
@@ -83,6 +84,7 @@
             android:maxLines="2"
             android:textColor="@color/case_item_secondary_text"
             android:textSize="12sp"
+            android:visibility="gone"
             tools:text="Dagoretti North • Kawangware • Dispensary" />
 
         <LinearLayout
