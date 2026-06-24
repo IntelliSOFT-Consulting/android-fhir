@@ -648,6 +648,7 @@ class CaseSelectionFragment : Fragment() {
                 "AFP" -> "afp-case-information"
                 "VL" -> "vl-case-information"
                 "SLR" -> "social-listening-and-rumor-tracking-tool"
+                "Social Investigation Form" -> "rcce"
                 "MOH 505" -> "moh-505-reporting-form"
                 "RCCE" -> "rcce"
                 "Mpox" -> "mpox-information"
@@ -696,6 +697,7 @@ class CaseSelectionFragment : Fragment() {
 
                     "social-listening-and-rumor-tracking-tool" -> {
                         patientListViewModel.handleCurrentRumorCaseListing(it, units, userRole)
+                        patientListViewModel.liveRumorCases.removeObservers(viewLifecycleOwner)
                         patientListViewModel.liveRumorCases.observe(viewLifecycleOwner) { cases ->
                             /**
                              * Let's update based on roles
@@ -731,6 +733,7 @@ class CaseSelectionFragment : Fragment() {
 
                     else -> {
                         patientListViewModel.handleCurrentCaseListing(it, units, userRole)
+                        patientListViewModel.liveSearchedCases.removeObservers(viewLifecycleOwner)
                         patientListViewModel.liveSearchedCases.observe(viewLifecycleOwner) { cases ->
 
                             /**

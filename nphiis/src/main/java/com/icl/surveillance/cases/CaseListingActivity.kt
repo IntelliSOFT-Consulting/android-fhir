@@ -19,9 +19,11 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.R
+import com.icl.surveillance.adapters.CaseListDataAdapter
 import com.icl.surveillance.adapters.MpoxPatientAdapter
 import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapter
 import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapterRumor
+import com.icl.surveillance.adapters.SocialFormItemRecyclerViewAdapter
 import com.icl.surveillance.databinding.ActivityCaseListingBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.models.UserRole
@@ -45,7 +47,7 @@ class CaseListingActivity : AppCompatActivity() {
     private var currentRole: UserRole? = null
     private var searchQuery: String = ""
     private var searchListenerAttached = false
-    private var activeCaseAdapter: PatientItemRecyclerViewAdapter? = null
+    private var activeCaseAdapter: CaseListDataAdapter? = null
     private var activeMpoxAdapter: MpoxPatientAdapter? = null
     private var showLocationFilterMenu: Boolean = false
     private var mpoxPatientsCollectorJob: Job? = null
@@ -86,6 +88,7 @@ class CaseListingActivity : AppCompatActivity() {
         val currentCase = FormatterClass().getSharedPref("currentCase", this)
         val recyclerView: RecyclerView = binding.patientListContainer.patientList
         val adapter = PatientItemRecyclerViewAdapter(this::onPatientItemClicked, "$titleName", this)
+        val socialAdapter = SocialFormItemRecyclerViewAdapter(this::onPatientItemClicked)
         val adapterRumor = PatientItemRecyclerViewAdapterRumor(this::onRumorItemClicked)
 
         val formatter = FormatterClass()
@@ -175,6 +178,28 @@ class CaseListingActivity : AppCompatActivity() {
                             }
                         }
                     })
+                }
+
+                "rcce" -> {
+                    mpoxPatientsCollectorJob?.cancel()
+                    activeMpoxAdapter = null
+                    activeCaseAdapter = socialAdapter
+                    showLocationFilterMenu = canShowLocationFilters(userRole)
+                    if (!showLocationFilterMenu) {
+                        selectedCounties.clear()
+                        selectedSubCounties.clear()
+                    }
+                    invalidateOptionsMenu()
+                    patientListViewModel.liveSearchedCases.removeObservers(this)
+                    patientListViewModel.handleCurrentCaseListing(slug, units, userRole)
+                    recyclerView.adapter = socialAdapter
+                    patientListViewModel.liveSearchedCases.observe(this) { cases ->
+                        roleScopedCases =
+                            applyRoleScope(cases, userRole, storedCounty, storedSubCounty)
+                        pruneSelectedFilters()
+                        applyCaseFilters()
+                        binding.patientListContainer.pbProgress.visibility = View.GONE
+                    }
                 }
 
                 else -> {
@@ -405,8 +430,7 @@ class CaseListingActivity : AppCompatActivity() {
         }
         if (searchQuery.isNotBlank()) {
             filtered = filtered.filter {
-                it.epid.contains(searchQuery, ignoreCase = true) ||
-                        it.name.contains(searchQuery, ignoreCase = true)
+                matchesSearchQuery(it, searchQuery)
             }
         }
 
@@ -419,6 +443,34 @@ class CaseListingActivity : AppCompatActivity() {
         binding.patientListContainer.caseCount.text =
             getString(R.string.matching_cases_single, filtered.size)
         invalidateOptionsMenu()
+    }
+
+    private fun matchesSearchQuery(
+        item: PatientListViewModel.PatientItem,
+        query: String
+    ): Boolean {
+        val currentCaseSlug =
+            FormatterClass().getSharedPref("currentCase", this)?.toSlug()
+
+        val candidates = when (currentCaseSlug) {
+            "rcce" -> listOf(
+                item.name,
+                item.county,
+                item.subCounty,
+                item.ward,
+                item.reportingSite,
+                item.facilityType,
+                item.village,
+                item.occupation,
+                item.gender,
+                item.respondentAge,
+                item.caseOnsetDate
+            )
+
+            else -> listOf(item.epid, item.name)
+        }
+
+        return candidates.any { it.contains(query, ignoreCase = true) }
     }
 
     override fun onResume() {

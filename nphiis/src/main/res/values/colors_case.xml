@@ -19,4 +19,11 @@
     <color name="case_sheet_icon_bg">@color/home_icon_container_background</color>
     <color name="case_sheet_icon_tint">@color/home_icon_tint</color>
     <color name="case_sheet_card_stroke">@color/home_card_stroke</color>
+
+    <color name="selection_sheet_badge_bg">#EAF3FF</color>
+    <color name="selection_sheet_badge_text">#0C6FD6</color>
+    <color name="selection_sheet_primary_icon_bg">#EAF3FF</color>
+    <color name="selection_sheet_primary_icon_tint">#0C6FD6</color>
+    <color name="selection_sheet_secondary_icon_bg">#EAF8EE</color>
+    <color name="selection_sheet_secondary_icon_tint">#2D7D46</color>
 </resources>
