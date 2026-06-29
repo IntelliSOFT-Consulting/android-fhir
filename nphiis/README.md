@@ -2,8 +2,8 @@
 
 ## Project Background
 
-NPHIIS stands for **National Public Health Intelligence Information System**.
-In this repository, it lives in the `nphiis` Android application module and is
+**National Public Health Intelligence Information System (NPHIIS)** lives in
+the `nphiis` Android application module in this repository and is
 built on top of the Android FHIR SDK modules in the same workspace.
 
 Kenya's surveillance system has largely relied on paper-based reporting, which
