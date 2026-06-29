@@ -1,6 +1,7 @@
 package com.icl.surveillance.clients
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -648,11 +649,13 @@ class AddParentCaseActivity : AppCompatActivity() {
 
         dialogView.findViewById<MaterialButton>(R.id.btn_cancel).setOnClickListener {
             alertDialog.dismiss()
+            setResult(Activity.RESULT_OK)
             this@AddParentCaseActivity.finish()
         }
 
         dialogView.findViewById<MaterialButton>(R.id.btn_finish).setOnClickListener {
             // handle finish action
+            setResult(Activity.RESULT_OK)
             this@AddParentCaseActivity.finish()
             alertDialog.dismiss()
         }

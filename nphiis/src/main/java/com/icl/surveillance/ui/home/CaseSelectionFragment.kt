@@ -1,5 +1,6 @@
 package com.icl.surveillance.ui.home
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.Fragment
@@ -57,6 +59,13 @@ class CaseSelectionFragment : Fragment() {
     private var _binding: FragmentCaseSelectionBinding? = null
     private val binding
         get() = _binding!!
+
+    private val addParentCaseLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && isAdded) {
+                setupRecyclerView()
+            }
+        }
 
     private val viewModel: HomeViewModel by viewModels()
 
@@ -189,7 +198,7 @@ class CaseSelectionFragment : Fragment() {
                 putExtra("AddParentTitle", " $titleName")
                 putExtra(QUESTIONNAIRE_FILE_PATH_KEY, questionnaireFile)
             }
-        startActivity(intent)
+        addParentCaseLauncher.launch(intent)
     }
 
     /** Sets up the RecyclerView with the case options. */
@@ -351,7 +360,7 @@ class CaseSelectionFragment : Fragment() {
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, "moh505.json")
-                        startActivity(intent)
+                        addParentCaseLauncher.launch(intent)
                     }
 
                     "Add New Mpox Register" -> {
@@ -376,7 +385,7 @@ class CaseSelectionFragment : Fragment() {
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, "mpox-register.json")
-                        startActivity(intent)
+                        addParentCaseLauncher.launch(intent)
                     }
 
                     "MOH 505 Case List" -> {
@@ -457,7 +466,7 @@ class CaseSelectionFragment : Fragment() {
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, "rumor-tracking-case.json")
-                        startActivity(intent)
+                        addParentCaseLauncher.launch(intent)
                     }
 
                     "Add New VL Case" -> {
@@ -483,7 +492,7 @@ class CaseSelectionFragment : Fragment() {
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, "vl-case.json")
-                        startActivity(intent)
+                        addParentCaseLauncher.launch(intent)
                     }
 
                     "Mpox Case List" -> {
@@ -554,7 +563,7 @@ class CaseSelectionFragment : Fragment() {
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", "Add $titleName Case")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, "afp-case.json")
-                        startActivity(intent)
+                        addParentCaseLauncher.launch(intent)
                     }
 
                     "Add New Measles Case" -> {
@@ -587,7 +596,7 @@ class CaseSelectionFragment : Fragment() {
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", "Add $titleName Case")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, questionnaire)
-                        startActivity(intent)
+                        addParentCaseLauncher.launch(intent)
                     }
 
                     "Measles Case List" -> {
@@ -727,6 +736,8 @@ class CaseSelectionFragment : Fragment() {
 
                                 }
                             }
+
+                            recyclerView.adapter?.notifyDataSetChanged()
 
                         }
                     }
