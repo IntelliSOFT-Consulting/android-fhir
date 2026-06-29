@@ -9,6 +9,9 @@ mobile applications.
 
 See [documentation](https://google.github.io/android-fhir/).
 
+For the NPHIIS application module setup, development workflow, and release
+steps, see the [NPHIIS Developer Guide](nphiis/README.md).
+
 ## Disclaimer
 
 This product is not intended to be a medical device.
