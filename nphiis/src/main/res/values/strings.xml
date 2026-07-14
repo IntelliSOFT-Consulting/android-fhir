@@ -217,7 +217,7 @@
     <string name="data_management">Data Management</string>
     <string name="sync_data">Sync Data</string>
     <string name="reset_resource_sync_title">Reset Resource Sync</string>
-    <string name="reset_resource_sync_description">Clear the stored last sync timestamps for specific resources. The next sync will download those resource types again.</string>
+    <string name="reset_resource_sync_description">Reset the stored last sync timestamps in the background. The next sync will download the supported resources again.</string>
     <string name="no_sync_resources_selected">No resources selected yet.</string>
     <string name="selected_sync_resources">Selected resources: %1$s</string>
     <string name="select_sync_resources">Select Resources</string>
@@ -227,8 +227,8 @@
     <string name="resource_sync_select_at_least_one">Select at least one resource.</string>
     <string name="resource_sync_reset_confirmation">Clear saved last sync timestamps for %1$s?\n\nThe next sync will download these resources again.</string>
     <string name="resource_sync_reset_confirm_action">Clear Timestamps</string>
-    <string name="resource_sync_reset_success">Cleared sync timestamps for %1$s.</string>
-    <string name="resource_sync_reset_failed">Unable to clear the selected sync timestamps.</string>
+    <string name="resource_sync_reset_success">Resource sync reset complete. A refresh sync has started in the background.</string>
+    <string name="resource_sync_reset_failed">Unable to reset resource sync right now.</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="change_password">Change Password</string>
     <string name="set_new_password">Set New Password</string>

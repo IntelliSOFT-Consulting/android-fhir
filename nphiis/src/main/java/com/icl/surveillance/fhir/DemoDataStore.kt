@@ -27,6 +27,9 @@ class DemoDataStore(private val context: Context) {
                 ResourceType.Condition,
                 ResourceType.Immunization,
             )
+
+        val backgroundResettableResourceTypes =
+            resettableResourceTypes.filterNot { it == ResourceType.Location }
     }
 
     suspend fun saveLastUpdatedTimestamp(resourceType: ResourceType, timestamp: String) {

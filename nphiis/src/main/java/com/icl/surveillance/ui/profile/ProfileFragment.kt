@@ -16,10 +16,13 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.work.ExistingWorkPolicy
+import com.google.android.fhir.sync.Sync
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.R
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.auth.PinLockActivity
+import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.fhir.DemoDataStore
@@ -31,20 +34,14 @@ import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.NetworkUtils
 import java.io.File
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.ResourceType
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
-    private val selectedSyncResources = linkedSetOf<ResourceType>()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
-
-    companion object {
-        private const val KEY_SELECTED_SYNC_RESOURCES = "selected_sync_resources"
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,18 +79,8 @@ class ProfileFragment : Fragment() {
         return false
     }
 
-    private fun restoreSelectedSyncResources(savedInstanceState: Bundle?) {
-        val savedResourceNames =
-            savedInstanceState?.getStringArrayList(KEY_SELECTED_SYNC_RESOURCES) ?: return
-        selectedSyncResources.clear()
-        selectedSyncResources.addAll(
-            DemoDataStore.resettableResourceTypes.filter { it.name in savedResourceNames }
-        )
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        restoreSelectedSyncResources(savedInstanceState)
         setupProfileSettingsBottomSheetResult()
         setupProfileMenu()
         binding.apply {
@@ -147,14 +134,6 @@ class ProfileFragment : Fragment() {
         mapUserData()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putStringArrayList(
-            KEY_SELECTED_SYNC_RESOURCES,
-            ArrayList(selectedSyncResources.map { it.name })
-        )
-    }
-
     fun getUserPrefs(context: Context): UserProfilePrefs {
         val f = FormatterClass()
         println("started loading user profile Ready to return data")
@@ -183,10 +162,6 @@ class ProfileFragment : Fragment() {
         } else {
             value
         }
-    }
-
-    private fun orderedSelectedSyncResources(): List<ResourceType> {
-        return DemoDataStore.resettableResourceTypes.filter { it in selectedSyncResources }
     }
 
     private fun setupProfileMenu() {
@@ -220,90 +195,40 @@ class ProfileFragment : Fragment() {
         ) { _, bundle ->
             when (bundle.getInt(ProfileSettingsBottomSheet.RESULT_ACTION)) {
                 ProfileSettingsBottomSheet.ACTION_RESET_RESOURCE_SYNC -> {
-                    showSyncResourceSelectionDialog()
+                    resetResourceSyncInBackground()
                 }
             }
         }
     }
 
-    private fun showSyncResourceSelectionDialog() {
-        val resettableResources = DemoDataStore.resettableResourceTypes
-        val resourceLabels = resettableResources.map { it.toDisplayName() }.toTypedArray()
-        val checkedItems = resettableResources.map { it in selectedSyncResources }.toBooleanArray()
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.resource_sync_selection_title)
-            .setMultiChoiceItems(resourceLabels, checkedItems) { _, which, isChecked ->
-                checkedItems[which] = isChecked
-            }
-            .setNeutralButton(R.string.select_all, null)
-            .setPositiveButton(R.string.apply) { dialog, _ ->
-                selectedSyncResources.clear()
-                resettableResources
-                    .filterIndexed { index, _ -> checkedItems[index] }
-                    .forEach(selectedSyncResources::add)
-                dialog.dismiss()
-                confirmSyncResourceReset()
-            }
-            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
-
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-            checkedItems.indices.forEach { index ->
-                checkedItems[index] = true
-                dialog.listView.setItemChecked(index, true)
-            }
-        }
-    }
-
-    private fun confirmSyncResourceReset() {
-        val chosenResources = orderedSelectedSyncResources()
-        if (chosenResources.isEmpty()) {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.resource_sync_select_at_least_one),
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        val selectedResourceNames = chosenResources.joinToString(", ") { it.toDisplayName() }
-        showConfirmationDialog(
-            title = getString(R.string.reset_resource_sync_title),
-            message = getString(R.string.resource_sync_reset_confirmation, selectedResourceNames),
-            confirmText = getString(R.string.resource_sync_reset_confirm_action),
-            onConfirm = { clearSelectedSyncTimestamps(chosenResources) }
-        )
-    }
-
-    private fun clearSelectedSyncTimestamps(resourceTypes: List<ResourceType>) {
+    private fun resetResourceSyncInBackground() {
+        val appContext = requireContext().applicationContext
+        val resourceTypes = DemoDataStore.backgroundResettableResourceTypes
         lifecycleScope.launch {
             runCatching {
-                DemoDataStore(requireContext().applicationContext).clearTimestamps(resourceTypes)
+                DemoDataStore(appContext).clearTimestamps(resourceTypes)
+                Sync.oneTimeSync<AppFhirSyncWorker>(
+                    context = appContext,
+                    existingWorkPolicy = ExistingWorkPolicy.REPLACE,
+                )
             }.onSuccess {
-                Toast.makeText(
-                    requireContext(),
-                    getString(
-                        R.string.resource_sync_reset_success,
-                        resourceTypes.joinToString(", ") { it.toDisplayName() }
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-                selectedSyncResources.clear()
+                if (isAdded) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.resource_sync_reset_success),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }.onFailure {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.resource_sync_reset_failed),
-                    Toast.LENGTH_SHORT
-                ).show()
+                if (isAdded) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.resource_sync_reset_failed),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
-    }
-
-    private fun ResourceType.toDisplayName(): String {
-        return name.replace(Regex("([a-z])([A-Z])"), "$1 $2")
     }
 
     private fun mapUserData() {
@@ -326,7 +251,6 @@ class ProfileFragment : Fragment() {
 
                 // Set reusable items
                 val user = getUserPrefs(requireContext())
-                println("started loading user profile Returned data {$user}")
 
                 setLabelValue(idItem, "ID Number:", user.idNumber)
                 setLabelValue(roleItem, "Role:", user.role)
@@ -393,8 +317,7 @@ class ProfileFragment : Fragment() {
 
         } catch (e: Exception) {
             e.printStackTrace()
-            println("started loading user profile Error ${e.message}")
-        }
+         }
     }
 
     private fun showConfirmationDialog(
