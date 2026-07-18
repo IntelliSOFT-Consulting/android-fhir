@@ -194,7 +194,6 @@ class ClientDetailsViewModel(
         var epidNo = ""
         var observations = mutableListOf<PatientListViewModel.ObservationItem>()
 
-        println("Dealing with the current Slug View Model $slug")
         val searchResult =
             fhirEngine.search<Patient> { filter(Resource.RES_ID, { value = of(patientId) }) }
         if (searchResult.isNotEmpty()) {
@@ -1170,16 +1169,7 @@ class ClientDetailsViewModel(
                         Observation.ENCOUNTER,
                         { value = "Encounter/${enc.resource.logicalId}" })
                 }.forEach { ob ->
-//                    val value =
-//                        if (ob.resource.hasValueQuantity()) {
-//                            ob.resource.valueQuantity.value.toString()
-//                        } else if (ob.resource.hasValueCodeableConcept()) {
-//                            ob.resource.valueCodeableConcept.coding.firstOrNull()?.display ?: ""
-//                        } else if (ob.resource.hasValueStringType()) {
-//                            ob.resource.valueStringType.valueAsString
-//                        } else {
-//                            "rr"
-//                        }
+
                     val value = getObservationValue(ob.resource)
                     val created =
                         if (ob.resource.hasIssued()) ob.resource.issuedElement.value.toString() else ""
@@ -1328,7 +1318,7 @@ class ClientDetailsViewModel(
     ): List<PatientListViewModel.CaseDiseaseData> {
         val patients: MutableList<PatientListViewModel.CaseDiseaseData> = mutableListOf()
 
-        println("Parent Encounter  Details $parent and respective Patient $patientId")
+
         fhirEngine
             .search<Encounter> {
                 filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
@@ -1338,7 +1328,6 @@ class ClientDetailsViewModel(
                 val code = data.resource.reasonCodeFirstRep.codingFirstRep.code
                 if (code == reason) {
 
-                    println("Parent Encounter  Retrieved ${data.resource.logicalId} and respective Patient $patientId")
                     var loop = createEncounterItemLab(data.resource)
 
                     val obs =

@@ -30,25 +30,111 @@
         android:background="@color/white"
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
+        <FrameLayout
+            android:id="@+id/summaryHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:background="@color/white"
-            app:tabBackground="@drawable/tab_item_background"
-            app:tabGravity="fill"
-            app:tabIndicatorHeight="0dp"
-            app:tabMode="scrollable"
-            app:tabSelectedTextColor="@color/activeTabText"
-            app:tabTextColor="@color/inactiveTabText" />
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/summary_header_background"
+            android:clipToOutline="true"
+            android:elevation="8dp"
+            android:outlineProvider="background"
+            android:padding="20dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/summaryTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/montserratbold"
+                    android:letterSpacing="0.02"
+                    android:text="@string/summary"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toStartOf="@+id/summaryIcon"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/summarySubtitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/montserratregular"
+                    android:textColor="@color/summary_header_subtitle"
+                    android:textSize="11sp"
+                    app:layout_constraintEnd_toStartOf="@+id/summaryIcon"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/summaryTitle" />
+
+                <TextView
+                    android:id="@+id/summaryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/summary_chip_background"
+                    android:fontFamily="@font/montserratsemi"
+                    android:paddingStart="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="4dp"
+                    android:textColor="@android:color/white"
+                    android:textSize="11sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/summarySubtitle" />
+
+                <ImageView
+                    android:id="@+id/summaryIcon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:alpha="0.75"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_dashboard_black_24dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/summary_header_icon" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/tabContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/summary_tab_container_background"
+            android:clipToOutline="true"
+            android:elevation="4dp"
+            android:outlineProvider="background"
+            android:padding="6dp">
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:tabBackground="@drawable/summary_tab_item_background"
+                app:tabGravity="fill"
+                app:tabIndicatorHeight="0dp"
+                app:tabMode="scrollable"
+                app:tabRippleColor="@color/summary_tab_ripple"
+                app:tabSelectedTextColor="@color/summary_tab_selected_text"
+                app:tabTextColor="@color/summary_tab_unselected_text" />
+        </FrameLayout>
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="6dp"
-            android:background="@color/white" />
+            android:layout_marginTop="12dp"
+            android:background="@android:color/transparent" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

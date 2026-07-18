@@ -43,7 +43,7 @@ class ResponseDetailsViewModel(
                     { value = of(questionnaireId) })
             }
         var logicalId = ""
-        var observations = mutableListOf<PatientListViewModel.ObservationItem>()
+        val observations = mutableListOf<PatientListViewModel.ObservationItem>()
         searchResult.firstOrNull()?.let { result ->
             logicalId = result.resource.logicalId
 
@@ -62,35 +62,29 @@ class ResponseDetailsViewModel(
                     }
                     if (j.hasItem()) {
                         j.item.forEach { nested ->
-                            nested.answer.forEach { testAnswer ->
-                                val testAnswer = testAnswer
-                                    ?.takeIf { it.hasValueDecimalType() }
-                                    ?.valueDecimalType
-                                    ?.value
-
+                            nested.answer.forEach { nestedAnswer ->
+                                val value = extractAnswerValue(dateFormatter, nestedAnswer)
                                 observations.add(
                                     PatientListViewModel.ObservationItem(
                                         id = nested.linkId,
                                         code = nested.linkId,
-                                        value = "$testAnswer",
+                                        value = value,
                                         created = nested.linkId
                                     )
                                 )
                             }
                         }
                     }
-
-
                 }
         }
         return PatientListViewModel.CaseDetailSummaryData(
             logicalId = logicalId,
             encounterId = "encounterId",
-            name = "name",
+            name = " ",
             dob = "dob",
             sex = "sex",
             observations = observations,
-            epidNo = "epidNo"
+            epidNo = " "
         )
     }
 

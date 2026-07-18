@@ -21,8 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            android:titleTextColor="@android:color/white"
             android:subtitleTextColor="@color/summary_header_subtitle"
+            android:titleTextColor="@android:color/white"
             app:popupTheme="@style/Theme.Surveillance.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -134,7 +134,6 @@
                 app:tabSelectedTextColor="@color/summary_tab_selected_text"
                 app:tabTextColor="@color/summary_tab_unselected_text" />
         </FrameLayout>
-
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager"
