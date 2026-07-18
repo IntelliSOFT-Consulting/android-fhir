@@ -533,8 +533,7 @@ class CaseListingActivity : AppCompatActivity() {
 
         FormatterClass().saveSharedPref("patientIdParent", patientItem.resourceId, this)
 
-        println("Parent Encounter  Clicked ${patientItem.encounterId} and respective Patient ${patientItem.resourceId}")
-        if (currentCase != null) {
+         if (currentCase != null) {
             val slug = currentCase.toSlug()
 
             FormatterClass().saveSharedPref("latestEncounter", slug, this)

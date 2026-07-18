@@ -195,9 +195,6 @@ class AddParentCaseActivity : AppCompatActivity() {
             val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
             // Print the response to the log
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-            val questionnaireResponseString =
-                jsonParser.encodeResourceToString(questionnaireResponse)
-            println("Response Data Here $questionnaireResponseString")
 
             var extractedQuestionnaire: Questionnaire? = null
             var extractedBundle: org.hl7.fhir.r4.model.Bundle? = null
@@ -208,7 +205,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                     extractedQuestionnaire = questionnaire
                     val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
                     if (bundle.entry.isEmpty()) {
-                        Log.w(TAG, "SDC extraction returned an empty bundle.")
+                        Timber.tag(TAG).w("SDC extraction returned an empty bundle.")
                         ProgressDialogManager.dismiss()
                         Toast.makeText(
                             this@AddParentCaseActivity,
@@ -220,7 +217,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                     extractedBundle = bundle
                     logExtractedBundle(bundle, jsonParser)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to extract SDC bundle", e)
+                    Timber.tag(TAG).e(e, "Failed to extract SDC bundle")
                     ProgressDialogManager.dismiss()
                     Toast.makeText(
                         this@AddParentCaseActivity,
@@ -246,7 +243,7 @@ class AddParentCaseActivity : AppCompatActivity() {
         jsonParser: ca.uhn.fhir.parser.IParser
     ) {
         if (bundle.entry.isEmpty()) {
-            Log.w(TAG, "SDC extraction returned an empty bundle.")
+            Timber.tag(TAG).w("SDC extraction returned an empty bundle.")
             return
         }
 
@@ -257,8 +254,8 @@ class AddParentCaseActivity : AppCompatActivity() {
             .entries
             .joinToString(", ") { "${it.key}=${it.value}" }
 
-        Log.d(TAG, "SDC extraction bundle summary: $summary")
-        Log.d(TAG, "SDC extraction bundle: ${jsonParser.encodeResourceToString(bundle)}")
+        Timber.tag(TAG).d("SDC extraction bundle summary: $summary")
+        Timber.tag(TAG).d("SDC extraction bundle: ${jsonParser.encodeResourceToString(bundle)}")
 
         bundle.entry.forEach { resourceInfo ->
             resourceInfo.resource?.let { resource ->

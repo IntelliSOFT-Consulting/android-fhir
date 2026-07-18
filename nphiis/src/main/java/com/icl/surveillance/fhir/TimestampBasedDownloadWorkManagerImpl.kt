@@ -46,6 +46,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         if (FormatterClass().isSyncDone(context)) {
             listOf(
                 "Patient?_count=200&_sort=_lastUpdated",
+                "QuestionnaireResponse?_count=500&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {

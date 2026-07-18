@@ -636,9 +636,14 @@ class PatientListViewModel(
             }
 
             "mpox-supervisor-checklist" -> {
-
+                var county = ""
+                var subCounty = ""
                 val questionnaireData: MutableList<PatientItem> = mutableListOf()
                 fhirEngine.search<QuestionnaireResponse> {
+                    filter(
+                        QuestionnaireResponse.STATUS,
+                        { value = of(QuestionnaireResponse.QuestionnaireResponseStatus.INPROGRESS.toCode()) }
+                    )
                     sort(QuestionnaireResponse.AUTHORED, Order.DESCENDING)
 
                 }
@@ -648,10 +653,30 @@ class PatientListViewModel(
                             fhirPatient.resource.meta.tag.find { it.system.endsWith("/questionnaire-managingLocation") }?.code
 
                         if (fhirPatient.resource.hasIdentifier()) {
-                            val county =
-                                getAnswerValueAsString(fhirPatient.resource.item, "294367770999")
-                            val subCounty =
-                                getAnswerValueAsString(fhirPatient.resource.item, "819946803642")
+
+                            val countyLinkIds = listOf(
+                                "294367770999",
+                                "294367770999_sub_county",
+                                "294367770999_county",
+                                "294367770999_national"
+                            )
+                            val subCountyLinkIds = listOf(
+                                "819946803642",
+                                "819946803642_sub_county",
+                                "819946803642_county",
+                                "819946803642_national"
+                            )
+                            val extractedAnswers = extractStructuredAnswers(fhirPatient.resource)
+
+                            county = findFirstAnswer(
+                                extractedAnswers,
+                                countyLinkIds
+                            ).ifBlank { county }
+                            subCounty = findFirstAnswer(
+                                extractedAnswers,
+                                subCountyLinkIds
+                            ).ifBlank { subCounty }
+
                             var caseOnsetDate =
                                 getAnswerValueAsString(fhirPatient.resource.item, "728034137219")
 
@@ -841,8 +866,14 @@ class PatientListViewModel(
                                         "438862163919_national"
                                     )
 
-                                    county = findFirstAnswer(extractedAnswers, countyLinkIds).ifBlank { county }
-                                    subCounty = findFirstAnswer(extractedAnswers, subCountyLinkIds).ifBlank { subCounty }
+                                    county = findFirstAnswer(
+                                        extractedAnswers,
+                                        countyLinkIds
+                                    ).ifBlank { county }
+                                    subCounty = findFirstAnswer(
+                                        extractedAnswers,
+                                        subCountyLinkIds
+                                    ).ifBlank { subCounty }
 
                                     var socialOccupation =
                                         findFirstAnswer(extractedAnswers, listOf("occupation"))

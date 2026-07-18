@@ -376,8 +376,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             withContext(Dispatchers.IO) {
 
-                val latitude = FormatterClass().getSharedPref("latitude", context)
-                val longitude = FormatterClass().getSharedPref("longitude", context)
+                val latitude = extractedAnswers.find { it.linkId == "latitude" }?.answer
+                val longitude = extractedAnswers.find { it.linkId == "longitude" }?.answer
 
                 val locationIdentifier = QuestionnaireHelper().createFullFhirIdentifier(
                     codeData = "geo-location",
@@ -398,15 +398,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     url = "supervisor_checklist"
                     setValue(responseType)
                 }
-                val facility = FormatterClass().getSharedPref("facility", context)
-                viewModelScope.launch {
-                    questionnaireResponse.addExtension(
-                        sourceExtension(
-                            "questionnaire", context, extractedAnswers
-                        )
-                    )
-                }
-
+                questionnaireResponse.addExtension(extension)
+                questionnaireResponse.status =
+                    QuestionnaireResponse.QuestionnaireResponseStatus.INPROGRESS
                 fhirEngine.create(questionnaireResponse)
             }
 
@@ -1581,9 +1575,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
             }
             fhirEngine.create(obs)
 
-            println("Observation created: ${obs.id}")
         } catch (e: Exception) {
-            Log.e("SavePatient", "Error saving patient", e)
+            Timber.tag("SavePatient").e(e, "Error saving patient")
         }
     }
 
@@ -1603,7 +1596,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
         return try {
             formatter.extractStructuredAnswersOnlyFromItems(JSONObject(questionnaireResponseString))
         } catch (e: Exception) {
-            Log.e("AddClientViewModel", "Failed to parse questionnaire response JSON", e)
+            Timber.tag("AddClientViewModel").e(e, "Failed to parse questionnaire response JSON")
             emptyList()
         }
     }

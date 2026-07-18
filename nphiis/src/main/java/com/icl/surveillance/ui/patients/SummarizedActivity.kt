@@ -42,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import timber.log.Timber
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZonedDateTime
@@ -447,7 +448,7 @@ class SummarizedActivity : AppCompatActivity() {
         val created = observations.find { obs ->
             obs.code == "257830485990"
         }?.created
-        println("Date of Birth Selected $dob Created $created")
+
         if (dob == null || created == null) age = "0"
         try {
             val dobDate = LocalDate.parse(dob, formatter)
@@ -484,13 +485,11 @@ class SummarizedActivity : AppCompatActivity() {
             // Calculate the days between
             val daysBetween = ChronoUnit.DAYS.between(onsetDate, createdDate)
 
-            println(" Date of Onset of Symptoms Days between: $daysBetween")
             age = "$daysBetween"
         } catch (e: Exception) {
             age = "0"
         }
 
-        println("Date of Onset of Symptoms $date created $created")
         return age
     }
 
@@ -568,7 +567,7 @@ class SummarizedActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("TAG", "File Error ${e.message}")
+            Timber.tag("TAG").e("File Error ${e.message}")
         }
         return outputGroups
 

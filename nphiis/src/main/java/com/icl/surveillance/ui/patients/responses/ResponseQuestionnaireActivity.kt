@@ -21,9 +21,11 @@ import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
 import com.icl.surveillance.models.QuestionnaireItem
+import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.viewmodels.ResponseDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.ResponseDetailsViewModelFactory
+import timber.log.Timber
 
 class ResponseQuestionnaireActivity : AppCompatActivity() {
     private lateinit var groups: MutableList<OutputGroup>
@@ -51,7 +53,7 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
         val questionnaireId =
             FormatterClass().getSharedPref("resourceId", this@ResponseQuestionnaireActivity)
 
-        println("Resource Id $questionnaireId")
+
         patientDetailsViewModel =
             ViewModelProvider(
                 this,
@@ -60,15 +62,22 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
                 ),
             )
                 .get(ResponseDetailsViewModel::class.java)
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
 
         loadData()
     }
-
+    private fun updateSummaryHeader(
+        data: PatientListViewModel.CaseDetailSummaryData
+    ) {
+        val name = data.name.trim()
+        binding.summaryTitle.text = name.ifBlank { "Summary" }
+        binding.summarySubtitle.text =  "Case summary"
+        val epid = data.epidNo.trim()
+        binding.summaryChip.text = if (epid.isNotBlank()) {
+            "EPID: $epid"
+        } else {
+            "Auto-generated"
+        }
+    }
     private fun loadData() {
         val questionnaireId =
             FormatterClass().getSharedPref("resourceId", this@ResponseQuestionnaireActivity)
@@ -77,12 +86,15 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
             parseFromAssets(this, "mpox-supervisor-checklist.json").toMutableList()// this = Context
         patientDetailsViewModel.getInfoSummaryData("$questionnaireId")
         patientDetailsViewModel.liveSummaryData.observe(this) { data ->
+            updateSummaryHeader( data)
             patientDetailsViewModel.hasQuestionnaireResponse = true
 
             invalidateOptionsMenu()
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setDisplayShowHomeEnabled(true)
-
+            data.observations.forEach { hello ->
+                println("Dealing with $questionnaireId with responses  ${hello.code} ${hello.value}")
+            }
             groups.forEach { group ->
                 // For each item inside the group
 
@@ -131,7 +143,7 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("TAG", "File Error ${e.message}")
+            Timber.tag("TAG").e("File Error ${e.message}")
         }
         return outputGroups
 
