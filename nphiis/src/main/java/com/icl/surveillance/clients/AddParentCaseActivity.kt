@@ -31,6 +31,7 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FR
 import com.icl.surveillance.databinding.ActivityAddParentCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.SdcQuestionnaireResponseSaver
+import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
 import com.icl.surveillance.utils.FormatterClass
@@ -392,9 +393,10 @@ class AddParentCaseActivity : AppCompatActivity() {
             val storedRole = formatter.getSharedPref("practitionerRole", this@AddParentCaseActivity)
             val userRole = UserRole.fromAny(storedRole ?: "")
 
-            when (userRole) {
+            // Data entry keyed on jurisdiction scope; forms still receive the legacy role code.
+            when (userRole?.scope) {
 
-                UserRole.ADMINISTRATOR -> {
+                LocationLevel.NATIONAL -> {
                     val childGroup =
                         QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
                             linkId = "151479012557"
@@ -410,7 +412,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                     resource.addItem(childGroup)
                 }
 
-                UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                LocationLevel.COUNTY -> {
                     val childGroup =
                         QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
                             linkId = "151479012557"
@@ -443,7 +445,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                     resource.addItem(childGroup)
                 }
 
-                UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                LocationLevel.SUB_COUNTY, LocationLevel.WARD -> {
                     val childGroup =
                         QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
                             linkId = "151479012557"
@@ -484,9 +486,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                     resource.addItem(childGroup)
                 }
 
-                UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
-                UserRole.SUPERVISOR,
-                UserRole.VACCINATOR -> {
+                LocationLevel.FACILITY -> {
 
                     val childGroup =
                         QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
@@ -573,7 +573,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                     resource.addItem(childGroup)
                 }
 
-                else -> { /* No-op */
+                null -> { /* Unknown role: no pre-filled jurisdiction */
                 }
             }
 

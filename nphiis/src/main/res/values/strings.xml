@@ -215,6 +215,7 @@
     <string name="preparing_sync">Preparing sync...</string>
     <string name="personal_information">Personal Information</string>
     <string name="data_management">Data Management</string>
+    <string name="generate_synthetic_data">Generate Test Data (debug)</string>
     <string name="sync_data">Sync Data</string>
     <string name="reset_resource_sync_title">Reset Resource Sync</string>
     <string name="reset_resource_sync_description">Reset the stored last sync timestamps in the background. The next sync will download the supported resources again.</string>

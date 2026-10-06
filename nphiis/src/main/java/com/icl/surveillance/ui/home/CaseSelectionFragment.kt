@@ -1,5 +1,7 @@
 package com.icl.surveillance.ui.home
 
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -27,6 +29,7 @@ import com.icl.surveillance.clients.AddParentCaseActivity
 import com.icl.surveillance.databinding.FragmentCaseSelectionBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.models.CaseOption
+import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.ui.home.sheet.SelectionBottomSheet
 import com.icl.surveillance.ui.patients.PatientListViewModel
@@ -671,6 +674,7 @@ class CaseSelectionFragment : Fragment() {
         val storedCounty = formatter.getSharedPref("countyName", requireContext())
         val storedSubCounty = formatter.getSharedPref("subCountyName", requireContext())
         val userRole = UserRole.fromAny(storedRole ?: "")
+        val roleScope = userRole?.scope
         caseType?.let {
             try {
                 when (it) {
@@ -680,15 +684,15 @@ class CaseSelectionFragment : Fragment() {
                             units,
                             userRole
                         ) { allPatients ->
-                            val scopedCount = when (userRole) {
-                                UserRole.ADMINISTRATOR -> allPatients.size
-                                UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                            val scopedCount = when (roleScope) {
+                                LocationLevel.NATIONAL -> allPatients.size
+                                LocationLevel.COUNTY -> {
                                     allPatients.count { case ->
                                         case.county.contains("$storedCounty", ignoreCase = true)
                                     }
                                 }
 
-                                UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                                LocationLevel.SUB_COUNTY -> {
                                     allPatients.count { case ->
                                         case.subCounty.contains(
                                             "$storedSubCounty",
@@ -712,30 +716,12 @@ class CaseSelectionFragment : Fragment() {
                              * Let's update based on roles
                              * */
 
-                            when (userRole) {
-                                UserRole.ADMINISTRATOR -> {
-                                    caseOptions[1] = caseOptions[1].copy(count = cases.size)
-
-                                }
-
-                                UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                    val filtered = cases.filter { case ->
-                                        case.county.contains("$storedCounty")
-                                    }
-                                    caseOptions[1] = caseOptions[1].copy(count = filtered.size)
-                                }
-
-                                UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                    val filtered = cases.filter { case ->
-                                        case.subCounty.contains("$storedSubCounty")
-                                    }
-                                    caseOptions[1] = caseOptions[1].copy(count = filtered.size)
-                                }
-
-                                else -> {
-
-                                }
-                            }
+                            // Same scoping as the case list (CaseListingActivity.applyRoleScope).
+                            val scopedCount = countInScope(
+                                cases.map { case -> case.county to case.subCounty },
+                                roleScope, storedCounty, storedSubCounty
+                            )
+                            caseOptions[1] = caseOptions[1].copy(count = scopedCount)
 
                             recyclerView.adapter?.notifyDataSetChanged()
 
@@ -743,42 +729,41 @@ class CaseSelectionFragment : Fragment() {
                     }
 
                     else -> {
-                        patientListViewModel.handleCurrentCaseListing(it, units, userRole)
-                        patientListViewModel.liveSearchedCases.removeObservers(viewLifecycleOwner)
-                        patientListViewModel.liveSearchedCases.observe(viewLifecycleOwner) { cases ->
+                        val loadAndCount = {
+                            patientListViewModel.handleCurrentCaseListing(it, units, userRole)
+                            patientListViewModel.liveSearchedCases.removeObservers(viewLifecycleOwner)
+                            patientListViewModel.liveSearchedCases.observe(viewLifecycleOwner) { cases ->
 
-                            /**
-                             * Let's update based on roles
-                             * */
+                                /**
+                                 * Let's update based on roles
+                                 * */
 
-                            when (userRole) {
-                                UserRole.ADMINISTRATOR -> {
-                                    caseOptions[1] = caseOptions[1].copy(count = cases.size)
+                                // Same scoping as the case list (CaseListingActivity.applyRoleScope).
+                                val scopedCount = countInScope(
+                                    cases.map { case -> case.county to case.subCounty },
+                                    roleScope, storedCounty, storedSubCounty
+                                )
+                                caseOptions[1] = caseOptions[1].copy(count = scopedCount)
 
-                                }
 
-                                UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                    val filtered = cases.filter { case ->
-                                        case.county.contains("$storedCounty")
-                                    }
-                                    caseOptions[1] = caseOptions[1].copy(count = filtered.size)
-                                }
 
-                                UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                                    val filtered = cases.filter { case ->
-                                        case.subCounty.contains("$storedSubCounty")
-                                    }
-                                    caseOptions[1] = caseOptions[1].copy(count = filtered.size)
-                                }
-
-                                else -> {
-
+                                recyclerView.adapter?.notifyDataSetChanged()
+                            }
+                        }
+                        if (roleScope == LocationLevel.COUNTY || roleScope == LocationLevel.SUB_COUNTY) {
+                            // County names are needed to scope the count: load the list.
+                            loadAndCount()
+                        } else {
+                            // Everyone else sees all records of the module: count in the database.
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                val total = patientListViewModel.countCaseRecords(it)
+                                if (total == null) {
+                                    loadAndCount()
+                                } else {
+                                    caseOptions[1] = caseOptions[1].copy(count = total)
+                                    recyclerView.adapter?.notifyDataSetChanged()
                                 }
                             }
-
-
-
-                            recyclerView.adapter?.notifyDataSetChanged()
                         }
                     }
                 }
@@ -788,30 +773,31 @@ class CaseSelectionFragment : Fragment() {
         }
     }
 
+    /**
+     * Number of cases the user sees in the case list. Mirrors CaseListingActivity.applyRoleScope:
+     * county / sub-county users are matched by name ignoring case (location answers are stored in
+     * capitals, profile names are not); national, ward and facility users see everything returned,
+     * because ward/facility scoping is already applied upstream through their facility units.
+     */
+    private fun countInScope(
+        countyAndSubCounty: List<Pair<String, String>>,
+        roleScope: LocationLevel?,
+        storedCounty: String?,
+        storedSubCounty: String?,
+    ): Int = when (roleScope) {
+        LocationLevel.COUNTY ->
+            if (storedCounty.isNullOrBlank()) countyAndSubCounty.size
+            else countyAndSubCounty.count { it.first.contains(storedCounty.trim(), ignoreCase = true) }
+
+        LocationLevel.SUB_COUNTY ->
+            if (storedSubCounty.isNullOrBlank()) countyAndSubCounty.size
+            else countyAndSubCounty.count { it.second.contains(storedSubCounty.trim(), ignoreCase = true) }
+
+        else -> countyAndSubCounty.size
+    }
+
     fun assignRespectiveQuestionnaire(): String {
-        var questionnaire: String
-        val formatter = FormatterClass()
-        val storedRole = formatter.getSharedPref("practitionerRole", requireContext())
-        val userRole = UserRole.fromAny(storedRole ?: "")
-
-        when (userRole) {
-            UserRole.ADMINISTRATOR -> {
-                questionnaire = "add-case.json"
-            }
-
-            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                questionnaire = "add-case.json"
-            }
-
-            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
-                questionnaire = "add-case.json"
-            }
-
-            else -> {
-                questionnaire = "add-case.json"
-            }
-        }
-
+        // Same form for every role; jurisdiction is applied via the pre-filled user_role
         return "add-case.json"
     }
 

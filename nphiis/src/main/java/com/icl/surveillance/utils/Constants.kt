@@ -7,13 +7,12 @@ import com.icl.surveillance.R
 
 object Constants {
 
- /*   const val BASE_URL = "https://dsrkeycloak.intellisoftkenya.com/auth/fhir/"
+    const val BASE_URL = "https://dsrfhir.intellisoftkenya.com/v2/fhir/"
     const val BASE_AUTH_URL = "https://dsrkeycloak.intellisoftkenya.com/auth/"
     const val ALERTS_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"
-*/
-    const val BASE_URL = "https://auth.nphiis.health.go.ke/fhir/"
-    const val BASE_AUTH_URL = "https://auth.nphiis.health.go.ke/"
-    const val ALERTS_BASE_URL = BASE_AUTH_URL
+    /* const val BASE_URL = "https://auth.nphiis.health.go.ke/fhir/"
+     const val BASE_AUTH_URL = "https://auth.nphiis.health.go.ke/"
+     const val ALERTS_BASE_URL = BASE_AUTH_URL*/
 
     //MOH 505
     const val COUNTY = "a4-county"
@@ -97,11 +96,7 @@ object Constants {
     )
 
     val VACCINATOR_EXCLUDES = listOf(
-        "294367770999",
-        "819946803642",
-        "819943434",
-        "819946803677",
-        "438862163919"
+        "294367770999", "819946803642", "819943434", "819946803677", "438862163919"
     )
     val VALID_VACCINATOR_EXCLUDES =
         ADMINISTRATOR_EXCLUDES + COUNTY_DISEASE_SURVEILLANCE_OFFICER_EXCLUDES + SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER_EXCLUDES

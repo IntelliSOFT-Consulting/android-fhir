@@ -15,6 +15,7 @@ import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.revInclude
+import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.ibm.icu.text.SimpleDateFormat
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
@@ -56,6 +57,7 @@ import org.hl7.fhir.r4.model.MeasureReport.MeasureReportGroupPopulationComponent
 import org.hl7.fhir.r4.model.Meta
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Practitioner
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
@@ -77,9 +79,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
     val isPatientSaved = MutableLiveData<Boolean>()
 
-    private val questionnaire: Questionnaire
-        get() = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+    // Parsed once: re-parsing the form JSON on every save was a large source of allocations.
+    private val questionnaire: Questionnaire by lazy {
+        FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             .parseResource(questionnaireJson) as Questionnaire
+    }
 
     private val fhirEngine: FhirEngine by lazy {
         FhirApplication.fhirEngine(application.applicationContext)
@@ -104,21 +108,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
             LocationLevel.FACILITY -> facilityIds.add("Location/$startId")
 
             LocationLevel.WARD -> {
-                for (wardId in locationIdsToProcess) {
-                    val cachedFacilityIds =
-                        FormatterClass().getFacilityIds(applicationContext, wardId)
-                    if (!cachedFacilityIds.isNullOrEmpty()) {
-                        facilityIds.addAll(cachedFacilityIds)
-                        continue
-                    }
-
-                    val facilities = fhirEngine.search<Location> {
-                        filter(Location.PARTOF, { value = "Location/$wardId" })
-                    }
-                    val fetchedIds = facilities.map { it.resource.logicalId }
-                    FormatterClass().saveFacilityIds(applicationContext, wardId, fetchedIds)
-                    facilityIds.addAll(fetchedIds)
+                // Same "Location/<id>" format as the other levels (compared against sourceTag)
+                val facilities = fhirEngine.search<Location> {
+                    filter(Location.PARTOF, { value = "Location/$startId" })
                 }
+                facilityIds.addAll(facilities.map { "Location/${it.resource.logicalId}" })
             }
 
             LocationLevel.SUB_COUNTY -> {
@@ -211,17 +205,25 @@ class AddClientViewModel(application: Application, private val state: SavedState
         val urls = mutableListOf<String>()
 
 
-        when (userRole) {
-            UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
-            UserRole.SUPERVISOR,
-            UserRole.VACCINATOR -> {
+        when (userRole?.scope) {
+            LocationLevel.FACILITY -> {
                 val facilityId = formatter.getSharedPref("facility", context)
                 if (!facilityId.isNullOrEmpty()) {
                     urls.add("Location/$facilityId")
                 }
             }
 
-            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+            LocationLevel.WARD -> {
+                val ward = formatter.getSharedPref("ward", context)
+                if (!ward.isNullOrEmpty()) {
+                    val facilities = runBlocking {
+                        getFacilitiesByLevelSuspend(context, engine, ward, LocationLevel.WARD)
+                    }
+                    urls.addAll(facilities)
+                }
+            }
+
+            LocationLevel.SUB_COUNTY -> {
                 val subCounty = formatter.getSharedPref("subCounty", context)
                 if (!subCounty.isNullOrEmpty()) {
                     val facilities =
@@ -237,7 +239,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 }
             }
 
-            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+            LocationLevel.COUNTY -> {
                 val county = formatter.getSharedPref("county", context)
                 if (!county.isNullOrEmpty()) {
                     val facilities = runBlocking {
@@ -361,20 +363,31 @@ class AddClientViewModel(application: Application, private val state: SavedState
         context: Context
     ) {
         viewModelScope.launch {
-            if (QuestionnaireResponseValidator.validateQuestionnaireResponse(
-                    questionnaire,
-                    questionnaireResponse,
-                    getApplication(),
-                ).values.flatten().any { it is Invalid }
-            ) {
-                isPatientSaved.value = false
-                return@launch
+            val result =
+                persistUserResponse(questionnaireResponse, questionnaireResponseString, context)
+            isPatientSaved.value = result != PersistResult.INVALID
+        }
+    }
+
+    /** Validates and stores a standalone response (e.g. Mpox supervisor checklist). */
+    suspend fun persistUserResponse(
+        questionnaireResponse: QuestionnaireResponse,
+        questionnaireResponseString: String,
+        context: Context,
+        extraTags: List<Coding> = emptyList(),
+    ): PersistResult {
+        run {
+            if (hasValidationErrors(questionnaireResponse)) {
+                return PersistResult.INVALID
             }
+            val practitionerId = formatter.getSharedPref("fhirPractitionerId", context)
+            val fullName = formatter.getSharedPref("fullNames", context)
+
             val extractedAnswers =
                 extractStructuredAnswers(questionnaireResponse, questionnaireResponseString)
 
 
-            withContext(Dispatchers.IO) {
+            return withContext(Dispatchers.IO) {
 
                 val latitude = extractedAnswers.find { it.linkId == "latitude" }?.answer
                 val longitude = extractedAnswers.find { it.linkId == "longitude" }?.answer
@@ -401,13 +414,25 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 questionnaireResponse.addExtension(extension)
                 questionnaireResponse.status =
                     QuestionnaireResponse.QuestionnaireResponseStatus.INPROGRESS
-                fhirEngine.create(questionnaireResponse)
+                if (practitionerId != null) {
+                    questionnaireResponse.author = Reference().apply {
+                        reference = "Practitioner/$practitionerId"
+                        display = fullName
+                    }
+                }
+                if (extraTags.isNotEmpty()) {
+                    questionnaireResponse.meta.tag =
+                        questionnaireResponse.meta.tag + extraTags.map { it.copy() }
+                }
+                try {
+                    fhirEngine.create(questionnaireResponse)
+                    PersistResult.SAVED
+                } catch (e: Exception) {
+                    Timber.tag("AddClientViewModel").e(e, "Failed to save response")
+                    PersistResult.FAILED
+                }
             }
-
-            withContext(Dispatchers.Main) { isPatientSaved.value = true }
-
         }
-
     }
 
 
@@ -527,14 +552,35 @@ class AddClientViewModel(application: Application, private val state: SavedState
         questionnaireResponse: QuestionnaireResponse, context: Context
     ) {
         viewModelScope.launch {
-            if (QuestionnaireResponseValidator.validateQuestionnaireResponse(
-                    questionnaire,
-                    questionnaireResponse,
-                    getApplication(),
-                ).values.flatten().any { it is Invalid }
-            ) {
-                isPatientSaved.value = false
-                return@launch
+            val result = persistPatientData(questionnaireResponse, context)
+            // Same UI contract as before: only a validation failure reports "not saved".
+            isPatientSaved.value = result != PersistResult.INVALID
+        }
+    }
+
+    /** Outcome of a persist call, used by the UI and by the synthetic data generator. */
+    enum class PersistResult { SAVED, INVALID, FAILED }
+
+    /**
+     * Validates [questionnaireResponse] and runs the full case-extraction workflow
+     * (Patient, Encounter, QuestionnaireResponse, EPID + per-answer Observations, Specimens,
+     * MeasureReport). Suspends until everything is written.
+     *
+     * @param caseOverride case name to use instead of the `currentCase` shared preference.
+     * @param extraTags meta tags added to every resource written by this call
+     *   (used to mark synthetic test data).
+     */
+    suspend fun persistPatientData(
+        questionnaireResponse: QuestionnaireResponse,
+        context: Context,
+        caseOverride: String? = null,
+        extraTags: List<Coding> = emptyList(),
+    ): PersistResult {
+        facilityInfoCache.clear()
+        activeExtraTags = extraTags
+        try {
+            if (hasValidationErrors(questionnaireResponse)) {
+                return PersistResult.INVALID
             }
             val identifierSystem0 = Identifier()
             val typeCodeableConcept0 = CodeableConcept()
@@ -560,7 +606,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
             val extractedAnswers = extractStructuredAnswers(questionnaireResponse, "")
 
 
-            val reasonCode = FormatterClass().getSharedPref(
+            val reasonCode = caseOverride ?: FormatterClass().getSharedPref(
                 "currentCase", context
             )
             val patient = Patient()
@@ -597,7 +643,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             val encounterReference = Reference("Encounter/$encounterId")
             val measure = MeasureReport()
-            viewModelScope.launch {
+            run {
                 patient.addExtension(
                     sourceExtension("patient", context, extractedAnswers)
                 )
@@ -665,9 +711,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
                     val dobEntry = extractedAnswers.find { it.linkId == "257830485990" }
                     val genderEntry = extractedAnswers.find { it.linkId == "929966324957" }
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
                     val centerEntry = extractedAnswers.find { it.linkId == "vaccination_center" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
                     var county = ""
                     var subCounty = ""
                     var center = ""
@@ -736,8 +782,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
                 "social-listening-and-rumor-tracking-tool" -> {
 
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
                     var county = ""
                     var subCounty = ""
                     val currentYear = LocalDate.now().year
@@ -781,8 +827,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     val patientFNameEntry = extractedAnswers.find { it.linkId == "873240407472" }
                     val patientMNameEntry = extractedAnswers.find { it.linkId == "246751846436" }
                     val patientLNameEntry = extractedAnswers.find { it.linkId == "486402457213" }
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
                     val linkedEntry = extractedAnswers.find { it.linkId == "865158268604" }
 
                     if (patientLNameEntry != null) {
@@ -973,8 +1019,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     val lNameEntry = extractedAnswers.find { it.linkId == "486402457213" }
                     val genderEntry = extractedAnswers.find { it.linkId == "929966324957" }
                     val dobEntry = extractedAnswers.find { it.linkId == "257830485990" }
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
                     val specimenDateEntry = extractedAnswers.find { it.linkId == "737703942433" }
 
 
@@ -1123,8 +1169,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         patient.nameFirstRep.addGiven(lNameEntry.answer)
                     }
 
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a4-county" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
                     var county = ""
                     var subCounty = ""
                     val currentYear = LocalDate.now().year
@@ -1187,8 +1233,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     patient.nameFirstRep.family = "MOH-505"
                     patient.nameFirstRep.addGiven("MOH-505")
 
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "a3-sub-county" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "a4-county" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
 
                     measure.id = generateUuid()
                     measure.subject = subjectReference
@@ -1230,8 +1276,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     patient.nameFirstRep.family = "Mpox-Tally"
                     patient.nameFirstRep.addGiven("Mpox-Tally")
 
-                    val subCountyEntry = extractedAnswers.find { it.linkId == "819946803642" }
-                    val countyEntry = extractedAnswers.find { it.linkId == "294367770999" }
+                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
+                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
 
                     measure.id = generateUuid()
                     measure.subject = subjectReference
@@ -1269,7 +1315,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 }
 
             }
-            withContext(Dispatchers.IO) {
+            withMetaTags(patient)
+            withMetaTags(enc)
+            withMetaTags(measure)
+            withMetaTags(questionnaireResponse)
+            return withContext(Dispatchers.IO) {
                 try {
                     val identifierSystem = Identifier()
                     val typeCodeableConcept = CodeableConcept()
@@ -1367,12 +1417,43 @@ class AddClientViewModel(application: Application, private val state: SavedState
                             fhirEngine.create(measure)
                         }
                     }
+                    PersistResult.SAVED
                 } catch (e: Exception) {
-                    Timber.tag("TAG").e("Error experienced ${e.message}}")
+                    Timber.tag("TAG").e(e, "Error experienced ${e.message}")
+                    PersistResult.FAILED
                 }
-                withContext(Dispatchers.Main) { isPatientSaved.value = true }
             }
+        } finally {
+            activeExtraTags = emptyList()
         }
+    }
+
+    /** Validates against the form and logs which questions failed (linkId: message). */
+    private suspend fun hasValidationErrors(questionnaireResponse: QuestionnaireResponse): Boolean {
+        val failures = QuestionnaireResponseValidator.validateQuestionnaireResponse(
+            questionnaire,
+            questionnaireResponse,
+            getApplication(),
+        ).mapNotNull { (linkId, results) ->
+            results.filterIsInstance<Invalid>().takeIf { it.isNotEmpty() }
+                ?.let { "$linkId: ${it.joinToString(" | ") { invalid -> invalid.getSingleStringValidationMessage() }}" }
+        }
+        if (failures.isNotEmpty()) {
+            Timber.tag("SyntheticData").w("Validation failed: ${failures.joinToString("; ")}")
+        }
+        return failures.isNotEmpty()
+    }
+
+    /** Tags added to every resource of the persist call in progress (synthetic data marker). */
+    private var activeExtraTags: List<Coding> = emptyList()
+
+    /** Per-save cache: resolveFacilityInfo was otherwise re-run (a LIKE search) for every resource. */
+    private val facilityInfoCache = HashMap<String, FacilityInfo?>()
+
+    private fun withMetaTags(resource: org.hl7.fhir.r4.model.Resource) {
+        if (activeExtraTags.isEmpty()) return
+        // Meta.tag may be an immutable listOf(...) — always rebuild the list.
+        resource.meta.tag = resource.meta.tag + activeExtraTags.map { it.copy() }
     }
 
     private suspend fun sourceExtension(
@@ -1410,28 +1491,32 @@ class AddClientViewModel(application: Application, private val state: SavedState
         val storedRole = formatter.getSharedPref("practitionerRole", context)
         val userRole = UserRole.fromAny(storedRole ?: "")
 
-        val facilityLink = when (userRole) {
-            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER ->
+        // Must match the facility linkId of the form variant chosen via UserRole.formRole
+        val facilityLink = when (userRole?.scope) {
+            LocationLevel.COUNTY ->
                 "819946803677_county"
 
-            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER ->
+            LocationLevel.SUB_COUNTY, LocationLevel.WARD ->
                 "819946803677_sub_county"
 
-            UserRole.ADMINISTRATOR ->
+            LocationLevel.NATIONAL ->
                 "819946803677_national"
 
-            UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
-            UserRole.SUPERVISOR,
-            UserRole.VACCINATOR ->
-                "819946803677"
-
-            else ->
+            LocationLevel.FACILITY, null ->
                 "819946803677"
         }
 
         val facilityEntry = extractedAnswers.find { it.linkId == facilityLink }
             ?: return null
 
+        val cacheKey = "$facilityLink|${facilityEntry.answer}"
+        if (facilityInfoCache.containsKey(cacheKey)) return facilityInfoCache[cacheKey]
+        val info = lookupFacilityInfo(facilityEntry)
+        facilityInfoCache[cacheKey] = info
+        return info
+    }
+
+    private suspend fun lookupFacilityInfo(facilityEntry: QuestionnaireAnswer): FacilityInfo? {
         val results = fhirEngine.search<Location> {
             filter(Location.NAME, {
                 modifier = StringFilterModifier.CONTAINS
@@ -1512,20 +1597,19 @@ class AddClientViewModel(application: Application, private val state: SavedState
             specimen.type = specimenType
             specimen.collection = collection
             val facility = FormatterClass().getSharedPref("facility", context)
-            viewModelScope.launch {
-                specimen.meta = Meta().apply {
-                    tag = listOf(
-                        sourceMetaTag("measure", facility, context, extractedAnswers)
-                    )
-                }
-                specimen.addExtension(
-                    sourceExtension(
-                        "specimen",
-                        context,
-                        extractedAnswers
-                    )
+            specimen.meta = Meta().apply {
+                tag = listOf(
+                    sourceMetaTag("measure", facility, context, extractedAnswers)
                 )
             }
+            specimen.addExtension(
+                sourceExtension(
+                    "specimen",
+                    context,
+                    extractedAnswers
+                )
+            )
+            withMetaTags(specimen)
             fhirEngine.create(specimen)
 
         } catch (e: Exception) {
@@ -1559,25 +1643,68 @@ class AddClientViewModel(application: Application, private val state: SavedState
             }
             obs.issued = Date()
             val facility = FormatterClass().getSharedPref("facility", context)
-            viewModelScope.launch {
-                obs.meta = Meta().apply {
-                    tag = listOf(
-                        sourceMetaTag("observation", facility, context, extractedAnswers)
-                    )
-                }
-                obs.addExtension(
-                    sourceExtension(
-                        "observation",
-                        context,
-                        extractedAnswers
-                    )
+            obs.meta = Meta().apply {
+                tag = listOf(
+                    sourceMetaTag("observation", facility, context, extractedAnswers)
                 )
             }
+            obs.addExtension(
+                sourceExtension(
+                    "observation",
+                    context,
+                    extractedAnswers
+                )
+            )
+            withMetaTags(obs)
             fhirEngine.create(obs)
 
         } catch (e: Exception) {
             Timber.tag("SavePatient").e(e, "Error saving patient")
         }
+    }
+
+    /**
+     * Finds the county / sub-county answer used for EPID numbers and patient address.
+     *
+     * Forms store these under different linkIds: add-case style forms use `a4-county` /
+     * `a3-sub-county`, while location-widget forms (rumor tracking, MOH 505, tally sheet, ...)
+     * use `294367770999` / `819946803642` with a `_county`, `_sub_county` or `_national` suffix
+     * depending on the user's role. Falls back to the logged-in user's assigned location so the
+     * EPID never ends up as KEN-XXX-XXX.
+     */
+    private suspend fun resolveLocationEntry(
+        answers: List<QuestionnaireAnswer>,
+        isCounty: Boolean,
+        context: Context
+    ): QuestionnaireAnswer? {
+        val base = if (isCounty) "294367770999" else "819946803642"
+        val candidates = listOf(
+            if (isCounty) "a4-county" else "a3-sub-county",
+            base,
+            "${base}_sub_county",
+            "${base}_county",
+            "${base}_national"
+        )
+        val entry = candidates.firstNotNullOfOrNull { id ->
+            answers.firstOrNull { it.linkId == id && it.answer.isNotBlank() }
+        }
+
+        if (entry != null) {
+            // Reference answers without a display come through as "Location/<id>"
+            if (entry.answer.startsWith("Location/")) {
+                val name = try {
+                    fhirEngine.get<Location>(entry.answer.removePrefix("Location/")).name
+                } catch (e: Exception) {
+                    null
+                }
+                if (!name.isNullOrBlank()) return entry.copy(answer = name)
+            } else {
+                return entry
+            }
+        }
+
+        val assigned = formatter.getSharedPref(if (isCounty) "countyName" else "subCountyName", context)
+        return if (!assigned.isNullOrBlank()) QuestionnaireAnswer(base, "", assigned) else entry
     }
 
     private fun extractStructuredAnswers(

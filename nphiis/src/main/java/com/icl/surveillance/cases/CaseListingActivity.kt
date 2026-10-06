@@ -26,6 +26,7 @@ import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapterRumor
 import com.icl.surveillance.adapters.SocialFormItemRecyclerViewAdapter
 import com.icl.surveillance.databinding.ActivityCaseListingBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.ui.patients.FullCaseDetailsActivity
 import com.icl.surveillance.ui.patients.PatientListViewModel
@@ -46,6 +47,10 @@ class CaseListingActivity : AppCompatActivity() {
     private val selectedSubCounties = mutableSetOf<String>()
     private var currentRole: UserRole? = null
     private var searchQuery: String = ""
+
+    /** Rumor list state: the full loaded list and the adapter showing the filtered view. */
+    private var allRumorCases: List<PatientListViewModel.RumorItem> = emptyList()
+    private var activeRumorAdapter: PatientItemRecyclerViewAdapterRumor? = null
     private var searchListenerAttached = false
     private var activeCaseAdapter: CaseListDataAdapter? = null
     private var activeMpoxAdapter: MpoxPatientAdapter? = null
@@ -105,6 +110,7 @@ class CaseListingActivity : AppCompatActivity() {
                  "social-listening-and-rumor-tracking-tool" -> {
                     mpoxPatientsCollectorJob?.cancel()
                     activeMpoxAdapter = null
+                    activeRumorAdapter = adapterRumor
                     showLocationFilterMenu = false
                     invalidateOptionsMenu()
                     activeCaseAdapter = null
@@ -112,25 +118,9 @@ class CaseListingActivity : AppCompatActivity() {
                     patientListViewModel.handleCurrentRumorCaseListing(slug, units, userRole)
                     recyclerView.adapter = adapterRumor
                     patientListViewModel.liveRumorCases.observe(this) {
-                        binding.apply {
-                            count.visibility = View.VISIBLE
-                            count.text = "Showing ${it.size} Results"
-                            patientListContainer.pbProgress.visibility = View.GONE
-                        }
-
-                        if (it.isEmpty()) {
-                            binding.apply {
-                                patientListContainer.emptyStateLayout.visibility = View.VISIBLE
-                                patientListContainer.caseCount.text =
-                                    getString(R.string.matching_cases_single, it.size)
-                            }
-                        } else {
-                            binding.apply {
-                                patientListContainer.emptyStateLayout.visibility = View.GONE
-                            }
-                        }
-
-                        adapterRumor.submitList(it)
+                        binding.patientListContainer.pbProgress.visibility = View.GONE
+                        allRumorCases = it
+                        applyRumorFilter()
                     }
                 }
 
@@ -142,6 +132,7 @@ class CaseListingActivity : AppCompatActivity() {
                     }
                     invalidateOptionsMenu()
                     activeCaseAdapter = null
+                    activeRumorAdapter = null
                     mpoxPatientsCollectorJob?.cancel()
                     val adapterRegister = MpoxPatientAdapter(
                         mutableListOf(),
@@ -184,6 +175,7 @@ class CaseListingActivity : AppCompatActivity() {
                     mpoxPatientsCollectorJob?.cancel()
                     activeMpoxAdapter = null
                     activeCaseAdapter = socialAdapter
+                    activeRumorAdapter = null
                     showLocationFilterMenu = canShowLocationFilters(userRole)
                     if (!showLocationFilterMenu) {
                         selectedCounties.clear()
@@ -206,6 +198,7 @@ class CaseListingActivity : AppCompatActivity() {
                     mpoxPatientsCollectorJob?.cancel()
                     activeMpoxAdapter = null
                     activeCaseAdapter = adapter
+                    activeRumorAdapter = null
                     showLocationFilterMenu = canShowLocationFilters(userRole)
                     if (!showLocationFilterMenu) {
                         selectedCounties.clear()
@@ -227,6 +220,7 @@ class CaseListingActivity : AppCompatActivity() {
         } else {
             mpoxPatientsCollectorJob?.cancel()
             activeMpoxAdapter = null
+            activeRumorAdapter = null
             showLocationFilterMenu = false
             invalidateOptionsMenu()
         }
@@ -242,7 +236,7 @@ class CaseListingActivity : AppCompatActivity() {
     }
 
     private fun canShowLocationFilters(role: UserRole?): Boolean {
-        return role == UserRole.ADMINISTRATOR || role == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER
+        return role?.isNational == true || role?.isCounty == true
     }
 
     private fun normalizeLocationValue(value: String): String {
@@ -265,7 +259,7 @@ class CaseListingActivity : AppCompatActivity() {
 
     private fun getAvailableSubCounties(): List<String> {
         val sourceCases = if (
-            currentRole == UserRole.ADMINISTRATOR &&
+            currentRole?.isNational == true &&
             selectedCounties.isNotEmpty()
         ) {
             roleScopedCases.filter { hasSelection(it.county, selectedCounties) }
@@ -392,8 +386,9 @@ class CaseListingActivity : AppCompatActivity() {
         storedCounty: String?,
         storedSubCounty: String?
     ): List<PatientListViewModel.PatientItem> {
-        return when (userRole) {
-            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+        // Ward/facility roles are already limited by the "units" (facility) filter upstream
+        return when (userRole?.scope) {
+            LocationLevel.COUNTY -> {
                 if (storedCounty.isNullOrBlank()) {
                     cases
                 } else {
@@ -401,7 +396,7 @@ class CaseListingActivity : AppCompatActivity() {
                 }
             }
 
-            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+            LocationLevel.SUB_COUNTY -> {
                 if (storedSubCounty.isNullOrBlank()) {
                     cases
                 } else {
@@ -413,17 +408,48 @@ class CaseListingActivity : AppCompatActivity() {
         }
     }
 
+    /** Filters the loaded rumor reports by the search box (all text shown on the card). */
+    private fun applyRumorFilter() {
+        val adapter = activeRumorAdapter ?: return
+        val query = searchQuery.trim()
+        val filtered = if (query.isEmpty()) {
+            allRumorCases
+        } else {
+            allRumorCases.filter { item ->
+                listOf(
+                    item.mohName, item.directorate, item.village, item.county,
+                    item.subCounty, item.lastUpdated, item.encounterId
+                ).any { it.contains(query, ignoreCase = true) }
+            }
+        }
+        adapter.submitList(filtered)
+        binding.count.visibility = View.VISIBLE
+        binding.count.text = if (query.isEmpty()) {
+            "Showing ${filtered.size} Results"
+        } else {
+            "Showing ${filtered.size} of ${allRumorCases.size} Results"
+        }
+        binding.patientListContainer.emptyStateLayout.visibility =
+            if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        binding.patientListContainer.caseCount.text =
+            getString(R.string.matching_cases_single, filtered.size)
+    }
+
     private fun applyCaseFilters() {
+        if (activeRumorAdapter != null) {
+            applyRumorFilter()
+            return
+        }
         val adapter = activeCaseAdapter
         val mpoxAdapter = activeMpoxAdapter
         if (adapter == null && mpoxAdapter == null) return
 
         var filtered = roleScopedCases
-        if (currentRole == UserRole.ADMINISTRATOR && selectedCounties.isNotEmpty()) {
+        if (currentRole?.isNational == true && selectedCounties.isNotEmpty()) {
             filtered = filtered.filter { hasSelection(it.county, selectedCounties) }
         }
         if (
-            (currentRole == UserRole.ADMINISTRATOR || currentRole == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER)
+            (currentRole?.isNational == true || currentRole?.isCounty == true)
             && selectedSubCounties.isNotEmpty()
         ) {
             filtered = filtered.filter { hasSelection(it.subCounty, selectedSubCounties) }
@@ -583,10 +609,9 @@ class CaseListingActivity : AppCompatActivity() {
         val filterItem = menu?.findItem(R.id.action_filter)
         filterItem?.isVisible = canUseLocationFilters
         filterItem?.subMenu?.findItem(R.id.action_filter_county)?.isVisible =
-            currentRole == UserRole.ADMINISTRATOR
+            currentRole?.isNational == true
         filterItem?.subMenu?.findItem(R.id.action_filter_sub_county)?.isVisible =
-            currentRole == UserRole.ADMINISTRATOR ||
-                    currentRole == UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER
+            currentRole?.isNational == true || currentRole?.isCounty == true
         filterItem?.subMenu?.findItem(R.id.action_reset_location_filters)?.isVisible =
             selectedCounties.isNotEmpty() || selectedSubCounties.isNotEmpty()
         return super.onPrepareOptionsMenu(menu)

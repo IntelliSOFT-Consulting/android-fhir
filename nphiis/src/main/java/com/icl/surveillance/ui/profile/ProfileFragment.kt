@@ -19,15 +19,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.ExistingWorkPolicy
 import com.google.android.fhir.sync.Sync
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.R
 import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.auth.PinLockActivity
 import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.databinding.FragmentProfileBinding
+import com.icl.surveillance.debug.SyntheticDataDialogs
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.fhir.DemoDataStore
 import com.icl.surveillance.monitor.DialogHelper
 import com.icl.surveillance.models.UserProfilePrefs
+import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.network.SessionManager
 import com.icl.surveillance.utils.FormatterClass
@@ -111,6 +114,13 @@ class ProfileFragment : Fragment() {
                 )
             }
 
+            if (BuildConfig.DEBUG) {
+                btnGenerateSyntheticData.visibility = View.VISIBLE
+                btnGenerateSyntheticData.setOnClickListener {
+                    SyntheticDataDialogs.open(this@ProfileFragment)
+                }
+            }
+
             btnLogout.setOnClickListener {
                 showConfirmationDialog(
                     title = "Logout Confirmation?",
@@ -136,8 +146,7 @@ class ProfileFragment : Fragment() {
 
     fun getUserPrefs(context: Context): UserProfilePrefs {
         val f = FormatterClass()
-        println("started loading user profile Ready to return data")
-        return UserProfilePrefs(
+         return UserProfilePrefs(
             f.getSharedPref("firstName", context) ?: "N/A",
             f.getSharedPref("lastName", context) ?: "N/A",
             f.getSharedPref("fullNames", context) ?: "N/A",
@@ -272,22 +281,15 @@ class ProfileFragment : Fragment() {
                 )
                 val userRole = UserRole.fromAny(user.role)
 
-                when (userRole) {
-                    UserRole.ADMINISTRATOR -> {
+                when (userRole?.scope) {
+                    LocationLevel.NATIONAL -> {
                         countyItem.lnParent.visibility = View.GONE
                         subCountyItem.lnParent.visibility = View.GONE
                         wardItem.lnParent.visibility = View.GONE
                         facilityItem.lnParent.visibility = View.GONE
                     }
 
-                    UserRole.SUPERUSER -> {
-                        countyItem.lnParent.visibility = View.GONE
-                        subCountyItem.lnParent.visibility = View.GONE
-                        wardItem.lnParent.visibility = View.GONE
-                        facilityItem.lnParent.visibility = View.GONE
-                    }
-
-                    UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                    LocationLevel.COUNTY -> {
                         countyItem.lnParent.visibility = View.VISIBLE
                         subCountyItem.lnParent.visibility = View.GONE
                         wardItem.lnParent.visibility = View.GONE
@@ -295,7 +297,7 @@ class ProfileFragment : Fragment() {
 
                     }
 
-                    UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+                    LocationLevel.SUB_COUNTY -> {
                         countyItem.lnParent.visibility = View.VISIBLE
                         subCountyItem.lnParent.visibility = View.VISIBLE
                         wardItem.lnParent.visibility = View.GONE
@@ -303,13 +305,18 @@ class ProfileFragment : Fragment() {
 
                     }
 
-                    UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
-                    UserRole.SUPERVISOR,
-                    UserRole.VACCINATOR -> {
+                    LocationLevel.WARD -> {
+                        countyItem.lnParent.visibility = View.VISIBLE
+                        subCountyItem.lnParent.visibility = View.VISIBLE
+                        wardItem.lnParent.visibility = View.VISIBLE
+                        facilityItem.lnParent.visibility = View.GONE
+                    }
+
+                    LocationLevel.FACILITY -> {
 
                     }
 
-                    else -> {
+                    null -> {
                     }
                 }
 

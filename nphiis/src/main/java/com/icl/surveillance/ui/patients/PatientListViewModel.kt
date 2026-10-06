@@ -20,6 +20,11 @@ import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
+import com.google.android.fhir.get
+import com.google.android.fhir.search.filter.ReferenceParamFilterCriterion
+import com.google.android.fhir.search.filter.TokenParamFilterCriterion
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import com.icl.surveillance.models.QuestionnaireAnswer
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.network.RetrofitCallsAuthentication
@@ -199,15 +204,8 @@ class PatientListViewModel(
                         null
                     }
                 }.filter {
-                    when (userRole) {
-                        UserRole.ADMINISTRATOR -> {
-                            true
-                        }
-
-                        else -> {
-                            it.sourceTag in units
-                        }
-                    }
+                    // National roles see everything; others only their facilities ("units")
+                    if (userRole?.isNational == true) true else it.sourceTag in units
 
 
                 }
@@ -234,12 +232,117 @@ class PatientListViewModel(
         }
     }
 
-    fun handleCurrentRumorCaseListing(category: String, units: List<String>, userRole: UserRole?) {
-        viewModelScope.launch {
-            liveRumorCases.value = retrieveRumorCasesByDisease(category, units, userRole)
+    private var rumorJob: Job? = null
 
+    /**
+     * Loads every rumor report, page by page, publishing the growing list after each page so the
+     * screen fills in quickly. Replaces the old lookup that only scanned the first 500 Patients of
+     * all modules (so rumors beyond that were never listed) and ran one Observation query per row.
+     */
+    fun handleCurrentRumorCaseListing(category: String, units: List<String>, userRole: UserRole?) {
+        rumorJob?.cancel()
+        rumorJob = viewModelScope.launch {
+            val loaded = loadRumorCasesPaged(units, userRole) { liveRumorCases.value = it }
+            if (loaded.isEmpty()) {
+                // Records saved before encounters carried the case name: old lookup.
+                liveRumorCases.value = retrieveRumorCasesByDisease(category, units, userRole)
+            }
         }
     }
+
+    private suspend fun loadRumorCasesPaged(
+        units: List<String>,
+        userRole: UserRole?,
+        onProgress: (List<RumorItem>) -> Unit,
+    ): List<RumorItem> {
+        val all = ArrayList<RumorItem>()
+        var offset = 0
+        while (true) {
+            val page = withContext(Dispatchers.IO) {
+                fhirEngine.search<Encounter> {
+                    filter(Encounter.REASON_CODE, { value = of(RUMOR_CASE_NAME) })
+                    count = RUMOR_PAGE_SIZE
+                    from = offset
+                }
+            }.map { it.resource }
+            if (page.isEmpty()) break
+            offset += page.size
+
+            val visible = withContext(Dispatchers.IO) {
+                page.filter { userRole?.isNational == true || jurisdictionTag(it) in units }
+            }
+            if (visible.isNotEmpty()) {
+                // One query for the listed answers of the whole page (instead of one per row).
+                val references = visible.map { "Encounter/${it.logicalId}" }
+                val observations = withContext(Dispatchers.IO) {
+                    fhirEngine.search<Observation> {
+                        filter(
+                            Observation.ENCOUNTER,
+                            *references.map<String, ReferenceParamFilterCriterion.() -> Unit> { ref ->
+                                { value = ref }
+                            }.toTypedArray()
+                        )
+                        filter(
+                            Observation.CODE,
+                            *RUMOR_LIST_CODES.map<String, TokenParamFilterCriterion.() -> Unit> { code ->
+                                { value = of(code) }
+                            }.toTypedArray()
+                        )
+                    }
+                }.map { it.resource }.groupBy { it.encounter.referenceElement.idPart }
+                visible.forEach { encounter ->
+                    all.add(encounter.toRumorItem(observations[encounter.logicalId].orEmpty()))
+                }
+            }
+            onProgress(all.sortedByDescending { it.lastUpdated })
+            if (page.size < RUMOR_PAGE_SIZE) break
+        }
+        return all
+    }
+
+    /** Facility the record belongs to; older records may only have it on the Patient. */
+    private suspend fun jurisdictionTag(encounter: Encounter): String? {
+        encounter.meta.tag.firstOrNull { it.system?.endsWith("-managingLocation") == true }
+            ?.code?.let { return it }
+        val patientId = encounter.subject?.referenceElement?.idPart ?: return null
+        val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull() ?: return null
+        return patient.meta.tag.firstOrNull { it.system?.endsWith("/patient-managingLocation") == true }?.code
+    }
+
+    private fun Encounter.toRumorItem(observations: List<Observation>): RumorItem {
+        fun answer(vararg codes: String): String = codes.firstNotNullOfOrNull { code ->
+            observations.firstOrNull { it.code.codingFirstRep.code == code }
+                ?.value?.asStringValue()?.takeIf { it.isNotBlank() }
+        } ?: ""
+
+        var cadre = answer("683805917262")
+        if (cadre.contains("Other", ignoreCase = true)) cadre = answer("223529605110").ifBlank { cadre }
+        var agency = answer("683805917111")
+        if (agency.contains("Other", ignoreCase = true)) agency = answer("22311605110").ifBlank { agency }
+        val created = identifier.firstOrNull { it.system == "system-creation" }?.value ?: ""
+
+        return RumorItem(
+            id = logicalId,
+            resourceId = subject?.referenceElement?.idPart ?: "",
+            encounterId = logicalId,
+            mohName = cadre,
+            directorate = agency,
+            // Shown as "Date Reported" (the form has no division question).
+            division = created.substringBefore(" "),
+            village = answer("871818396498"),
+            subCounty = answer(
+                "819946803642", "819946803642_sub_county", "819946803642_county", "819946803642_national"
+            ),
+            county = answer(
+                "294367770999", "294367770999_sub_county", "294367770999_county", "294367770999_national"
+            ),
+            lastUpdated = created,
+            sourceTag = jurisdictionTagOrEmpty(),
+        )
+    }
+
+    private fun Encounter.jurisdictionTagOrEmpty() =
+        meta.tag.firstOrNull { it.system?.endsWith("-managingLocation") == true }?.code ?: ""
 
 
     private suspend fun loadSupervisorChecklistCases(isSummary: Boolean): List<PatientItem> {
@@ -748,11 +851,15 @@ class PatientListViewModel(
             }
 
             else -> {
-                return fhirEngine.search<Patient> {
+                // Fast path: only this module's patients, with their answers loaded in batches.
+                // Falls back to scanning every patient when the case type is not known.
+                val batches = caseBatchLoader(nameQuery)
+                val patients = batches?.patients ?: fhirEngine.search<Patient> {
                     filter(Patient.ACTIVE, { value = of(true) })
                     sort(Patient.GIVEN, Order.ASCENDING)
-
-                }.mapIndexedNotNull { index, fhirPatient ->
+                }
+                return patients.mapIndexedNotNull { index, fhirPatient ->
+                    batches?.ensureLoaded(index)
 
                     val tag =
                         fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient-managingLocation") }?.code
@@ -776,10 +883,11 @@ class PatientListViewModel(
                         val logicalId = matchingIdentifier.value
 
                         val encounterQuestionnaire = matchingIdentifier.system
-                        val obs = fhirEngine.search<Observation> {
-                            filter(
-                                Observation.ENCOUNTER, { value = "Encounter/${logicalId}" })
-                        }.take(500)
+                        val obs = batches?.observationsFor(logicalId)?.take(500)
+                            ?: fhirEngine.search<Observation> {
+                                filter(
+                                    Observation.ENCOUNTER, { value = "Encounter/${logicalId}" })
+                            }.take(500)
 
                         val epid =
                             if (epidIdenfifier != null) epidIdenfifier.value else obs.firstOrNull { it.resource.code.codingFirstRep.code == "EPID" }?.resource?.value?.asStringValue()
@@ -822,15 +930,17 @@ class PatientListViewModel(
                                 ?: ""
 
 
-                        val childEncounter = loadChildEncounter(data.resourceId, logicalId)
+                        val childEncounter = batches?.childEncountersFor(logicalId)
+                            ?: loadChildEncounter(data.resourceId, logicalId)
 
                         when (nameQuery) {
                             "rcce" -> {
-                                val res = fhirEngine.search<QuestionnaireResponse> {
-                                    filter(
-                                        QuestionnaireResponse.SUBJECT,
-                                        { value = "Patient/${data.resourceId}" })
-                                }.take(5)
+                                val res = batches?.responsesFor(data.resourceId)?.take(5)
+                                    ?: fhirEngine.search<QuestionnaireResponse> {
+                                        filter(
+                                            QuestionnaireResponse.SUBJECT,
+                                            { value = "Patient/${data.resourceId}" })
+                                    }.take(5)
 
                                 if (res.isNotEmpty()) {
                                     val response = res.first().resource
@@ -920,11 +1030,12 @@ class PatientListViewModel(
 
                             "moh-505-reporting-form" -> {
 
-                                val res = fhirEngine.search<QuestionnaireResponse> {
-                                    filter(
-                                        QuestionnaireResponse.SUBJECT,
-                                        { value = "Patient/${data.resourceId}" })
-                                }.take(5)
+                                val res = batches?.responsesFor(data.resourceId)?.take(5)
+                                    ?: fhirEngine.search<QuestionnaireResponse> {
+                                        filter(
+                                            QuestionnaireResponse.SUBJECT,
+                                            { value = "Patient/${data.resourceId}" })
+                                    }.take(5)
 
                                 if (res.isNotEmpty()) {
                                     val response = res.first().resource
@@ -1352,15 +1463,8 @@ class PatientListViewModel(
             }
 
         }.filter {
-            when (userRole) {
-                UserRole.ADMINISTRATOR -> {
-                    true
-                }
-
-                else -> {
-                    it.sourceTag in units
-                }
-            }
+            // National roles see everything; others only their facilities ("units")
+            if (userRole?.isNational == true) true else it.sourceTag in units
         }
             .sortedByDescending { it.lastUpdated }
     }
@@ -1805,6 +1909,28 @@ class PatientListViewModel(
         }
     }
 
+    companion object {
+        private const val CASE_BATCH_SIZE = 100
+
+        /** Case names saved as Encounter.reasonCode by the data-entry screens. */
+        private val KNOWN_CASE_NAMES = listOf(
+            "Measles Case Information", "AFP Case Information", "VL Case Information",
+            "MOH 505 Reporting Form", "Mpox Information",
+            "RCCE - Community Questionnaire", "RCCE - County/Subcounty Interface",
+        )
+
+        /** Encounter.reasonCode of rumor reports (the `currentCase` name used when saving). */
+        const val RUMOR_CASE_NAME = "Social Listening and Rumor Tracking Tool"
+        private const val RUMOR_PAGE_SIZE = 200
+
+        /** Answers shown or searched in the rumor list. */
+        private val RUMOR_LIST_CODES = listOf(
+            "683805917262", "223529605110", "683805917111", "22311605110", "871818396498",
+            "294367770999", "294367770999_sub_county", "294367770999_county", "294367770999_national",
+            "819946803642", "819946803642_sub_county", "819946803642_county", "819946803642_national",
+        )
+    }
+
     data class RumorItem(
         val id: String,
         val resourceId: String,
@@ -2135,6 +2261,135 @@ class PatientListViewModel(
             filter(
                 Encounter.SUBJECT, { value = "Patient/$patientId" })
         }.map { it.resource }
+    }
+
+    /** `currentCase` names (Encounter.reasonCode) behind a case-list slug, e.g. "rcce". */
+    private fun caseNamesFor(nameQuery: String): List<String> {
+        fun slug(name: String) = name.trim().lowercase()
+            .replace("[^a-z0-9\\s-]".toRegex(), "")
+            .replace("\\s+".toRegex(), "-")
+            .replace("-+".toRegex(), "-")
+        return KNOWN_CASE_NAMES.filter { name ->
+            val s = slug(name)
+            s == nameQuery || (nameQuery == "rcce" && s.startsWith("rcce-"))
+        }
+    }
+
+    /**
+     * Number of records of a case type, counted in the database (no records loaded).
+     * Null when the case type is unknown and the caller must count the loaded list instead.
+     */
+    suspend fun countCaseRecords(nameQuery: String): Int? {
+        val names = caseNamesFor(nameQuery).ifEmpty { return null }
+        return withContext(Dispatchers.IO) {
+            fhirEngine.count<Encounter> {
+                filter(
+                    Encounter.REASON_CODE,
+                    *names.map<String, TokenParamFilterCriterion.() -> Unit> { name ->
+                        { value = of(name) }
+                    }.toTypedArray()
+                )
+            }.toInt()
+        }.takeIf { it > 0 } // 0 may mean older records without the case name: count the list
+    }
+
+    /**
+     * Finds the patients of a case type through their case Encounters (reasonCode = case name)
+     * instead of reading every patient on the device. Returns null for unknown case types or when
+     * no encounter carries the case name (older data), so the caller keeps the full scan.
+     */
+    private suspend fun caseBatchLoader(nameQuery: String): CaseBatchLoader? {
+        val names = caseNamesFor(nameQuery).ifEmpty { return null }
+        val encounters = fhirEngine.search<Encounter> {
+            filter(
+                Encounter.REASON_CODE,
+                *names.map<String, TokenParamFilterCriterion.() -> Unit> { name ->
+                    { value = of(name) }
+                }.toTypedArray()
+            )
+        }.map { it.resource }.filter { !it.hasPartOf() }
+        if (encounters.isEmpty()) return null
+
+        val encountersByPatient = encounters
+            .groupBy({ it.subject.referenceElement.idPart ?: "" }, { it.logicalId })
+        val patients = encountersByPatient.keys.filter { it.isNotEmpty() }
+            .chunked(CASE_BATCH_SIZE)
+            .flatMap { ids ->
+                fhirEngine.search<Patient> {
+                    filter(
+                        Resource.RES_ID,
+                        *ids.map<String, TokenParamFilterCriterion.() -> Unit> { id ->
+                            { value = of(id) }
+                        }.toTypedArray()
+                    )
+                    filter(Patient.ACTIVE, { value = of(true) })
+                }
+            }
+            .sortedBy { it.resource.nameFirstRep.givenAsSingleString.orEmpty() }
+        return CaseBatchLoader(patients, encountersByPatient)
+    }
+
+    /**
+     * Loads observations, child encounters and questionnaire responses for [CASE_BATCH_SIZE]
+     * patients at a time (one query each) instead of three queries per patient. Only one batch is
+     * held in memory.
+     */
+    private inner class CaseBatchLoader(
+        val patients: List<SearchResult<Patient>>,
+        private val encountersByPatient: Map<String, List<String>>,
+    ) {
+        private var loadedBatch = -1
+        private var observations: Map<String, List<SearchResult<Observation>>> = emptyMap()
+        private var children: Map<String, List<EncounterItem>> = emptyMap()
+        private var responses: Map<String, List<SearchResult<QuestionnaireResponse>>> = emptyMap()
+
+        suspend fun ensureLoaded(index: Int) {
+            val batch = index / CASE_BATCH_SIZE
+            if (batch == loadedBatch) return
+            loadedBatch = batch
+            val slice = patients.subList(
+                batch * CASE_BATCH_SIZE,
+                minOf(patients.size, (batch + 1) * CASE_BATCH_SIZE)
+            )
+            val patientIds = slice.map { it.resource.logicalId }
+            val encounterRefs = patientIds.flatMap { id ->
+                encountersByPatient[id].orEmpty().map { "Encounter/$it" }
+            }
+            val patientRefs = patientIds.map { "Patient/$it" }
+
+            observations = if (encounterRefs.isEmpty()) emptyMap() else
+                fhirEngine.search<Observation> {
+                    filter(Observation.ENCOUNTER, *references(encounterRefs))
+                }.groupBy { it.resource.encounter.referenceElement.idPart ?: "" }
+
+            children = if (encounterRefs.isEmpty()) emptyMap() else
+                fhirEngine.search<Encounter> {
+                    filter(Encounter.PART_OF, *references(encounterRefs))
+                }.map { it.resource }
+                    .groupBy { it.partOf.referenceElement.idPart ?: "" }
+                    .mapValues { (_, list) ->
+                        list.map { encounter ->
+                            EncounterItem(
+                                id = encounter.logicalId,
+                                reasonCode = encounter.reasonCodeFirstRep.codingFirstRep.code ?: "",
+                                lastUpdated = encounter.identifier
+                                    .find { it.system == "system-creation" }?.value ?: ""
+                            )
+                        }.sortedByDescending { it.lastUpdated }
+                    }
+
+            responses = fhirEngine.search<QuestionnaireResponse> {
+                filter(QuestionnaireResponse.SUBJECT, *references(patientRefs))
+            }.groupBy { it.resource.subject.referenceElement.idPart ?: "" }
+        }
+
+        fun observationsFor(encounterId: String) = observations[encounterId].orEmpty()
+        fun childEncountersFor(encounterId: String) = children[encounterId].orEmpty()
+        fun responsesFor(patientId: String) = responses[patientId].orEmpty()
+
+        private fun references(values: List<String>) =
+            values.map<String, ReferenceParamFilterCriterion.() -> Unit> { ref -> { value = ref } }
+                .toTypedArray()
     }
 
     private suspend fun loadChildEncounter(
