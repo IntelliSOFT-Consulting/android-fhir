@@ -958,14 +958,14 @@
             },
             {
               "valueCoding": {
-                "code": "temporary_fixed",
-                "display": "Temporary  Fixed"
+                "code": "mobile_sites",
+                "display": "Mobile sites"
               }
             },
             {
               "valueCoding": {
-                "code": "mobile_sites",
-                "display": "Mobile sites"
+                "code": "temporary_fixed",
+                "display": "Temporary  Fixed"
               }
             }
           ],
@@ -976,11 +976,15 @@
                 "coding": [
                   {
                     "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "drop-down",
-                    "display": "Drop down"
+                    "code": "radio-button",
+                    "display": "Radio Button"
                   }
                 ]
               }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
             }
           ]
         },
@@ -1071,11 +1075,15 @@
                 "coding": [
                   {
                     "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "drop-down",
-                    "display": "Drop down"
+                    "code": "radio-button",
+                    "display": "Radio Button"
                   }
                 ]
               }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
             }
           ],
           "linkId": "supervisor_level",

@@ -174,17 +174,25 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         val urls = mutableListOf<String>()
 
 
-        when (userRole) {
-            UserRole.FACILITY_SURVEILLANCE_FOCAL_PERSON,
-            UserRole.SUPERVISOR,
-            UserRole.VACCINATOR -> {
+        when (userRole?.scope) {
+            LocationLevel.FACILITY -> {
                 val facilityId = formatter.getSharedPref("facility", context)
                 if (!facilityId.isNullOrEmpty()) {
                     urls.addAll(buildResourceUrlsForFacility(facilityId))
                 }
             }
 
-            UserRole.SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+            LocationLevel.WARD -> {
+                val ward = formatter.getSharedPref("ward", context)
+                if (!ward.isNullOrEmpty()) {
+                    val facilities = runBlocking {
+                        getFacilitiesByLevelSuspend(engine, ward, LocationLevel.WARD)
+                    }
+                    urls.addAll(facilities.flatMap { buildResourceUrlsForFacility(it) })
+                }
+            }
+
+            LocationLevel.SUB_COUNTY -> {
                 val subCounty = formatter.getSharedPref("subCounty", context)
                 if (!subCounty.isNullOrEmpty()) {
                     val facilities =
@@ -199,7 +207,7 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                 }
             }
 
-            UserRole.COUNTY_DISEASE_SURVEILLANCE_OFFICER -> {
+            LocationLevel.COUNTY -> {
                 val county = formatter.getSharedPref("county", context)
                 if (!county.isNullOrEmpty()) {
                     val facilities = runBlocking {
@@ -215,7 +223,7 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                 }
             }
 
-            else -> {
+            LocationLevel.NATIONAL -> {
                 urls.addAll(
                     listOf(
                         "Patient?_sort=_lastUpdated",
@@ -227,6 +235,10 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                         "Location?_sort=-_lastUpdated",
                     )
                 )
+            }
+
+            null -> {
+                // Unknown role: download nothing rather than national data
             }
         }
 

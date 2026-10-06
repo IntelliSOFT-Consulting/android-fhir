@@ -19,6 +19,7 @@ import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import com.google.android.material.button.MaterialButton
 import com.icl.surveillance.R
+import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FRAGMENT_TAG
 import com.icl.surveillance.databinding.ActivityAddCaseBinding
@@ -430,6 +431,7 @@ class AddCaseActivity : AppCompatActivity() {
         if (storedRole.isNullOrBlank()) {
             return false
         }
+        UserRole.fromAny(storedRole)?.let { return it.canAccessLab }
         val role = storedRole.lowercase()
         return role.contains("admin") || role.contains("laboratory") || role.contains("lab")
     }

@@ -257,21 +257,86 @@ data class UserProfilePrefs(
     val facilityName: String
 )
 
-enum class UserRole(val key: String) {
-    ADMINISTRATOR("administrator"),
-    SUPERUSER("superuser"),
-    COUNTY_DISEASE_SURVEILLANCE_OFFICER("county_user"),
-    SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER("sub_county_user"),
-    FACILITY_SURVEILLANCE_FOCAL_PERSON("facility_nurse"),
-    SUPERVISOR("supervisor"),
-    VACCINATOR("vaccinator");
+/**
+ * Roles as defined on the NPHIIS web (user management).
+ *
+ * Every role is mapped to a [scope] (its area of jurisdiction). All access control in the app
+ * (listing, counts, filters, sync, profile) is driven by [scope], so new roles only need to be
+ * added here.
+ *
+ * Data entry is unchanged: questionnaires only understand the four legacy role codes in
+ * `user_role`, so each role writes [formRole] for its scope.
+ */
+enum class UserRole(val key: String, val scope: LocationLevel, vararg val aliases: String) {
+    // National
+    ADMINISTRATOR("administrator", LocationLevel.NATIONAL),
+    SUPERUSER("superuser", LocationLevel.NATIONAL),
+    NATIONAL_FOCAL_PERSON("national_focal_person", LocationLevel.NATIONAL),
+    NATIONAL_VIEWER("national_viewer", LocationLevel.NATIONAL),
+    NATIONAL_LAB("national_lab", LocationLevel.NATIONAL),
+
+    // County
+    COUNTY_DISEASE_SURVEILLANCE_OFFICER("county_user", LocationLevel.COUNTY),
+    COUNTY_HEALTH_RECORDS_INFORMATION_OFFICER("county_hrio", LocationLevel.COUNTY),
+    COUNTY_HEALTH_PROMOTION_OFFICER("county_hpo", LocationLevel.COUNTY),
+    COUNTY_VACCINATOR("county_vaccinator", LocationLevel.COUNTY),
+
+    // Sub-county
+    SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER("sub_county_user", LocationLevel.SUB_COUNTY),
+    SUBCOUNTY_HEALTH_RECORDS_INFORMATION_OFFICER("sub_county_hrio", LocationLevel.SUB_COUNTY),
+    SUBCOUNTY_HEALTH_PROMOTION_OFFICER("sub_county_hpo", LocationLevel.SUB_COUNTY),
+    SUBCOUNTY_VACCINATOR("sub_county_vaccinator", LocationLevel.SUB_COUNTY),
+
+    // Ward
+    WARD_HEALTH_RECORDS_INFORMATION_OFFICER("ward_hrio", LocationLevel.WARD),
+    WARD_HEALTH_PROMOTION_OFFICER("ward_hpo", LocationLevel.WARD),
+    WARD_VACCINATOR("ward_vaccinator", LocationLevel.WARD),
+
+    // Facility
+    FACILITY_SURVEILLANCE_FOCAL_PERSON("facility_nurse", LocationLevel.FACILITY),
+    FACILITY_HEALTH_RECORDS_INFORMATION_OFFICER("facility_hrio", LocationLevel.FACILITY),
+    FACILITY_HEALTH_PROMOTION_OFFICER("facility_hpo", LocationLevel.FACILITY),
+    FACILITY_VACCINATOR("facility_vaccinator", LocationLevel.FACILITY),
+    LAB_TECHNICIAN("lab_technician", LocationLevel.FACILITY),
+    SUPERVISOR("supervisor", LocationLevel.FACILITY, "SUPERVISORS"),
+    VACCINATOR("vaccinator", LocationLevel.FACILITY),
+    NURSE("nurse", LocationLevel.FACILITY);
+
+    val isNational: Boolean get() = scope == LocationLevel.NATIONAL
+    val isCounty: Boolean get() = scope == LocationLevel.COUNTY
+    val isSubCounty: Boolean get() = scope == LocationLevel.SUB_COUNTY
+    val isWard: Boolean get() = scope == LocationLevel.WARD
+    val isFacility: Boolean get() = scope == LocationLevel.FACILITY
+
+    val canAccessLab: Boolean
+        get() = this == ADMINISTRATOR || this == NATIONAL_LAB || this == LAB_TECHNICIAN
+
+    /**
+     * Legacy role code written to the `user_role` questionnaire item. Questionnaire enableWhen
+     * rules and [com.icl.surveillance.ui.patients.custom.GroupFragment] only know these four.
+     * Ward roles use the sub-county form (county + sub-county locked, ward/facility selectable).
+     */
+    val formRole: String
+        get() = when (scope) {
+            LocationLevel.NATIONAL -> "ADMINISTRATOR"
+            LocationLevel.COUNTY -> "COUNTY_DISEASE_SURVEILLANCE_OFFICER"
+            LocationLevel.SUB_COUNTY, LocationLevel.WARD -> "SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER"
+            LocationLevel.FACILITY -> "VACCINATOR"
+        }
 
     companion object {
-        fun fromAny(value: String): UserRole? =
-            entries.firstOrNull {
-                it.name.equals(value, ignoreCase = true) ||
-                        it.key.equals(value, ignoreCase = true)
+        private fun normalize(value: String) =
+            value.trim().replace(Regex("[\\s-]+"), "_")
+
+        fun fromAny(value: String?): UserRole? {
+            if (value.isNullOrBlank()) return null
+            val v = normalize(value)
+            return entries.firstOrNull { role ->
+                role.name.equals(v, ignoreCase = true) ||
+                        role.key.equals(v, ignoreCase = true) ||
+                        role.aliases.any { it.equals(v, ignoreCase = true) }
             }
+        }
 
         fun fromKey(key: String): UserRole? =
             entries.firstOrNull { it.key.equals(key, ignoreCase = true) }

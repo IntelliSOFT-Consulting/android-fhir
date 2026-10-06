@@ -246,6 +246,26 @@
                     app:iconGravity="textStart"
                     app:iconPadding="10dp"
                     app:iconTint="@color/account_danger_action" />
+
+                <!-- Debug builds only: shown from ProfileFragment when BuildConfig.DEBUG -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGenerateSyntheticData"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/montserratregular"
+                    android:gravity="start|center_vertical"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="@string/generate_synthetic_data"
+                    android:textAllCaps="false"
+                    android:textColor="@color/account_primary_action"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    app:icon="@drawable/baseline_sync_24"
+                    app:iconGravity="textStart"
+                    app:iconPadding="10dp"
+                    app:iconTint="@color/account_primary_action" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
