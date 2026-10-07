@@ -41,7 +41,12 @@ class EditChecklistActivity : AppCompatActivity() {
             "mpox-tally-sheet.json" -> "Edit Summary Sheet"
             "mpox-supervisor-checklist.json" -> "Edit Supervisor Checklist"
             "add-case.json" -> "Edit Measles Case"
-            else -> ""
+            "afp-case.json" -> "Edit AFP Case"
+            "vl-case.json" -> "Edit VL Case"
+            "vhf-case.json" -> "Edit VHF Case"
+            "rumor-tracking-case.json" -> "Edit Rumor Report"
+            "social-community.json", "social-county.json" -> "Edit Social Investigation"
+            else -> "Edit Record"
         }
         supportActionBar.apply { title = titleText }
         val questionnaireId =

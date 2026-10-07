@@ -42,11 +42,14 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val LOCATION_URL = "Location?_count=950&_sort=_lastUpdated"
 
     // NOTE: keep your intended behavior; this is just as you had it.
+    // Page sizes are kept small for clinical resources: a single QuestionnaireResponse can carry
+    // 150-250 answers, and a 500-response page (parsed into HAPI objects) exhausted the heap
+    // (OutOfMemoryError) once the server held a few thousand submissions.
     private val CORE_URLS =
         if (FormatterClass().isSyncDone(context)) {
             listOf(
-                "Patient?_count=200&_sort=_lastUpdated",
-                "QuestionnaireResponse?_count=500&_sort=_lastUpdated",
+                "Patient?_count=$PATIENT_PAGE_SIZE&_sort=_lastUpdated",
+                "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
@@ -281,5 +284,10 @@ class TimestampBasedDownloadWorkManagerImpl(
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
         return simpleDateFormat.format(this.toInstant())
+    }
+
+    private companion object {
+        const val PATIENT_PAGE_SIZE = 100
+        const val RESPONSE_PAGE_SIZE = 50
     }
 }

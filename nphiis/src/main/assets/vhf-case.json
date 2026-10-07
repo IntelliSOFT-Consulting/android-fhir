@@ -1581,11 +1581,6 @@
           ]
         },
         {
-          "linkId": "vhf-health-facility",
-          "text": "Health facility",
-          "type": "string"
-        },
-        {
           "linkId": "vhf-education",
           "text": "Level of education",
           "type": "choice",
@@ -2156,7 +2151,7 @@
         },
         {
           "linkId": "vhf-care-facility",
-          "text": "Facility name",
+          "text": "Facility where the patient is receiving care",
           "type": "string",
           "required": true,
           "enableWhen": [

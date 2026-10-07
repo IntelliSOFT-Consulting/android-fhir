@@ -573,7 +573,8 @@ object SyntheticDataGenerator {
             ).any { t.contains(it) }
             if (t.contains("name")) {
                 val notAPerson = listOf(
-                    "facility", "center", "centre", "site", "station", "count", "infection", "media"
+                    "facility", "center", "centre", "site", "station", "count", "infection", "media",
+                    "antibiotic", "vaccine", "laboratory"
                 ).any { t.contains(it) }
                 return when {
                     isPlace -> Kind.PLACE
@@ -584,8 +585,10 @@ object SyntheticDataGenerator {
                 }
             }
             if (isPlace) return Kind.PLACE
-            if (listOf("ip/op", "ip/ op", "identification number", "batch number", "team no")
-                    .any { t.contains(it) }
+            if (listOf(
+                    "ip/op", "ip/ op", "identification number", "batch number", "team no",
+                    "patient number", "specimen id", "national id"
+                ).any { t.contains(it) }
             ) return Kind.ID_NUMBER
             if (NarrativeWriter.topicOf(t) != null) return Kind.NARRATIVE
             return Kind.KEEP
@@ -760,12 +763,20 @@ object SyntheticDataGenerator {
             when (kindOf(linkId, def)) {
                 Kind.FIRST_NAME -> FIRST_NAMES.random(random)
                 Kind.SURNAME -> SURNAMES.random(random)
-                Kind.FULL_NAME -> "${FIRST_NAMES.random(random)} ${SURNAMES.random(random)}"
+                Kind.FULL_NAME -> if ((def.text ?: "").lowercase().contains("given")) {
+                    "${FIRST_NAMES.random(random)} ${FIRST_NAMES.random(random)}"
+                } else {
+                    "${FIRST_NAMES.random(random)} ${SURNAMES.random(random)}"
+                }
                 Kind.PHONE -> "07" + digits(8, random)
                 Kind.ID_NUMBER -> {
                     val t = (def.text ?: "").lowercase()
+                    val year = Calendar.getInstance().get(Calendar.YEAR)
                     when {
-                        t.contains("ip") -> "OP/${Calendar.getInstance().get(Calendar.YEAR)}/${digits(5, random)}"
+                        t.contains("in-patient") -> "IP/$year/${digits(5, random)}"
+                        t.contains("out-patient") -> "OP/$year/${digits(5, random)}"
+                        t.contains("specimen id") -> "VHF-$year-${digits(5, random)}"
+                        t.contains("ip") -> "OP/$year/${digits(5, random)}"
                         t.contains("batch") -> "FDP${digits(5, random)}"
                         t.contains("team") -> (1 + random.nextInt(30)).toString()
                         else -> (1 + random.nextInt(4)).toString() + digits(7, random)
@@ -887,7 +898,7 @@ object SyntheticDataGenerator {
                             item.item = reconcile(def.item, item.item, answers, random, chain)
                         } else {
                             if (item.answer.isEmpty() && !isHidden(def)) {
-                                generateAnswers(def, random, chain)?.let {
+                                generateAnswers(def, random, chain, answers)?.let {
                                     item.answer = it
                                     answers[def.linkId] = it.mapNotNull { a -> a.value }
                                 }
@@ -924,7 +935,7 @@ object SyntheticDataGenerator {
             }
             // Fill every required question and most optional ones, like a real data clerk.
             if (!def.required && random.nextInt(100) >= OPTIONAL_FILL_PERCENT) return null
-            val generated = generateAnswers(def, random, chain) ?: return null
+            val generated = generateAnswers(def, random, chain, answers) ?: return null
             item.answer = generated
             answers[def.linkId] = generated.mapNotNull { it.value }
             if (def.item.isNotEmpty()) {
@@ -937,6 +948,7 @@ object SyntheticDataGenerator {
             def: Questionnaire.QuestionnaireItemComponent,
             random: Random,
             chain: LocationPicker.Chain?,
+            answers: Map<String, List<org.hl7.fhir.r4.model.Type>> = emptyMap(),
         ): MutableList<QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent>? {
             val t = (def.text ?: "").lowercase()
             // The form's own default (e.g. Country = Kenya) is what a clerk would leave in place.
@@ -949,7 +961,8 @@ object SyntheticDataGenerator {
                     val codings = codingOptions(def)
                     val strings = def.answerOption.mapNotNull { it.value as? StringType }
                     when {
-                        codings.isNotEmpty() -> pickCodings(def, codings, random)
+                        codings.isNotEmpty() ->
+                            coherentChoice(def.linkId, codings, answers, random) ?: pickCodings(def, codings, random)
                         strings.isNotEmpty() -> listOf(strings.random(random).copy())
                         else -> return null
                     }
@@ -967,8 +980,12 @@ object SyntheticDataGenerator {
                 Questionnaire.QuestionnaireItemType.DATE -> listOf(DateType(newDate(t, random)))
                 Questionnaire.QuestionnaireItemType.DATETIME -> listOf(DateTimeType(newDate(t, random)))
                 Questionnaire.QuestionnaireItemType.INTEGER -> {
-                    val v = if (Regex("\\bage\\b").containsMatchIn(t)) 1 + random.nextInt(60)
-                    else random.nextInt(0, 21)
+                    val v = when {
+                        Regex("\\bage\\b").containsMatchIn(t) -> 1 + random.nextInt(60)
+                        t.contains("dose") -> 1 + random.nextInt(3)
+                        t.contains("day of follow") -> 1 + random.nextInt(21)
+                        else -> random.nextInt(0, 21)
+                    }
                     listOf(IntegerType(clamp(def, v)))
                 }
 
@@ -991,7 +1008,102 @@ object SyntheticDataGenerator {
         }
 
         /** Plausible values for "specify" / reason / role style questions. */
-        private fun specifyText(linkId: String, t: String, random: Random): String? = when {
+        /** Values for free-text questions, most specific rules first. */
+        private fun specifyText(linkId: String, t: String, random: Random): String? {
+            if (t.startsWith("other")) otherSpecify(t, random)?.let { return it }
+            caseFieldText(t, random)?.let { return it }
+            return commonSpecifyText(linkId, t, random)
+        }
+
+        /** "Other (specify)" boxes, by what they follow (context includes the controlling question). */
+        private fun otherSpecify(t: String, random: Random): String? = when {
+            t.contains("other vhf") -> OTHER_VHF.random(random)
+            t.contains("symptom") -> OTHER_SYMPTOMS.random(random)
+            t.contains("place of death") -> OTHER_PLACES_OF_DEATH.random(random)
+            t.contains("relationship") -> OTHER_RELATIONSHIPS.random(random)
+            t.contains("species") -> OTHER_ANIMALS.random(random)
+            t.contains("animal exposure") -> OTHER_ANIMAL_EXPOSURES.random(random)
+            t.contains("ppe") -> OTHER_PPE.random(random)
+            t.contains("type of sample") -> OTHER_SAMPLES.random(random)
+            t.contains("tests performed") -> OTHER_LAB_TESTS.random(random)
+            t.contains("location of investigation") || t.contains("location of contact") ->
+                OTHER_SETTINGS.random(random)
+
+            t.contains("exposure") || t.contains("contact") -> OTHER_CONTACT_TYPES.random(random)
+            t.contains("provided the information") -> OTHER_INFORMANTS.random(random)
+            t.contains("sex") -> "Intersex"
+            else -> null
+        }
+
+        /** Case-form free text (VHF and similar): treatment, lab, contacts, travel. */
+        private fun caseFieldText(t: String, random: Random): String? = when {
+            t.contains("laboratory facility") -> LABORATORIES.random(random)
+            t.contains("receiving care") -> chainNow?.facility?.name
+            t.contains("antibiotic") -> ANTIBIOTICS.random(random)
+            t.contains("name of vaccine") -> EBOLA_VACCINES.random(random)
+            t.contains("next of kin") || t.contains("respondent") ->
+                "${FIRST_NAMES.random(random)} ${SURNAMES.random(random)}"
+
+            t.contains("employed as") -> OCCUPATIONS.random(random)
+            t.contains("bleeding") -> BLEEDING_SITES.random(random)
+            t.contains("treatment given") -> TREATMENTS.random(random)
+            t.contains("narration") -> LAB_NARRATIONS.random(random)
+            t.contains("stopover") -> PLACES.shuffled(random).take(2).joinToString(", ")
+            t.contains("location of exposure") -> PLACES.random(random)
+            else -> null
+        }
+
+        /**
+         * Keeps VHF answers consistent with each other (outcome vs status, lab results vs final
+         * classification) and gives case types a realistic mix. Null = no rule, pick at random.
+         */
+        private fun coherentChoice(
+            linkId: String,
+            options: List<Coding>,
+            answers: Map<String, List<org.hl7.fhir.r4.model.Type>>,
+            random: Random,
+        ): List<Coding>? {
+            fun answered(id: String) = (answers[id]?.firstOrNull() as? Coding)?.code
+            fun pick(code: String) = options.firstOrNull { it.code == code }?.let { listOf(it.copy()) }
+            fun weighted(vararg weights: Pair<String, Int>): List<Coding>? {
+                var roll = random.nextInt(weights.sumOf { it.second })
+                val code = weights.first { (_, weight) -> (roll - weight).also { roll = it } < 0 }.first
+                return pick(code)
+            }
+            val vhf = FormFields.Vhf
+            val caseType = answered(vhf.CASE_TYPE)
+            val preliminary = answered(vhf.PRELIMINARY_RESULT)
+            val finalResult = answered(vhf.FINAL_RESULT)
+            return when (linkId) {
+                vhf.CASE_TYPE -> weighted("suspected" to 40, "contact" to 30, "probable" to 15, "confirmed" to 15)
+                vhf.OUTCOME -> weighted("alive" to 80, "dead" to 20)
+                vhf.CASE_STATUS ->
+                    if (answered(vhf.OUTCOME) == "dead") pick("dead")
+                    else weighted("active" to 60, "recovered" to 40)
+
+                vhf.SAMPLES_COLLECTED -> weighted("yes" to 75, "no" to 25)
+                vhf.PRELIMINARY_RESULT ->
+                    if (caseType == "confirmed") pick("positive")
+                    else weighted("positive" to 25, "negative" to 55, "pending" to 20)
+
+                vhf.FINAL_RESULT -> when (preliminary) {
+                    "positive" -> pick("positive")
+                    "negative" -> pick("negative")
+                    else -> weighted("positive" to 30, "negative" to 70)
+                }
+
+                vhf.FINAL_CLASSIFICATION -> when {
+                    finalResult == "positive" || preliminary == "positive" || caseType == "confirmed" -> pick("confirmed")
+                    finalResult == "negative" || preliminary == "negative" -> pick("not-a-case")
+                    caseType == "probable" -> pick("probable")
+                    else -> weighted("probable" to 50, "not-a-case" to 50)
+                }
+
+                else -> null
+            }
+        }
+
+        private fun commonSpecifyText(linkId: String, t: String, random: Random): String? = when {
             linkId.startsWith("others-specify") -> OTHER_DISEASES.random(random)
             t.contains("health facility") || t.contains("vaccination center") ||
                     t.contains("vaccination site") || t.contains("site name") ->
@@ -1057,6 +1169,9 @@ object SyntheticDataGenerator {
                     val span = ((event.time - start.time) / DAY_MS).toInt() - 7
                     if (span > 0) shift(start, random.nextInt(0, span)) else shift(event, -14)
                 }
+
+                Regex("\\b(contact|exposure|departure|arrival)\\b").containsMatchIn(t) ->
+                    shift(event, -random.nextInt(5, 22)) // within the 21-day incubation window
 
                 Regex("\\b(onset|symptoms?|rash|paralysis)\\b").containsMatchIn(t) ->
                     shift(event, -random.nextInt(1, 7))
@@ -1153,6 +1268,47 @@ object SyntheticDataGenerator {
     }
 
     private const val DAY_MS = 24L * 60 * 60 * 1000
+
+    private val OTHER_VHF = listOf(
+        "Crimean-Congo haemorrhagic fever", "Rift Valley fever", "Yellow fever", "Lassa fever",
+        "Dengue haemorrhagic fever"
+    )
+    private val OTHER_SYMPTOMS = listOf(
+        "Abdominal pain", "Joint pain", "Sore throat", "Hiccups", "Red eyes", "Difficulty swallowing"
+    )
+    private val OTHER_PLACES_OF_DEATH = listOf("On the way to hospital", "Traditional healer's home", "Church")
+    private val OTHER_RELATIONSHIPS = listOf("Neighbour", "Colleague", "Classmate", "Church member")
+    private val OTHER_ANIMALS = listOf("Antelope", "Duiker", "Bush pig", "Porcupine")
+    private val OTHER_ANIMAL_EXPOSURES = listOf("Hunting", "Skinning bushmeat", "Cleaning animal pens")
+    private val OTHER_PPE = listOf("Face shield", "Gumboots", "Apron")
+    private val OTHER_SAMPLES = listOf("Oral swab", "Semen", "Breast milk")
+    private val OTHER_LAB_TESTS = listOf("Virus isolation", "IgM serology", "GeneXpert Ebola")
+    private val OTHER_SETTINGS = listOf("School", "Market", "Place of worship", "Matatu stage")
+    private val OTHER_CONTACT_TYPES = listOf(
+        "Shared utensils", "Washed the patient's clothes", "Cared for the patient at home"
+    )
+    private val OTHER_INFORMANTS = listOf("Neighbour", "Community health promoter", "Village elder")
+    private val LABORATORIES = listOf(
+        "KEMRI VHF Laboratory, Nairobi", "National Public Health Laboratory", "KEMRI-CDC Kisumu"
+    )
+    private val ANTIBIOTICS = listOf("Ceftriaxone", "Amoxicillin", "Ciprofloxacin", "Metronidazole")
+    private val EBOLA_VACCINES = listOf("Ervebo (rVSV-ZEBOV)", "Zabdeno / Mvabea")
+    private val OCCUPATIONS = listOf(
+        "Teacher", "Farmer", "Nurse", "Trader", "Driver", "Miner", "Hunter", "Butcher", "Clinical officer"
+    )
+    private val BLEEDING_SITES = listOf("Gums", "Nose", "Vomit", "Stool", "Injection sites", "Eyes")
+    private val TREATMENTS = listOf(
+        "Oral rehydration salts and paracetamol",
+        "IV fluids, antiemetics and analgesics",
+        "Supportive care in the isolation unit",
+        "IV fluids, antimalarials pending results and oxygen"
+    )
+    private val LAB_NARRATIONS = listOf(
+        "Sample received in good condition and tested by RT-PCR.",
+        "Sample triple-packaged and transported under cold chain.",
+        "Result shared with the county rapid response team.",
+        "Repeat sample requested for confirmation."
+    )
 
     private val COUNTRIES = listOf("Uganda", "Tanzania", "South Sudan", "Ethiopia", "Somalia", "Rwanda")
     private val CO_INFECTIONS = listOf("HIV", "Tuberculosis", "Malaria", "Pneumonia", "HIV and Tuberculosis")
