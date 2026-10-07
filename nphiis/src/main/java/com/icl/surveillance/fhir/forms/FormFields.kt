@@ -218,6 +218,10 @@ object FormFields {
     /** Viral Hemorrhagic Fever case investigation (vhf-case.json). Name, sex, date of birth,
      *  residence and onset reuse [Person], [Residence] and [EVENT_DATE]. */
     object Vhf {
+        /** Laboratory results follow-up form (title = its Encounter.reasonCode). */
+        const val LAB_FORM = "vhf-lab-results.json"
+        const val LAB_TITLE = "VHF Laboratory Results"
+
         const val DISEASE = "vhf-disease"
         const val CASE_TYPE = "vhf-case-type"
         const val NATIONAL_ID = "vhf-national-id"

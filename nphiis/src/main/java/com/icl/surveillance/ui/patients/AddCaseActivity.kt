@@ -19,16 +19,20 @@ import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import com.google.android.material.button.MaterialButton
 import com.icl.surveillance.R
-import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FRAGMENT_TAG
 import com.icl.surveillance.databinding.ActivityAddCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.LocationUtils
 import com.icl.surveillance.utils.ProgressDialogManager
 import com.icl.surveillance.viewmodels.ScreenerViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,9 +41,6 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.Type
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Date
 
 class AddCaseActivity : AppCompatActivity() {
     private val fhirEngine: FhirEngine by lazy {
@@ -70,6 +71,8 @@ class AddCaseActivity : AppCompatActivity() {
                     SaveCaseConfig(SaveCaseType.LAB, "AFP 60 Day Follow Up"),
             "afp-itd-lab.json" to
                     SaveCaseConfig(SaveCaseType.LAB, "AFP ITD Lab Information"),
+            FormFields.Vhf.LAB_FORM to
+                    SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.LAB_TITLE),
             "vl-case-lab-information.json" to
                     SaveCaseConfig(SaveCaseType.LAB, "VL Laboratory Examination"),
             "vl-case-sixMonthsFollowup.json" to
@@ -415,7 +418,8 @@ class AddCaseActivity : AppCompatActivity() {
             "afp-case-stool-lab-results.json",
             "afp-itd-lab.json",
             "afp-final-lab-results.json",
-            "vl-case-lab-information.json" -> true
+            "vl-case-lab-information.json",
+            FormFields.Vhf.LAB_FORM -> true
 
             else -> false
         }
