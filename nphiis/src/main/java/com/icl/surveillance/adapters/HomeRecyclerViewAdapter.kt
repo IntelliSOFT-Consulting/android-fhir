@@ -54,6 +54,7 @@ class LayoutViewHolder(
             HomeViewModel.Layout.CASE -> R.string.home_subtitle_case_management
             HomeViewModel.Layout.SOCIAL -> R.string.home_subtitle_social
             HomeViewModel.Layout.SURVEY -> R.string.home_subtitle_surveys
+            HomeViewModel.Layout.ADAM -> R.string.adam
         }
     }
 

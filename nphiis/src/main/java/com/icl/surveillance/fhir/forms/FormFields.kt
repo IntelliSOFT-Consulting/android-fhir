@@ -226,6 +226,10 @@ object FormFields {
         const val NEXT_OF_KIN = "vhf-next-of-kin"
         const val NEXT_OF_KIN_PHONE = "vhf-next-of-kin-phone"
         const val OUTCOME = "vhf-outcome"
+        const val CASE_STATUS = "vhf-case-status"
+        const val SAMPLES_COLLECTED = "vhf-samples-collected"
+        const val PRELIMINARY_RESULT = "vhf-preliminary-result"
+        const val FINAL_RESULT = "vhf-final-result"
         const val FINAL_CLASSIFICATION = "vhf-final-classification"
     }
 

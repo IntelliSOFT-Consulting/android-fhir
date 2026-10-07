@@ -372,54 +372,25 @@ class SummarizedActivity : AppCompatActivity() {
                             ).show()
                         }
 
-                        CaseSlugs.MPOX_REGISTER -> {
-                            FormatterClass().saveSharedPref(
-                                "questionnaire",
-                                "mpox-register.json",
-                                this@SummarizedActivity
-                            )
-                            val patientId =
-                                FormatterClass().getSharedPref(
-                                    "resourceId",
-                                    this@SummarizedActivity
-                                )
-
-                            val intent = Intent(
-                                this@SummarizedActivity,
-                                EditChecklistActivity::class.java
-                            ).apply {
-                                putExtra("questionnaire_id", patientId)
-                            }
-                            startActivity(intent)
-                        }
-
-                        CaseSlugs.MEASLES -> {
-                            FormatterClass().saveSharedPref(
-                                "questionnaire",
-                                "add-case.json",
-                                this@SummarizedActivity
-                            )
-                            val patientId =
-                                FormatterClass().getSharedPref(
-                                    "resourceId",
-                                    this@SummarizedActivity
-                                )
-
-                            val intent = Intent(
-                                this@SummarizedActivity,
-                                EditChecklistActivity::class.java
-                            ).apply {
-                                putExtra("questionnaire_id", patientId)
-                            }
-                            startActivity(intent)
-                        }
-
                         else -> {
-                            Toast.makeText(
-                                this@SummarizedActivity,
-                                "Coming soon",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            // Every questionnaire-based module edits its saved response in place.
+                            val questionnaireFile = questionnaireFileFor(slug)
+                            if (questionnaireFile.isEmpty()) {
+                                Toast.makeText(
+                                    this@SummarizedActivity,
+                                    "Editing is not available for this record",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                FormatterClass().saveSharedPref(
+                                    "questionnaire",
+                                    questionnaireFile,
+                                    this@SummarizedActivity
+                                )
+                                startActivity(
+                                    Intent(this@SummarizedActivity, EditChecklistActivity::class.java)
+                                )
+                            }
                         }
                     }
 
@@ -512,10 +483,9 @@ class SummarizedActivity : AppCompatActivity() {
         return age
     }
 
-    fun parseFromAssets(context: Context, latestEncounter: String): List<OutputGroup> {
-        var outputGroups: List<OutputGroup> = emptyList()
-
-        val assets = when (latestEncounter) {
+    /** Questionnaire asset of a module (case-list slug); empty when the module has none. */
+    private fun questionnaireFileFor(slug: String): String {
+        return when (slug) {
             CaseSlugs.MEASLES -> "add-case.json"
             CaseSlugs.AFP -> "afp-case.json"
             CaseSlugs.VL -> "vl-case.json"
@@ -542,6 +512,12 @@ class SummarizedActivity : AppCompatActivity() {
 
             else -> ""
         }
+    }
+
+    fun parseFromAssets(context: Context, latestEncounter: String): List<OutputGroup> {
+        var outputGroups: List<OutputGroup> = emptyList()
+
+        val assets = questionnaireFileFor(latestEncounter)
         try {
             if (assets.isNotEmpty()) {
                 val jsonContent = context.assets.open(assets)

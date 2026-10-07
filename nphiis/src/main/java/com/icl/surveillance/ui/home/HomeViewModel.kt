@@ -73,7 +73,7 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         // ADaM
         VHF(
             R.drawable.searching,
-            R.string.vhf_form, ADAM_STAGE, 50
+            R.string.vhf_form, HomeViewModel.ADAM_STAGE, 50
         ),
 
         // Mass
@@ -177,7 +177,7 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         ),
         ADAM(
             R.drawable.virus,
-            R.string.adam, ADAM_STAGE
+            R.string.adam, HomeViewModel.ADAM_STAGE
         )
     }
 
