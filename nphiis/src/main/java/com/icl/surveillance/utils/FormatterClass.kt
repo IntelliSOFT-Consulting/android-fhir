@@ -196,13 +196,6 @@ class FormatterClass {
         return json?.let { Gson().fromJson(it, object : TypeToken<List<String>>() {}.type) }
     }
 
-    fun String.toSlug(): String {
-        return this.trim() // remove leading/trailing spaces
-            .lowercase() // make all lowercase
-            .replace("[^a-z0-9\\s-]".toRegex(), "") // remove special characters
-            .replace("\\s+".toRegex(), "-") // replace spaces with hyphens
-            .replace("-+".toRegex(), "-") // collapse multiple hyphens
-    }
 
     fun generateInitials(source: String): String {
         if (source.isEmpty()) return "XXX"

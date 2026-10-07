@@ -15,21 +15,33 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.SearchResult
 import com.google.android.fhir.datacapture.extensions.asStringValue
 import com.google.android.fhir.datacapture.extensions.logicalId
+import com.google.android.fhir.get
 import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
-import com.google.android.fhir.search.revInclude
-import com.google.android.fhir.search.search
-import com.google.android.fhir.get
 import com.google.android.fhir.search.filter.ReferenceParamFilterCriterion
 import com.google.android.fhir.search.filter.TokenParamFilterCriterion
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
+import com.google.android.fhir.search.revInclude
+import com.google.android.fhir.search.search
+import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.FhirSystems
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.toCaseSlug
+import com.icl.surveillance.fhir.forms.valueOf
 import com.icl.surveillance.models.QuestionnaireAnswer
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.network.RetrofitCallsAuthentication
 import com.icl.surveillance.utils.FormatterClass
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+import kotlin.String
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -37,9 +49,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import java.time.LocalDate
-import java.time.ZoneId
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.hl7.fhir.r4.model.BooleanType
@@ -65,11 +76,6 @@ import org.hl7.fhir.r4.model.TimeType
 import org.hl7.fhir.r4.model.UriType
 import org.json.JSONObject
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
-import kotlin.String
 
 class PatientListViewModel(
     application: Application, private val fhirEngine: FhirEngine
@@ -126,7 +132,7 @@ class PatientListViewModel(
                     }
 
                     val tag =
-                        wrapper.resource.meta.tag.find { it.system.endsWith("/patient-managingLocation") }?.code
+                        wrapper.resource.meta.tag.find { it.system.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code
 
                     if (matchingIdentifier != null) {
 
@@ -134,45 +140,34 @@ class PatientListViewModel(
                             wrapper.revIncluded?.get(ResourceType.Observation to Observation.SUBJECT.paramName) as? List<Observation>
                                 ?: emptyList()
                         val epid =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "EPID" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FhirSystems.EPID)
 
                         val county =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "a4-county" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.Residence.COUNTY)
                         val subCounty =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "a3-sub-county" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.Residence.SUB_COUNTY)
                         val onset =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "728034137219" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.EVENT_DATE)
                         val caseList =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "865158268604" }?.value?.asStringValue()
-                                ?: "Case"
+                            obs.valueOf(FormFields.Measles.CASE_OR_LINE_LIST, default = "Case")
 
 
                         val campaignDay =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "campaign_day" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxTallySheet.CAMPAIGN_DAY)
                         val teamNumber =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "team_no" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxTallySheet.TEAM_NUMBER)
                         val supervisorName =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "supervisor_name" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxTallySheet.SUPERVISOR_NAME)
                         var occupation =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "occupation" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.Rcce.OCCUPATION)
                         val occupationOther =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "occupation_other" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.Rcce.OCCUPATION_OTHER)
 
                         if (occupation == "Other") {
                             occupation = occupationOther
                         }
                         val vaccinationCenter =
-                            obs.firstOrNull { it.code.codingFirstRep.code == "vaccination_center" }?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxRegister.VACCINATION_CENTER)
                         val logicalId = matchingIdentifier.value
                         val encounterQuestionnaire = matchingIdentifier.system
                         PatientItem(
@@ -260,7 +255,7 @@ class PatientListViewModel(
         while (true) {
             val page = withContext(Dispatchers.IO) {
                 fhirEngine.search<Encounter> {
-                    filter(Encounter.REASON_CODE, { value = of(RUMOR_CASE_NAME) })
+                    filter(Encounter.REASON_CODE, { value = of(CaseTypes.RUMOR) })
                     count = RUMOR_PAGE_SIZE
                     from = offset
                 }
@@ -284,7 +279,7 @@ class PatientListViewModel(
                         )
                         filter(
                             Observation.CODE,
-                            *RUMOR_LIST_CODES.map<String, TokenParamFilterCriterion.() -> Unit> { code ->
+                            *FormFields.Rumor.LIST_FIELDS.map<String, TokenParamFilterCriterion.() -> Unit> { code ->
                                 { value = of(code) }
                             }.toTypedArray()
                         )
@@ -302,24 +297,23 @@ class PatientListViewModel(
 
     /** Facility the record belongs to; older records may only have it on the Patient. */
     private suspend fun jurisdictionTag(encounter: Encounter): String? {
-        encounter.meta.tag.firstOrNull { it.system?.endsWith("-managingLocation") == true }
+        encounter.meta.tag.firstOrNull { it.system?.endsWith(FhirSystems.MANAGING_LOCATION_SUFFIX) == true }
             ?.code?.let { return it }
         val patientId = encounter.subject?.referenceElement?.idPart ?: return null
         val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull() ?: return null
-        return patient.meta.tag.firstOrNull { it.system?.endsWith("/patient-managingLocation") == true }?.code
+        return patient.meta.tag.firstOrNull { it.system?.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) == true }?.code
     }
 
     private fun Encounter.toRumorItem(observations: List<Observation>): RumorItem {
-        fun answer(vararg codes: String): String = codes.firstNotNullOfOrNull { code ->
-            observations.firstOrNull { it.code.codingFirstRep.code == code }
-                ?.value?.asStringValue()?.takeIf { it.isNotBlank() }
-        } ?: ""
-
-        var cadre = answer("683805917262")
-        if (cadre.contains("Other", ignoreCase = true)) cadre = answer("223529605110").ifBlank { cadre }
-        var agency = answer("683805917111")
-        if (agency.contains("Other", ignoreCase = true)) agency = answer("22311605110").ifBlank { agency }
-        val created = identifier.firstOrNull { it.system == "system-creation" }?.value ?: ""
+        var cadre = observations.valueOf(FormFields.Rumor.REPORTING_CADRE)
+        if (cadre.contains("Other", ignoreCase = true)) {
+            cadre = observations.valueOf(FormFields.Rumor.REPORTING_CADRE_OTHER).ifBlank { cadre }
+        }
+        var agency = observations.valueOf(FormFields.Rumor.AGENCY)
+        if (agency.contains("Other", ignoreCase = true)) {
+            agency = observations.valueOf(FormFields.Rumor.AGENCY_OTHER).ifBlank { agency }
+        }
+        val created = identifier.firstOrNull { it.system == FhirSystems.SYSTEM_CREATION }?.value ?: ""
 
         return RumorItem(
             id = logicalId,
@@ -329,20 +323,16 @@ class PatientListViewModel(
             directorate = agency,
             // Shown as "Date Reported" (the form has no division question).
             division = created.substringBefore(" "),
-            village = answer("871818396498"),
-            subCounty = answer(
-                "819946803642", "819946803642_sub_county", "819946803642_county", "819946803642_national"
-            ),
-            county = answer(
-                "294367770999", "294367770999_sub_county", "294367770999_county", "294367770999_national"
-            ),
+            village = observations.valueOf(FormFields.Rumor.VILLAGE),
+            subCounty = observations.valueOf(*FormFields.ReportingSite.SUB_COUNTY_VARIANTS.toTypedArray()),
+            county = observations.valueOf(*FormFields.ReportingSite.COUNTY_VARIANTS.toTypedArray()),
             lastUpdated = created,
             sourceTag = jurisdictionTagOrEmpty(),
         )
     }
 
     private fun Encounter.jurisdictionTagOrEmpty() =
-        meta.tag.firstOrNull { it.system?.endsWith("-managingLocation") == true }?.code ?: ""
+        meta.tag.firstOrNull { it.system?.endsWith(FhirSystems.MANAGING_LOCATION_SUFFIX) == true }?.code ?: ""
 
 
     private suspend fun loadSupervisorChecklistCases(isSummary: Boolean): List<PatientItem> {
@@ -378,9 +368,9 @@ class PatientListViewModel(
         val tag =
             response.meta.tag.find { it.system.endsWith("/questionnaire-managingLocation") }?.code
 
-        val county = getAnswerValueAsString(response.item, "294367770999")
-        val subCounty = getAnswerValueAsString(response.item, "819946803642")
-        var caseOnsetDate = getAnswerValueAsString(response.item, "728034137219")
+        val county = getAnswerValueAsString(response.item, FormFields.ReportingSite.COUNTY)
+        val subCounty = getAnswerValueAsString(response.item, FormFields.ReportingSite.SUB_COUNTY)
+        var caseOnsetDate = getAnswerValueAsString(response.item, FormFields.EVENT_DATE)
 
         val siteName = getAnswerValueAsString(response.item, "site_name")
         val teamNumber = getAnswerValueAsString(response.item, "site_type")
@@ -407,7 +397,7 @@ class PatientListViewModel(
             id = (index + 1).toString(),
             resourceId = response.logicalId,
             encounterId = response.logicalId,
-            name = response.item.firstOrNull()?.item?.firstOrNull { it.linkId == "294367770999" }?.answer?.firstOrNull()?.valueReference?.display
+            name = response.item.firstOrNull()?.item?.firstOrNull { it.linkId == FormFields.ReportingSite.COUNTY }?.answer?.firstOrNull()?.valueReference?.display
                 ?: "",
             gender = "",
             phone = "",
@@ -431,8 +421,8 @@ class PatientListViewModel(
         index: Int, patient: Patient, nameQuery: String, isSummary: Boolean
     ): PatientItem? {
         val matchingIdentifier = when (nameQuery) {
-            "rcce" -> patient.identifier.find {
-                it.system == "rcce-community-questionnaire" || it.system == "rcce-countysubcounty-interface"
+            CaseSlugs.RCCE -> patient.identifier.find {
+                it.system == CaseSlugs.RCCE_COMMUNITY || it.system == CaseSlugs.RCCE_COUNTY
             }
 
             else -> patient.identifier.find { it.system == nameQuery }
@@ -458,8 +448,8 @@ class PatientListViewModel(
         // Disease-specific enrichment
         val childEncounter = loadChildEncounter(data.resourceId, logicalId)
         data = when (nameQuery) {
-            "vl-case-information" -> enrichLabResultsForVL(childEncounter, data)
-            "afp-case-information" -> enrichLabResultsForAFP(childEncounter, data)
+            CaseSlugs.VL -> enrichLabResultsForVL(childEncounter, data)
+            CaseSlugs.AFP -> enrichLabResultsForAFP(childEncounter, data)
             else -> enrichLabResultsForMeasles(childEncounter, data)
         }
 
@@ -482,13 +472,11 @@ class PatientListViewModel(
 
         // Extract Measles result with empty fallback
         val measles =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "2437874573" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf("2437874573")
 
         // Extract Rubella result with empty fallback
         val rubella =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "2636544254" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf("2636544254")
 
         // Classification logic
         val status = when {
@@ -529,28 +517,22 @@ class PatientListViewModel(
 
         // Extract individual lab results with empty string fallback
         val rapidResults =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "286501145394" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf(FormFields.VlLab.RAPID_TEST_RESULT)
 
         val datResult =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "839711142610" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf(FormFields.VlLab.DAT_RESULT)
 
         val aResult =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "108406555539" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf(FormFields.VlLab.ASPIRATE_RESULT)
 
         val mResult =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "320819009291" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf(FormFields.VlLab.MICROSCOPY_RESULT)
 
         var status =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "655245793432" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf(FormFields.VlLab.FINAL_DIAGNOSIS)
 
         val otherStatus =
-            obsList.firstOrNull { it.resource.code.codingFirstRep.code == "843481153132" }?.resource?.value?.asStringValue()
-                ?: ""
+            obsList.valueOf(FormFields.VlLab.FINAL_DIAGNOSIS_OTHER)
 
         if (status == "Other (specify)") {
             status = otherStatus
@@ -581,7 +563,7 @@ class PatientListViewModel(
         val isSummary = nameQuery.contains("mpox")
 
         when (nameQuery) {
-            "mpox-tally-sheet" -> {
+            CaseSlugs.MPOX_TALLY_SHEET -> {
                 val questionnaireData: MutableList<PatientItem> = mutableListOf()
                 fhirEngine.search<MeasureReport> {
 
@@ -589,7 +571,7 @@ class PatientListViewModel(
                 }
                     .mapIndexedNotNull { index, data ->
                         val tag =
-                            data.resource.meta.tag.find { it.system.endsWith("/measure-managingLocation") }?.code
+                            data.resource.meta.tag.find { it.system.endsWith("/measure" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code
 
                         val identifier = data.resource.identifier.find {
                             it.system == "geo-location-details"
@@ -608,7 +590,7 @@ class PatientListViewModel(
                                     searchResult.first().let {
                                         val encounterId = if (it.resource.hasIdentifier()) {
                                             val enco =
-                                                it.resource.identifier.find { id -> id.system == "mpox-tally-sheet" }
+                                                it.resource.identifier.find { id -> id.system == CaseSlugs.MPOX_TALLY_SHEET }
                                             if (enco != null) {
                                                 enco.value
                                             } else ""
@@ -619,28 +601,22 @@ class PatientListViewModel(
 
                                         // Create team_numberr
                                         val teamNumber =
-                                            observations.firstOrNull { it.code.codingFirstRep.code == "team_no" }?.value?.asStringValue()
-                                                ?: ""
+                                            observations.valueOf(FormFields.MpoxTallySheet.TEAM_NUMBER)
                                         // supervisor name
                                         val supervisorName =
-                                            observations.firstOrNull { it.code.codingFirstRep.code == "supervisor_name" }?.value?.asStringValue()
-                                                ?: ""
+                                            observations.valueOf(FormFields.MpoxTallySheet.SUPERVISOR_NAME)
                                         //County
                                         val county =
-                                            observations.firstOrNull { it.code.codingFirstRep.code == "294367770999" }?.value?.asStringValue()
-                                                ?: ""
+                                            observations.valueOf(FormFields.ReportingSite.COUNTY)
                                         // SubCounty
                                         val subCounty =
-                                            observations.firstOrNull { it.code.codingFirstRep.code == "819946803642" }?.value?.asStringValue()
-                                                ?: ""
+                                            observations.valueOf(FormFields.ReportingSite.SUB_COUNTY)
                                         // Campaign Day
                                         val campaignDay =
-                                            observations.firstOrNull { it.code.codingFirstRep.code == "campaign_day" }?.value?.asStringValue()
-                                                ?: ""
+                                            observations.valueOf(FormFields.MpoxTallySheet.CAMPAIGN_DAY)
 
                                         val formatted =
-                                            observations.firstOrNull { it.code.codingFirstRep.code == "728034137219" }?.value?.asStringValue()
-                                                ?: ""
+                                            observations.valueOf(FormFields.EVENT_DATE)
 
                                         if (county.isNotEmpty()) {
                                             val resource = PatientItem(
@@ -688,7 +664,7 @@ class PatientListViewModel(
                 return questionnaireData.sortedByDescending { it.lastUpdated }
             }
 
-            "mpox-register" -> {
+            CaseSlugs.MPOX_REGISTER -> {
 
                 val questionnaireData: MutableList<PatientItem> = mutableListOf()
                 fhirEngine.search<Patient> {
@@ -697,7 +673,7 @@ class PatientListViewModel(
                     revInclude<Observation>(Observation.SUBJECT)
                 }.mapIndexedNotNull { index, fhirPatient ->
                     val tag =
-                        fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient-managingLocation") }?.code
+                        fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code
 
                     val matchingIdentifier = fhirPatient.resource.identifier.find {
                         it.system == nameQuery
@@ -738,7 +714,7 @@ class PatientListViewModel(
                 return questionnaireData.sortedByDescending { it.lastUpdated }
             }
 
-            "mpox-supervisor-checklist" -> {
+            CaseSlugs.MPOX_SUPERVISOR_CHECKLIST -> {
                 var county = ""
                 var subCounty = ""
                 val questionnaireData: MutableList<PatientItem> = mutableListOf()
@@ -757,18 +733,8 @@ class PatientListViewModel(
 
                         if (fhirPatient.resource.hasIdentifier()) {
 
-                            val countyLinkIds = listOf(
-                                "294367770999",
-                                "294367770999_sub_county",
-                                "294367770999_county",
-                                "294367770999_national"
-                            )
-                            val subCountyLinkIds = listOf(
-                                "819946803642",
-                                "819946803642_sub_county",
-                                "819946803642_county",
-                                "819946803642_national"
-                            )
+                            val countyLinkIds = FormFields.ReportingSite.COUNTY_VARIANTS
+                            val subCountyLinkIds = FormFields.ReportingSite.SUB_COUNTY_VARIANTS
                             val extractedAnswers = extractStructuredAnswers(fhirPatient.resource)
 
                             county = findFirstAnswer(
@@ -781,7 +747,7 @@ class PatientListViewModel(
                             ).ifBlank { subCounty }
 
                             var caseOnsetDate =
-                                getAnswerValueAsString(fhirPatient.resource.item, "728034137219")
+                                getAnswerValueAsString(fhirPatient.resource.item, FormFields.EVENT_DATE)
 
                             val siteName =
                                 getAnswerValueAsString(fhirPatient.resource.item, "site_name")
@@ -820,7 +786,7 @@ class PatientListViewModel(
                                 id = (index + 1).toString(),
                                 resourceId = fhirPatient.resource.logicalId,
                                 encounterId = fhirPatient.resource.logicalId,
-                                name = fhirPatient.resource.item.firstOrNull()?.item?.firstOrNull() { it.linkId == "294367770999" }?.answer?.firstOrNull()?.valueReference?.display
+                                name = fhirPatient.resource.item.firstOrNull()?.item?.firstOrNull() { it.linkId == FormFields.ReportingSite.COUNTY }?.answer?.firstOrNull()?.valueReference?.display
                                     ?: "",
                                 gender = "",
                                 phone = "",
@@ -862,11 +828,11 @@ class PatientListViewModel(
                     batches?.ensureLoaded(index)
 
                     val tag =
-                        fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient-managingLocation") }?.code
+                        fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code
 
                     val matchingIdentifier = when (nameQuery) {
-                        "rcce" -> fhirPatient.resource.identifier.find {
-                            it.system == "rcce-community-questionnaire" || it.system == "rcce-countysubcounty-interface"
+                        CaseSlugs.RCCE -> fhirPatient.resource.identifier.find {
+                            it.system == CaseSlugs.RCCE_COMMUNITY || it.system == CaseSlugs.RCCE_COUNTY
                         }
 
                         else -> fhirPatient.resource.identifier.find {
@@ -890,51 +856,40 @@ class PatientListViewModel(
                             }.take(500)
 
                         val epid =
-                            if (epidIdenfifier != null) epidIdenfifier.value else obs.firstOrNull { it.resource.code.codingFirstRep.code == "EPID" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            if (epidIdenfifier != null) epidIdenfifier.value else obs.valueOf(FhirSystems.EPID)
 
                         var county =
-                            if (fhirPatient.resource.hasAddress()) if (fhirPatient.resource.addressFirstRep.hasCity()) fhirPatient.resource.addressFirstRep.city else "" else obs.firstOrNull { it.resource.code.codingFirstRep.code == "a4-county" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            if (fhirPatient.resource.hasAddress()) if (fhirPatient.resource.addressFirstRep.hasCity()) fhirPatient.resource.addressFirstRep.city else "" else obs.valueOf(FormFields.Residence.COUNTY)
                         var subCounty =
-                            if (fhirPatient.resource.hasAddress()) if (fhirPatient.resource.addressFirstRep.hasState()) fhirPatient.resource.addressFirstRep.state else "" else obs.firstOrNull { it.resource.code.codingFirstRep.code == "a3-sub-county" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            if (fhirPatient.resource.hasAddress()) if (fhirPatient.resource.addressFirstRep.hasState()) fhirPatient.resource.addressFirstRep.state else "" else obs.valueOf(FormFields.Residence.SUB_COUNTY)
                         val onset =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "728034137219" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.EVENT_DATE)
                         val caseList =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "865158268604" }?.resource?.value?.asStringValue()
-                                ?: "Case"
+                            obs.valueOf(FormFields.Measles.CASE_OR_LINE_LIST, default = "Case")
 
                         val campaignDay =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "campaign_day" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxTallySheet.CAMPAIGN_DAY)
                         val teamNumber =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "team_no" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxTallySheet.TEAM_NUMBER)
                         val supervisorName =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "supervisor_name" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxTallySheet.SUPERVISOR_NAME)
                         var occupation =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "occupation" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.Rcce.OCCUPATION)
                         val occupationOther =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "occupation_other" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.Rcce.OCCUPATION_OTHER)
 
                         if (occupation == "Other") {
                             occupation = occupationOther
                         }
                         val vaccinationCenter =
-                            obs.firstOrNull { it.resource.code.codingFirstRep.code == "vaccination_center" }?.resource?.value?.asStringValue()
-                                ?: ""
+                            obs.valueOf(FormFields.MpoxRegister.VACCINATION_CENTER)
 
 
                         val childEncounter = batches?.childEncountersFor(logicalId)
                             ?: loadChildEncounter(data.resourceId, logicalId)
 
                         when (nameQuery) {
-                            "rcce" -> {
+                            CaseSlugs.RCCE -> {
                                 val res = batches?.responsesFor(data.resourceId)?.take(5)
                                     ?: fhirEngine.search<QuestionnaireResponse> {
                                         filter(
@@ -945,36 +900,11 @@ class PatientListViewModel(
                                 if (res.isNotEmpty()) {
                                     val response = res.first().resource
                                     val extractedAnswers = extractStructuredAnswers(response)
-                                    val countyLinkIds = listOf(
-                                        "294367770999",
-                                        "294367770999_sub_county",
-                                        "294367770999_county",
-                                        "294367770999_national"
-                                    )
-                                    val subCountyLinkIds = listOf(
-                                        "819946803642",
-                                        "819946803642_sub_county",
-                                        "819946803642_county",
-                                        "819946803642_national"
-                                    )
-                                    val wardLinkIds = listOf(
-                                        "819943434",
-                                        "819943434_sub_county",
-                                        "819943434_county",
-                                        "819943434_national"
-                                    )
-                                    val reportingSiteLinkIds = listOf(
-                                        "819946803677",
-                                        "819946803677_sub_county",
-                                        "819946803677_county",
-                                        "819946803677_national"
-                                    )
-                                    val facilityTypeLinkIds = listOf(
-                                        "438862163919",
-                                        "438862163919_sub_county",
-                                        "438862163919_county",
-                                        "438862163919_national"
-                                    )
+                                    val countyLinkIds = FormFields.ReportingSite.COUNTY_VARIANTS
+                                    val subCountyLinkIds = FormFields.ReportingSite.SUB_COUNTY_VARIANTS
+                                    val wardLinkIds = FormFields.ReportingSite.WARD_VARIANTS
+                                    val reportingSiteLinkIds = FormFields.ReportingSite.FACILITY_VARIANTS
+                                    val facilityTypeLinkIds = FormFields.ReportingSite.FACILITY_TYPE_VARIANTS
 
                                     county = findFirstAnswer(
                                         extractedAnswers,
@@ -995,7 +925,7 @@ class PatientListViewModel(
                                     }
 
                                     val respondentSex =
-                                        findFirstAnswer(extractedAnswers, listOf("929966324957"))
+                                        findFirstAnswer(extractedAnswers, listOf(FormFields.Person.SEX))
                                     val respondentAge =
                                         findFirstAnswer(extractedAnswers, listOf("age"))
                                     val village =
@@ -1028,7 +958,7 @@ class PatientListViewModel(
                                 }
                             }
 
-                            "moh-505-reporting-form" -> {
+                            CaseSlugs.MOH_505 -> {
 
                                 val res = batches?.responsesFor(data.resourceId)?.take(5)
                                     ?: fhirEngine.search<QuestionnaireResponse> {
@@ -1040,18 +970,8 @@ class PatientListViewModel(
                                 if (res.isNotEmpty()) {
                                     val response = res.first().resource
                                     val extractedAnswers = extractStructuredAnswers(response)
-                                    val countyLinkIds = listOf(
-                                        "294367770999",
-                                        "294367770999_sub_county",
-                                        "294367770999_county",
-                                        "294367770999_national"
-                                    ) // check in order
-                                    val subCountyLinkIds = listOf(
-                                        "819946803642",
-                                        "819946803642_sub_county",
-                                        "819946803642_county",
-                                        "819946803642_national"
-                                    )
+                                    val countyLinkIds = FormFields.ReportingSite.COUNTY_VARIANTS // check in order
+                                    val subCountyLinkIds = FormFields.ReportingSite.SUB_COUNTY_VARIANTS
 
                                     county = try {
                                         countyLinkIds.firstNotNullOfOrNull { id ->
@@ -1074,7 +994,7 @@ class PatientListViewModel(
 
                             }
 
-                            "vl-case-information" -> {
+                            CaseSlugs.VL -> {
 
                                 val childCaseInfoEncounter = childEncounter.firstOrNull {
                                     it.reasonCode == "VL Laboratory Examination"
@@ -1088,26 +1008,20 @@ class PatientListViewModel(
                                     }
                                     var results = "Pending Results"
                                     val rapidResults =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "286501145394" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.VlLab.RAPID_TEST_RESULT, default = "Pending")
                                     val datResult =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "839711142610" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.VlLab.DAT_RESULT, default = "Pending")
 
                                     val aResult =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "108406555539" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.VlLab.ASPIRATE_RESULT, default = "Pending")
                                     val mResult =
 
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "320819009291" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.VlLab.MICROSCOPY_RESULT, default = "Pending")
 
                                     var status =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "655245793432" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.VlLab.FINAL_DIAGNOSIS, default = "Pending")
                                     val otherStatus =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "843481153132" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.VlLab.FINAL_DIAGNOSIS_OTHER, default = "Pending")
 
                                     if (status == "Other (specify)") {
                                         status = otherStatus
@@ -1130,7 +1044,7 @@ class PatientListViewModel(
                                 }
                             }
 
-                            "afp-case-information" -> {
+                            CaseSlugs.AFP -> {
                                 data = processAfpCase(fhirEngine, childEncounter, data)
                             }
 
@@ -1150,12 +1064,10 @@ class PatientListViewModel(
                                     }
 
                                     measlesIgm =
-                                        obs1.firstOrNull { it.resource.code.codingFirstRep.code == "measles-igm" }?.resource?.value?.asStringValue()
-                                            ?: "Pending"
+                                        obs1.valueOf(FormFields.MeaslesLab.IGM_RESULT, default = "Pending")
 
                                     maxDays =
-                                        obs.firstOrNull { it.resource.code.codingFirstRep.code == "308128177300" }?.resource?.value?.asStringValue()
-                                            ?: ""
+                                        obs.valueOf(FormFields.Measles.MR_VACCINE_LAST_30_DAYS)
 
 
                                     finalClassification = when (measlesIgm.lowercase()) {
@@ -1303,22 +1215,15 @@ class PatientListViewModel(
                             }
 
                             val measlesIgm =
-                                obs1.firstOrNull { it.resource.code.codingFirstRep.code == "measles-igm" }?.resource?.value?.asStringValue()
-                                    ?: ""
+                                obs1.valueOf(FormFields.MeaslesLab.IGM_RESULT)
 
 
                             val finalClassification = when (measlesIgm.lowercase()) {
-                                "positive" -> obs1.firstOrNull {
-                                    it.resource.code.codingFirstRep.code == "final-confirm-classification"
-                                }?.resource?.value?.asStringValue() ?: ""
+                                "positive" -> obs1.valueOf("final-confirm-classification")
 
-                                "negative" -> obs1.firstOrNull {
-                                    it.resource.code.codingFirstRep.code == "final-negative-classification"
-                                }?.resource?.value?.asStringValue() ?: ""
+                                "negative" -> obs1.valueOf("final-negative-classification")
 
-                                else -> obs1.firstOrNull {
-                                    it.resource.code.codingFirstRep.code == "final-classification"
-                                }?.resource?.value?.asStringValue() ?: ""
+                                else -> obs1.valueOf(FormFields.MeaslesLab.FINAL_CLASSIFICATION)
                             }
 
                             item = item.copy(labResults = measlesIgm, status = finalClassification)
@@ -1332,17 +1237,13 @@ class PatientListViewModel(
                     }
 
                     val epid =
-                        obs.firstOrNull { it.resource.code.codingFirstRep.code == "EPID" }?.resource?.value?.asStringValue()
-                            ?: ""
+                        obs.valueOf(FhirSystems.EPID)
                     val county =
-                        obs.firstOrNull { it.resource.code.codingFirstRep.code == "a4-county" }?.resource?.value?.asStringValue()
-                            ?: ""
+                        obs.valueOf(FormFields.Residence.COUNTY)
                     val subCounty =
-                        obs.firstOrNull { it.resource.code.codingFirstRep.code == "a3-sub-county" }?.resource?.value?.asStringValue()
-                            ?: ""
+                        obs.valueOf(FormFields.Residence.SUB_COUNTY)
                     val onset =
-                        obs.firstOrNull { it.resource.code.codingFirstRep.code == "728034137219" }?.resource?.value?.asStringValue()
-                            ?: ""
+                        obs.valueOf(FormFields.EVENT_DATE)
 
                     item = item.copy(
                         encounterId = it.logicalId,
@@ -1383,7 +1284,7 @@ class PatientListViewModel(
                 // Convert the FHIR Patient resource to your PatientItem model
                 var data = fhirPatient.resource.toPatientItem(index + 1)
                 val tag =
-                    fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient-managingLocation") }?.code
+                    fhirPatient.resource.meta.tag.find { it.system.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code
 
                 val logicalId = matchingIdentifier.value
                 val obs = fhirEngine.search<Observation> {
@@ -1391,36 +1292,22 @@ class PatientListViewModel(
                         Observation.ENCOUNTER, { value = "Encounter/${logicalId}" })
                 }.take(500)
                 var mohName =
-                    obs.firstOrNull { it.resource.code.codingFirstRep.code == "683805917262" }?.resource?.value?.asStringValue()
-                        ?: ""
+                    obs.valueOf(FormFields.Rumor.REPORTING_CADRE)
                 val otherCadreName =
-                    obs.firstOrNull { it.resource.code.codingFirstRep.code == "223529605110" }?.resource?.value?.asStringValue()
-                        ?: ""
+                    obs.valueOf(FormFields.Rumor.REPORTING_CADRE_OTHER)
                 if (mohName.contains("Other")) {
                     mohName = otherCadreName
                 }
                 var agency =
-                    obs.firstOrNull { it.resource.code.codingFirstRep.code == "683805917111" }?.resource?.value?.asStringValue()
-                        ?: ""
+                    obs.valueOf(FormFields.Rumor.AGENCY)
                 var agencyOther =
-                    obs.firstOrNull { it.resource.code.codingFirstRep.code == "22311605110" }?.resource?.value?.asStringValue()
-                        ?: ""
+                    obs.valueOf(FormFields.Rumor.AGENCY_OTHER)
                 if (agency.contains("Other")) {
                     agency = agencyOther
                 }
 
-                val countyLinkIds = listOf(
-                    "294367770999",
-                    "294367770999_sub_county",
-                    "294367770999_county",
-                    "294367770999_national"
-                ) // check in order
-                val subCountyLinkIds = listOf(
-                    "819946803642",
-                    "819946803642_sub_county",
-                    "819946803642_county",
-                    "819946803642_national"
-                )
+                val countyLinkIds = FormFields.ReportingSite.COUNTY_VARIANTS // check in order
+                val subCountyLinkIds = FormFields.ReportingSite.SUB_COUNTY_VARIANTS
 
                 val county = try {
                     countyLinkIds.firstNotNullOfOrNull { id ->
@@ -1446,10 +1333,8 @@ class PatientListViewModel(
                     mohName = mohName,
 
                     directorate = agency,
-                    division = obs.firstOrNull { it.resource.code.codingFirstRep.code == "686990243396" }?.resource?.value?.asStringValue()
-                        ?: "",
-                    village = obs.firstOrNull { it.resource.code.codingFirstRep.code == "871818396498" }?.resource?.value?.asStringValue()
-                        ?: "",
+                    division = obs.valueOf("686990243396"),
+                    village = obs.valueOf(FormFields.Rumor.VILLAGE),
                     subCounty = subCounty ?: "",
                     county = county ?: "",
                     lastUpdated = data.lastUpdated,
@@ -1524,14 +1409,14 @@ class PatientListViewModel(
         }
 
         val resultsList = listOf(
-            obs1.getValue("286501145394"), // rapid
-            obs1.getValue("839711142610"), // dat
-            obs1.getValue("108406555539"), // aResult
-            obs1.getValue("320819009291")  // mResult
+            obs1.getValue(FormFields.VlLab.RAPID_TEST_RESULT), // rapid
+            obs1.getValue(FormFields.VlLab.DAT_RESULT), // dat
+            obs1.getValue(FormFields.VlLab.ASPIRATE_RESULT), // aResult
+            obs1.getValue(FormFields.VlLab.MICROSCOPY_RESULT)  // mResult
         ).map { it.lowercase() }
 
-        val status = obs1.getValue("655245793432").takeUnless { it == "Other (specify)" }
-            ?: obs1.getValue("843481153132")
+        val status = obs1.getValue(FormFields.VlLab.FINAL_DIAGNOSIS).takeUnless { it == "Other (specify)" }
+            ?: obs1.getValue(FormFields.VlLab.FINAL_DIAGNOSIS_OTHER)
 
         val results = when {
             resultsList.any { it == "positive" } -> "Positive"
@@ -1664,18 +1549,18 @@ class PatientListViewModel(
         val county = if (patient.hasAddress() && patient.addressFirstRep.hasCity()) {
             patient.addressFirstRep.city
         } else {
-            findObservationValue(observations, "a4-county")
+            findObservationValue(observations, FormFields.Residence.COUNTY)
         }
 
         val subCounty = if (patient.hasAddress() && patient.addressFirstRep.hasState()) {
             patient.addressFirstRep.state
         } else {
-            findObservationValue(observations, "a3-sub-county")
+            findObservationValue(observations, FormFields.Residence.SUB_COUNTY)
         }
 
         // Extract other observation values
-        val onset = findObservationValue(observations, "728034137219")
-        val caseList = findObservationValue(observations, "865158268604") ?: "Case"
+        val onset = findObservationValue(observations, FormFields.EVENT_DATE)
+        val caseList = findObservationValue(observations, FormFields.Measles.CASE_OR_LINE_LIST) ?: "Case"
         val campaignDay = findObservationValue(observations, "campaign_day")
         val teamNumber = findObservationValue(observations, "team_no")
         val supervisorName = findObservationValue(observations, "supervisor_name")
@@ -1709,16 +1594,16 @@ class PatientListViewModel(
         data: PatientItem, nameQuery: String, patientId: String
     ): PatientItem {
         return when (nameQuery) {
-            "moh-505-reporting-form" -> {
+            CaseSlugs.MOH_505 -> {
                 // Add specific processing for MOH 505 if needed
                 data
             }
 
-            "vl-case-information" -> {
+            CaseSlugs.VL -> {
                 processVLLabResults(data, patientId)
             }
 
-            "afp-case-information" -> {
+            CaseSlugs.AFP -> {
                 processAFPLabResults(data, patientId)
             }
 
@@ -1742,12 +1627,12 @@ class PatientListViewModel(
                     filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
                 }
 
-                val rapidResults = findObservationValue(obs, "286501145394") ?: "Pending"
-                val datResult = findObservationValue(obs, "839711142610") ?: "Pending"
-                val aResult = findObservationValue(obs, "108406555539") ?: "Pending"
-                val mResult = findObservationValue(obs, "320819009291") ?: "Pending"
-                var status = findObservationValue(obs, "655245793432") ?: "Pending"
-                val otherStatus = findObservationValue(obs, "843481153132") ?: "Pending"
+                val rapidResults = findObservationValue(obs, FormFields.VlLab.RAPID_TEST_RESULT) ?: "Pending"
+                val datResult = findObservationValue(obs, FormFields.VlLab.DAT_RESULT) ?: "Pending"
+                val aResult = findObservationValue(obs, FormFields.VlLab.ASPIRATE_RESULT) ?: "Pending"
+                val mResult = findObservationValue(obs, FormFields.VlLab.MICROSCOPY_RESULT) ?: "Pending"
+                var status = findObservationValue(obs, FormFields.VlLab.FINAL_DIAGNOSIS) ?: "Pending"
+                val otherStatus = findObservationValue(obs, FormFields.VlLab.FINAL_DIAGNOSIS_OTHER) ?: "Pending"
 
                 if (status == "Other (specify)") {
                     status = otherStatus
@@ -1864,8 +1749,8 @@ class PatientListViewModel(
 
     private fun findMatchingIdentifier(patient: Patient, nameQuery: String): Identifier? {
         return when (nameQuery) {
-            "rcce" -> patient.identifier.find {
-                it.system == "rcce-community-questionnaire" || it.system == "rcce-countysubcounty-interface"
+            CaseSlugs.RCCE -> patient.identifier.find {
+                it.system == CaseSlugs.RCCE_COMMUNITY || it.system == CaseSlugs.RCCE_COUNTY
             }
 
             else -> patient.identifier.find { it.system == nameQuery }
@@ -1911,24 +1796,8 @@ class PatientListViewModel(
 
     companion object {
         private const val CASE_BATCH_SIZE = 100
-
-        /** Case names saved as Encounter.reasonCode by the data-entry screens. */
-        private val KNOWN_CASE_NAMES = listOf(
-            "Measles Case Information", "AFP Case Information", "VL Case Information",
-            "MOH 505 Reporting Form", "Mpox Information",
-            "RCCE - Community Questionnaire", "RCCE - County/Subcounty Interface",
-        )
-
-        /** Encounter.reasonCode of rumor reports (the `currentCase` name used when saving). */
-        const val RUMOR_CASE_NAME = "Social Listening and Rumor Tracking Tool"
         private const val RUMOR_PAGE_SIZE = 200
 
-        /** Answers shown or searched in the rumor list. */
-        private val RUMOR_LIST_CODES = listOf(
-            "683805917262", "223529605110", "683805917111", "22311605110", "871818396498",
-            "294367770999", "294367770999_sub_county", "294367770999_county", "294367770999_national",
-            "819946803642", "819946803642_sub_county", "819946803642_county", "819946803642_national",
-        )
     }
 
     data class RumorItem(
@@ -2263,17 +2132,12 @@ class PatientListViewModel(
         }.map { it.resource }
     }
 
-    /** `currentCase` names (Encounter.reasonCode) behind a case-list slug, e.g. "rcce". */
-    private fun caseNamesFor(nameQuery: String): List<String> {
-        fun slug(name: String) = name.trim().lowercase()
-            .replace("[^a-z0-9\\s-]".toRegex(), "")
-            .replace("\\s+".toRegex(), "-")
-            .replace("-+".toRegex(), "-")
-        return KNOWN_CASE_NAMES.filter { name ->
-            val s = slug(name)
-            s == nameQuery || (nameQuery == "rcce" && s.startsWith("rcce-"))
+    /** `currentCase` names (Encounter.reasonCode) behind a case-list slug, e.g. CaseSlugs.RCCE. */
+    private fun caseNamesFor(nameQuery: String): List<String> =
+        CaseTypes.CASE_LISTED.filter { name ->
+            val slug = name.toCaseSlug()
+            slug == nameQuery || (nameQuery == CaseSlugs.RCCE && slug in CaseSlugs.RCCE_FORMS)
         }
-    }
 
     /**
      * Number of records of a case type, counted in the database (no records loaded).
@@ -2373,7 +2237,7 @@ class PatientListViewModel(
                                 id = encounter.logicalId,
                                 reasonCode = encounter.reasonCodeFirstRep.codingFirstRep.code ?: "",
                                 lastUpdated = encounter.identifier
-                                    .find { it.system == "system-creation" }?.value ?: ""
+                                    .find { it.system == FhirSystems.SYSTEM_CREATION }?.value ?: ""
                             )
                         }.sortedByDescending { it.lastUpdated }
                     }
@@ -2409,7 +2273,7 @@ class PatientListViewModel(
             var lastUpdated = ""
             try {
                 if (it.resource.hasIdentifier()) {
-                    val id = it.resource.identifier.find { it.system == "system-creation" }
+                    val id = it.resource.identifier.find { it.system == FhirSystems.SYSTEM_CREATION }
                     if (id != null) {
                         lastUpdated = id.value
                     }
@@ -2507,7 +2371,7 @@ internal fun Patient.toPatientItem(
     // Show nothing if no values available for gender and date of birth.
 
     val tag =
-        if (hasMeta()) if (meta.hasTag()) meta.tag.find { it.system.endsWith("/patient-managingLocation") }?.code else "" else ""
+        if (hasMeta()) if (meta.hasTag()) meta.tag.find { it.system.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code else "" else ""
     val patientId = if (hasIdElement()) idElement.idPart else ""
     val name = if (hasName()) name[0].nameAsSingleString else ""
     val gender = if (hasGenderElement()) genderElement.valueAsString else ""
@@ -2528,7 +2392,7 @@ internal fun Patient.toPatientItem(
 
     var lastUpdated = ""
     if (hasIdentifier()) {
-        val id = identifier.find { it.system == "system-creation" }
+        val id = identifier.find { it.system == FhirSystems.SYSTEM_CREATION }
         if (id != null) {
             lastUpdated = id.value
         }

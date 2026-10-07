@@ -5,13 +5,13 @@ import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.fhir.FhirEngine
 import com.google.gson.Gson
@@ -19,6 +19,7 @@ import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.FragmentVlFollowupBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
@@ -70,21 +71,13 @@ class VlFollowupFragment : Fragment() {
 
         return root
     }
-    fun String.toSlug(): String {
-        return this
-            .trim()
-            .lowercase()
-            .replace("[^a-z0-9\\s-]".toRegex(), "")
-            .replace("\\s+".toRegex(), "-")
-            .replace("-+".toRegex(), "-")
-    }
     override fun onResume() {
         super.onResume()
         try {
             val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
             val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
             if (currentCase != null) {
-                val slug = currentCase.toSlug()
+                val slug = currentCase.toCaseSlug()
                 patientDetailsViewModel.getPatientResultsDiseaseData(
                     "VL Follow Up Information",
                     "$encounterId",
@@ -142,7 +135,7 @@ class VlFollowupFragment : Fragment() {
             }
         }
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
             patientDetailsViewModel.getPatientResultsDiseaseData(
                 "VL Follow Up Information",
                 "$encounterId",
@@ -181,7 +174,7 @@ class VlFollowupFragment : Fragment() {
         return response
     }
     private fun handleDataClick(currentCase: String) {
-        val slug = currentCase.toSlug()
+        val slug = currentCase.toCaseSlug()
         FormatterClass().saveSharedPref(
             "questionnaire", "vl-case-sixMonthsFollowup.json", requireContext()
         )

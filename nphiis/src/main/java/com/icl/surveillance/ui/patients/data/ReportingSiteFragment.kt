@@ -10,9 +10,9 @@ import com.google.android.fhir.FhirEngine
 import com.icl.surveillance.adapters.PatientDetailsRecyclerViewAdapter
 import com.icl.surveillance.databinding.FragmentReportingSiteBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
-import com.icl.surveillance.utils.toSlug
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 
@@ -78,7 +78,7 @@ class ReportingSiteFragment : Fragment() {
         val adapter = PatientDetailsRecyclerViewAdapter(this::onItemClicked)
         val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
             patientDetailsViewModel.getPatientInfo(slug)
         }
         // getPatientDetailData("Measles Case", null)

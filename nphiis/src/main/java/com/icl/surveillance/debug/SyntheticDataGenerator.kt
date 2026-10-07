@@ -16,6 +16,8 @@ import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.viewmodels.AddClientViewModel
 import com.icl.surveillance.viewmodels.AddClientViewModel.PersistResult
 import java.util.Calendar
@@ -44,8 +46,8 @@ import org.hl7.fhir.r4.model.Meta
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
-import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.StringType
 import timber.log.Timber
 
 /**
@@ -85,26 +87,25 @@ object SyntheticDataGenerator {
 
     /** Every parent-level data entry module that goes through AddParentCaseActivity. */
     val modules = listOf(
-        Module("Measles Case Information", "Measles case", "add-case.json", diseases = listOf("measles")),
-        Module("AFP Case Information", "AFP case", "afp-case.json", diseases = listOf("polio")),
-        Module("VL Case Information", "VL case", "vl-case.json", diseases = listOf("kala-azar")),
-        Module("MOH 505 Reporting Form", "MOH 505 report", "moh505.json"),
-        Module("Mpox Register", "Mpox register", "mpox-register.json", diseases = listOf("mpox")),
-        Module("Mpox - Tally Sheet", "Mpox tally sheet", "mpox-tally-sheet.json", diseases = listOf("mpox")),
-        Module(
-            "Mpox - Supervisor Checklist",
+        Module(CaseTypes.MEASLES, "Measles case", "add-case.json", diseases = listOf("measles")),
+        Module(CaseTypes.AFP, "AFP case", "afp-case.json", diseases = listOf("polio")),
+        Module(CaseTypes.VL, "VL case", "vl-case.json", diseases = listOf("kala-azar")),
+        Module(CaseTypes.VHF, "VHF case", "vhf-case.json", diseases = listOf("Ebola", "Marburg")),
+        Module(CaseTypes.MOH_505, "MOH 505 report", "moh505.json"),
+        Module(CaseTypes.MPOX_REGISTER, "Mpox register", "mpox-register.json", diseases = listOf("mpox")),
+        Module(CaseTypes.MPOX_TALLY_SHEET, "Mpox tally sheet", "mpox-tally-sheet.json", diseases = listOf("mpox")),
+        Module(CaseTypes.MPOX_SUPERVISOR_CHECKLIST,
             "Mpox supervisor checklist",
             "mpox-supervisor-checklist.json",
             SaveMode.STANDALONE,
             diseases = listOf("mpox"),
         ),
-        Module(
-            "Social Listening and Rumor Tracking Tool",
+        Module(CaseTypes.RUMOR,
             "Social listening & rumor tracking",
             "rumor-tracking-case.json"
         ),
-        Module("RCCE - County/Subcounty Interface", "RCCE county/sub-county", "social-county.json"),
-        Module("RCCE - Community Questionnaire", "RCCE community", "social-community.json"),
+        Module(CaseTypes.RCCE_COUNTY, "RCCE county/sub-county", "social-county.json"),
+        Module(CaseTypes.RCCE_COMMUNITY, "RCCE community", "social-community.json"),
     )
 
     data class Options(
@@ -199,31 +200,31 @@ object SyntheticDataGenerator {
             }
         val role = com.icl.surveillance.models.UserRole.fromAny(pref("practitionerRole"))
         val group = QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
-            linkId = "151479012557"
+            linkId = FormFields.ReportingSite.GROUP
             text = "Reporting Site"
         }
         when (role?.scope) {
             com.icl.surveillance.models.LocationLevel.COUNTY -> {
-                group.addItem(answer("user_role", "COUNTY_DISEASE_SURVEILLANCE_OFFICER"))
-                group.addItem(answer("user_county", pref("county")))
+                group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "COUNTY_DISEASE_SURVEILLANCE_OFFICER"))
+                group.addItem(answer(FormFields.ReportingSite.USER_COUNTY, pref("county")))
             }
 
             com.icl.surveillance.models.LocationLevel.SUB_COUNTY,
             com.icl.surveillance.models.LocationLevel.WARD -> {
-                group.addItem(answer("user_role", "SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER"))
-                group.addItem(answer("user_county", pref("county")))
-                group.addItem(answer("user_sub_county", pref("subCounty")))
+                group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER"))
+                group.addItem(answer(FormFields.ReportingSite.USER_COUNTY, pref("county")))
+                group.addItem(answer(FormFields.ReportingSite.USER_SUB_COUNTY, pref("subCounty")))
             }
 
             com.icl.surveillance.models.LocationLevel.FACILITY -> {
-                group.addItem(answer("user_role", "VACCINATOR"))
-                group.addItem(answer("user_facility", pref("facility")))
-                group.addItem(answer("user_ward", pref("ward")))
-                group.addItem(answer("user_sub_county", pref("subCounty")))
-                group.addItem(answer("user_county", pref("county")))
+                group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "VACCINATOR"))
+                group.addItem(answer(FormFields.ReportingSite.USER_FACILITY, pref("facility")))
+                group.addItem(answer(FormFields.ReportingSite.USER_WARD, pref("ward")))
+                group.addItem(answer(FormFields.ReportingSite.USER_SUB_COUNTY, pref("subCounty")))
+                group.addItem(answer(FormFields.ReportingSite.USER_COUNTY, pref("county")))
             }
 
-            else -> group.addItem(answer("user_role", "ADMINISTRATOR"))
+            else -> group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "ADMINISTRATOR"))
         }
         return listOf(group)
     }
@@ -802,12 +803,11 @@ object SyntheticDataGenerator {
         private fun locationFor(linkId: String, chain: LocationPicker.Chain?): Reference? {
             chain ?: return null
             // Reporting site, patient residence and (VL) travel history all use the record's chain.
-            val place = when {
-                linkId.startsWith("294367770999") || linkId == "a4-county" || linkId == "751649865991" -> chain.county
-                linkId.startsWith("819946803642") || linkId == "a3-sub-county" || linkId == "751649866545" -> chain.subCounty
-                linkId.startsWith("819943434") || linkId == "a2-ward" || linkId == "754362784943" ||
-                        linkId == "683913433621" -> chain.ward
-                linkId.startsWith("819946803677") -> chain.facility
+            val place = when (linkId) {
+                in COUNTY_QUESTIONS -> chain.county
+                in SUB_COUNTY_QUESTIONS -> chain.subCounty
+                in WARD_QUESTIONS -> chain.ward
+                in FormFields.ReportingSite.FACILITY_VARIANTS -> chain.facility
                 else -> return null
             }
             return locationRef(place)
@@ -939,6 +939,10 @@ object SyntheticDataGenerator {
             chain: LocationPicker.Chain?,
         ): MutableList<QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent>? {
             val t = (def.text ?: "").lowercase()
+            // The form's own default (e.g. Country = Kenya) is what a clerk would leave in place.
+            if (def.hasInitial() && def.initialFirstRep.hasValue()) {
+                return mutableListOf(answerOf(def.initialFirstRep.value.copy()))
+            }
             val value: List<org.hl7.fhir.r4.model.Type> = when (def.type) {
                 Questionnaire.QuestionnaireItemType.CHOICE,
                 Questionnaire.QuestionnaireItemType.OPENCHOICE -> {
@@ -1202,6 +1206,20 @@ object SyntheticDataGenerator {
         "Sleeping under treated nets and clearing stagnant water",
         "Avoiding meat from animals that died suddenly"
     )
+
+    // VL-only location questions (residence ward, travel history).
+    private const val VL_RESIDENCE_WARD = "754362784943"
+    private const val VL_TRAVEL_COUNTY = "751649865991"
+    private const val VL_TRAVEL_SUB_COUNTY = "751649866545"
+    private const val VL_TRAVEL_WARD = "683913433621"
+
+    /** Location questions answered from the record's location chain. */
+    private val COUNTY_QUESTIONS = FormFields.ReportingSite.COUNTY_VARIANTS +
+            listOf(FormFields.Residence.COUNTY, VL_TRAVEL_COUNTY)
+    private val SUB_COUNTY_QUESTIONS = FormFields.ReportingSite.SUB_COUNTY_VARIANTS +
+            listOf(FormFields.Residence.SUB_COUNTY, VL_TRAVEL_SUB_COUNTY)
+    private val WARD_QUESTIONS = FormFields.ReportingSite.WARD_VARIANTS +
+            listOf(FormFields.Residence.WARD, VL_RESIDENCE_WARD, VL_TRAVEL_WARD)
 
     /** Percentage of optional, newly shown questions that get an answer. */
     private const val OPTIONAL_FILL_PERCENT = 70

@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.fhir.FhirEngine
 import com.icl.surveillance.databinding.FragmentCaseInformationBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
@@ -57,14 +58,6 @@ class CaseInformationFragment : Fragment() {
         return root
     }
 
-    fun String.toSlug(): String {
-        return this
-            .trim()
-            .lowercase()
-            .replace("[^a-z0-9\\s-]".toRegex(), "")
-            .replace("\\s+".toRegex(), "-")
-            .replace("-+".toRegex(), "-")
-    }
 
     override fun onResume() {
         super.onResume()
@@ -93,7 +86,7 @@ class CaseInformationFragment : Fragment() {
                 .get(ClientDetailsViewModel::class.java)
         val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
             patientDetailsViewModel.getClinicalInfo(slug)
         }
         patientDetailsViewModel.liveClinicalData.observe(viewLifecycleOwner) {

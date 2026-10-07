@@ -20,6 +20,7 @@ import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.FragmentRegionalLabResultsBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
 import com.icl.surveillance.models.QuestionnaireItem
@@ -77,7 +78,7 @@ class RegionalLabResultsFragment : Fragment() {
       val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
       val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
       if (currentCase != null) {
-        val slug = currentCase.toSlug()
+        val slug = currentCase.toCaseSlug()
         when (slug) {
           "measles-case-information" -> {
             patientDetailsViewModel.getPatientResultsDiseaseData(
@@ -103,13 +104,6 @@ class RegionalLabResultsFragment : Fragment() {
   private lateinit var groups: List<OutputGroup>
   private lateinit var parentLayout: LinearLayout
 
-  fun String.toSlug(): String {
-    return this.trim()
-        .lowercase()
-        .replace("[^a-z0-9\\s-]".toRegex(), "")
-        .replace("\\s+".toRegex(), "-")
-        .replace("-+".toRegex(), "-")
-  }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
@@ -171,7 +165,7 @@ class RegionalLabResultsFragment : Fragment() {
       }
     }
     if (currentCase != null) {
-      val slug = currentCase.toSlug()
+      val slug = currentCase.toCaseSlug()
       when (slug) {
         "measles-case-information" -> {
           patientDetailsViewModel.getPatientResultsDiseaseData(
@@ -193,7 +187,7 @@ class RegionalLabResultsFragment : Fragment() {
     binding.apply {
       fab.setOnClickListener {
         if (currentCase != null) {
-          val slug = currentCase.toSlug()
+          val slug = currentCase.toCaseSlug()
           when (slug) {
             "measles-case-information" -> {
 

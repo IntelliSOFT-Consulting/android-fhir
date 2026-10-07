@@ -159,6 +159,10 @@ class HomeFragment : Fragment() {
                showComingSoon()
             }
 
+            HomeViewModel.ADAM_STAGE -> {
+                handleClick(HomeViewModel.ADAM_STAGE.toString(), title)
+            }
+
             else -> {
                 showComingSoon()
             }

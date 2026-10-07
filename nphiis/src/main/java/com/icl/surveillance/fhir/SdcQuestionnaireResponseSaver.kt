@@ -5,11 +5,14 @@ import android.util.Log
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
 import com.icl.surveillance.models.QuestionnaireAnswer
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.QuestionnaireHelper
-import com.icl.surveillance.utils.toSlug
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.BooleanType
@@ -32,9 +35,6 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Specimen
 import org.hl7.fhir.r4.model.StringType
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
 
 class SdcQuestionnaireResponseSaver(
     private val context: Context,
@@ -107,7 +107,7 @@ class SdcQuestionnaireResponseSaver(
         patient.active = true
 
         val systemCreationIdentifier = createSystemCreationIdentifier()
-        val caseSlug = currentCase?.toSlug() ?: "case-info"
+        val caseSlug = currentCase?.toCaseSlug() ?: "case-info"
         patient.identifier.add(systemCreationIdentifier)
         patient.identifier.add(createCaseIdentifier(caseSlug, patient.idPart))
 

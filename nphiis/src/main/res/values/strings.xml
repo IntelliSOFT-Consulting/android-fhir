@@ -76,6 +76,8 @@
     <string name="social_inv_parent">RCCE Tools</string>
     <string name="rumor_tool">Rumor Tracking Tool</string>
     <string name="vl_form">Visceral Leishmaniasis Case Management Form</string>
+    <string name="adam">ADaM</string>
+    <string name="vhf_form">Viral Hemorrhagic Fever (VHF) Case Investigation Tool</string>
     <string name="no_itd_laboratory_results_available">No ITD Lab Information available</string>
     <string name="title_activity_landing">LandingActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>

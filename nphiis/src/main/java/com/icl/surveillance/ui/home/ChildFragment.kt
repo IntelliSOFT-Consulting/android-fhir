@@ -97,6 +97,7 @@ class ChildFragment : Fragment() {
                     "2" -> viewModel.getCaseList()
                     "3" -> viewModel.getSocialList()
                     "100" -> viewModel.getMOHList()
+                    HomeViewModel.ADAM_STAGE.toString() -> viewModel.getAdamList()
                     else -> emptyList()
                 }
             } else {
@@ -194,7 +195,7 @@ class ChildFragment : Fragment() {
                 )
             }
 
-            20 -> {
+            20, 50 -> { // VL, VHF: case form with "Add new" + "Case list"
                 val bundle =
                     Bundle().apply { putString(QUESTIONNAIRE_FILE_PATH_KEY, "add-case.json") }
 

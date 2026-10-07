@@ -7,8 +7,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.ViewModelProvider
@@ -26,6 +26,8 @@ import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapterRumor
 import com.icl.surveillance.adapters.SocialFormItemRecyclerViewAdapter
 import com.icl.surveillance.databinding.ActivityCaseListingBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.ui.patients.FullCaseDetailsActivity
@@ -105,9 +107,9 @@ class CaseListingActivity : AppCompatActivity() {
         searchQuery = binding.tvEpidNo.text?.toString().orEmpty()
 
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
             when (slug) {
-                 "social-listening-and-rumor-tracking-tool" -> {
+                 CaseSlugs.RUMOR -> {
                     mpoxPatientsCollectorJob?.cancel()
                     activeMpoxAdapter = null
                     activeRumorAdapter = adapterRumor
@@ -124,7 +126,7 @@ class CaseListingActivity : AppCompatActivity() {
                     }
                 }
 
-                "mpox-register" -> {
+                CaseSlugs.MPOX_REGISTER -> {
                     showLocationFilterMenu = canShowLocationFilters(userRole)
                     if (!showLocationFilterMenu) {
                         selectedCounties.clear()
@@ -171,7 +173,7 @@ class CaseListingActivity : AppCompatActivity() {
                     })
                 }
 
-                "rcce" -> {
+                CaseSlugs.RCCE -> {
                     mpoxPatientsCollectorJob?.cancel()
                     activeMpoxAdapter = null
                     activeCaseAdapter = socialAdapter
@@ -476,10 +478,10 @@ class CaseListingActivity : AppCompatActivity() {
         query: String
     ): Boolean {
         val currentCaseSlug =
-            FormatterClass().getSharedPref("currentCase", this)?.toSlug()
+            FormatterClass().getSharedPref("currentCase", this)?.toCaseSlug()
 
         val candidates = when (currentCaseSlug) {
-            "rcce" -> listOf(
+            CaseSlugs.RCCE -> listOf(
                 item.name,
                 item.county,
                 item.subCounty,
@@ -519,14 +521,15 @@ class CaseListingActivity : AppCompatActivity() {
         FormatterClass().saveSharedPref("encounterId", patientItem.encounterId, this)
         FormatterClass().deleteSharedPref("isCase", this)
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
 
             FormatterClass().saveSharedPref("latestEncounter", slug, this)
             when (slug) {
-                "social-listening-and-rumor-tracking-tool",
-                "vl-case-information",
-                "moh-505-reporting-form",
-                "afp-case-information" -> {
+                CaseSlugs.RUMOR,
+                CaseSlugs.VL,
+                CaseSlugs.VHF,
+                CaseSlugs.MOH_505,
+                CaseSlugs.AFP -> {
                     startActivity(Intent(this@CaseListingActivity, SummarizedActivity::class.java))
                 }
 
@@ -560,7 +563,7 @@ class CaseListingActivity : AppCompatActivity() {
         FormatterClass().saveSharedPref("patientIdParent", patientItem.resourceId, this)
 
          if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
 
             FormatterClass().saveSharedPref("latestEncounter", slug, this)
             val activityIntent = Intent(this@CaseListingActivity, SummarizedActivity::class.java)
@@ -568,16 +571,16 @@ class CaseListingActivity : AppCompatActivity() {
                 Intent(this@CaseListingActivity, ResponseQuestionnaireActivity::class.java)
             when (slug) {
 
-                "mpox-supervisor-checklist" -> {
+                CaseSlugs.MPOX_SUPERVISOR_CHECKLIST -> {
 
                     startActivity(activityIntent2)
 
                 }
 
-                "social-listening-and-rumor-tracking-tool",
-                "vl-case-information", "mpox-tally-sheet",
-                "afp-case-information",
-                "rcce" -> {
+                CaseSlugs.RUMOR,
+                CaseSlugs.VL, CaseSlugs.VHF, CaseSlugs.MPOX_TALLY_SHEET,
+                CaseSlugs.AFP,
+                CaseSlugs.RCCE -> {
                     startActivity(activityIntent)
                 }
 
@@ -641,7 +644,7 @@ class CaseListingActivity : AppCompatActivity() {
 //                    .setConfirmText("Yes,Upload!")
 //                    .setConfirmClickListener { sDialog ->
 //                        lifecycleScope.launch {
-//                            //  patientListViewModel.prepareUploadData("mpox-register")
+//                            //  patientListViewModel.prepareUploadData(CaseSlugs.MPOX_REGISTER)
 //                            val workRequest = OneTimeWorkRequestBuilder<MpoxSyncWorker>().build()
 //                            WorkManager.getInstance(this@CaseListingActivity).enqueue(workRequest)
 //                        }
@@ -663,14 +666,6 @@ class CaseListingActivity : AppCompatActivity() {
         }
     }
 
-    private fun String.toSlug(): String {
-        return this
-            .trim() // remove leading/trailing spaces
-            .lowercase() // make all lowercase
-            .replace("[^a-z0-9\\s-]".toRegex(), "") // remove special characters
-            .replace("\\s+".toRegex(), "-") // replace spaces with hyphens
-            .replace("-+".toRegex(), "-") // collapse multiple hyphens
-    }
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed()
