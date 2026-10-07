@@ -21,12 +21,14 @@ import com.icl.surveillance.cases.GeneralEditorActivity
 import com.icl.surveillance.databinding.ActivitySummarizedBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
 import com.icl.surveillance.models.QuestionnaireItem
 import com.icl.surveillance.ui.patients.custom.ContactInformationFragment
+import com.icl.surveillance.ui.patients.custom.FollowUpFormFragment
 import com.icl.surveillance.ui.patients.custom.ITDLabFragment
 import com.icl.surveillance.ui.patients.custom.LocalLabFragment
 import com.icl.surveillance.ui.patients.custom.RegionalLabFragment
@@ -153,6 +155,15 @@ class SummarizedActivity : AppCompatActivity() {
 //                    "Final Laboratory Results" to RegionalLabFragment(),
                     "60 Day Follow Up" to AFPFollowUpFragment(),
                     "Contact Information" to ContactInformationFragment()
+                )
+            }
+
+            CaseSlugs.VHF -> {
+                listOf(
+                    "Laboratory Results" to FollowUpFormFragment.newInstance(
+                        FormFields.Vhf.LAB_TITLE,
+                        FormFields.Vhf.LAB_FORM
+                    )
                 )
             }
 

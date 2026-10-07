@@ -63,6 +63,7 @@
     <string name="home_subtitle_case_management">Manage follow-up and case outcomes.</string>
     <string name="home_subtitle_social">Record rumors and social investigation data.</string>
     <string name="home_subtitle_surveys">Run assessments and supervision checklists.</string>
+    <string name="home_subtitle_adam">Investigate priority outbreak cases and lab results.</string>
     <string name="flow_header_prompt">Select a form to proceed.</string>
     <string name="flow_section_title">Available Forms</string>
     <string name="case_flow_section_title">Case Actions</string>
