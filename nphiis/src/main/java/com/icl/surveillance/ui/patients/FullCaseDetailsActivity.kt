@@ -12,9 +12,9 @@ import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.ActivityFullCaseDetailsBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.ui.patients.data.ViewPagerAdapter
 import com.icl.surveillance.utils.FormatterClass
-import com.icl.surveillance.utils.toSlug
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 
@@ -43,7 +43,7 @@ class FullCaseDetailsActivity : AppCompatActivity() {
                 .get(ClientDetailsViewModel::class.java)
         println("Started searching for cases *** $currentCase")
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
             patientDetailsViewModel.getPatientInfo(slug)
         }
         patientDetailsViewModel.livecaseData.observe(this) {

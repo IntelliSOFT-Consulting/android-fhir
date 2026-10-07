@@ -20,6 +20,8 @@ import com.icl.surveillance.adapters.GroupPagerAdapter
 import com.icl.surveillance.cases.GeneralEditorActivity
 import com.icl.surveillance.databinding.ActivitySummarizedBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
@@ -38,17 +40,17 @@ import com.icl.surveillance.ui.patients.responses.EditChecklistActivity
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.hl7.fhir.r4.model.QuestionnaireResponse
-import timber.log.Timber
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.hl7.fhir.r4.model.QuestionnaireResponse
+import timber.log.Timber
 
 
 class SummarizedActivity : AppCompatActivity() {
@@ -67,7 +69,7 @@ class SummarizedActivity : AppCompatActivity() {
         val currentCase = FormatterClass().getSharedPref("currentCase", this@SummarizedActivity)
 
 
-        val slug = currentCase?.toSlug()
+        val slug = currentCase?.toCaseSlug()
         fhirEngine = FhirApplication.fhirEngine(this@SummarizedActivity)
         patientDetailsViewModel =
             ViewModelProvider(
@@ -119,9 +121,9 @@ class SummarizedActivity : AppCompatActivity() {
         val tabLayout = binding.tabLayout
 
         if (currentCase != null) {
-            val slug = currentCase.toSlug()
+            val slug = currentCase.toCaseSlug()
             val key = when (slug) {
-                "rcce" -> {
+                CaseSlugs.RCCE -> {
                     val encounterQuestionnaire = FormatterClass().getSharedPref(
                         "encounterQuestionnaire",
                         this@SummarizedActivity
@@ -129,7 +131,7 @@ class SummarizedActivity : AppCompatActivity() {
                     "$encounterQuestionnaire"
                 }
 
-                "mpox-information" -> "mpox-tally-sheet"
+                CaseSlugs.MPOX_INFORMATION -> CaseSlugs.MPOX_TALLY_SHEET
 
                 else -> slug
             }
@@ -137,14 +139,14 @@ class SummarizedActivity : AppCompatActivity() {
         }
 
         var customFragments = when (latestEncounter) {
-            "measles-case-information" -> {
+            CaseSlugs.MEASLES -> {
                 listOf(
                     "Laboratory Information" to LabResultsFragment(),
                 )
 
             }
 
-            "afp-case-information" -> {
+            CaseSlugs.AFP -> {
                 listOf(
                     "Stool Specimen Results" to LocalLabFragment(),
 //                    "ITD Lab Results" to ITDLabFragment(),
@@ -154,7 +156,7 @@ class SummarizedActivity : AppCompatActivity() {
                 )
             }
 
-            "vl-case-information" -> {
+            CaseSlugs.VL -> {
                 listOf(
                     "Laboratory Examination" to VlLabFragment(),
                     "Treatment/Hospitalization" to VlTreatmentFragment(),
@@ -314,10 +316,10 @@ class SummarizedActivity : AppCompatActivity() {
                 val currentCase =
                     FormatterClass().getSharedPref("currentCase", this@SummarizedActivity)
                 if (currentCase != null) {
-                    val slug = currentCase.toSlug()
+                    val slug = currentCase.toCaseSlug()
 
                     when (slug) {
-                        "moh-505-reporting-form" -> {
+                        CaseSlugs.MOH_505 -> {
                             lifecycleScope.launch {
                                 val patientId =
                                     FormatterClass().getSharedPref(
@@ -357,7 +359,7 @@ class SummarizedActivity : AppCompatActivity() {
 
                         }
 
-                        "mpox-tally-sheet" -> {
+                        CaseSlugs.MPOX_TALLY_SHEET -> {
                             FormatterClass().saveSharedPref(
                                 "questionnaire",
                                 "mpox-tally-sheet.json",
@@ -370,7 +372,7 @@ class SummarizedActivity : AppCompatActivity() {
                             ).show()
                         }
 
-                        "mpox-register" -> {
+                        CaseSlugs.MPOX_REGISTER -> {
                             FormatterClass().saveSharedPref(
                                 "questionnaire",
                                 "mpox-register.json",
@@ -391,7 +393,7 @@ class SummarizedActivity : AppCompatActivity() {
                             startActivity(intent)
                         }
 
-                        "measles-case-information" -> {
+                        CaseSlugs.MEASLES -> {
                             FormatterClass().saveSharedPref(
                                 "questionnaire",
                                 "add-case.json",
@@ -429,14 +431,6 @@ class SummarizedActivity : AppCompatActivity() {
         }
     }
 
-    fun String.toSlug(): String {
-        return this
-            .trim()
-            .lowercase()
-            .replace("[^a-z0-9\\s-]".toRegex(), "")
-            .replace("\\s+".toRegex(), "-")
-            .replace("-+".toRegex(), "-")
-    }
 
     fun calculatePatientAge(observations: List<PatientListViewModel.ObservationItem>): String {
         var age = "0"
@@ -522,15 +516,16 @@ class SummarizedActivity : AppCompatActivity() {
         var outputGroups: List<OutputGroup> = emptyList()
 
         val assets = when (latestEncounter) {
-            "measles-case-information" -> "add-case.json"
-            "afp-case-information" -> "afp-case.json"
-            "vl-case-information" -> "vl-case.json"
-            "moh-505-reporting-form" -> "moh505.json"
-            "mpox-information" -> "mpox-tally-sheet.json"
-            "mpox-tally-sheet" -> "mpox-tally-sheet.json"
-            "social-listening-and-rumor-tracking-tool" -> "rumor-tracking-case.json"
-            "mpox-register" -> "mpox-register.json"
-            "rcce" -> {
+            CaseSlugs.MEASLES -> "add-case.json"
+            CaseSlugs.AFP -> "afp-case.json"
+            CaseSlugs.VL -> "vl-case.json"
+            CaseSlugs.VHF -> "vhf-case.json"
+            CaseSlugs.MOH_505 -> "moh505.json"
+            CaseSlugs.MPOX_INFORMATION -> "mpox-tally-sheet.json"
+            CaseSlugs.MPOX_TALLY_SHEET -> "mpox-tally-sheet.json"
+            CaseSlugs.RUMOR -> "rumor-tracking-case.json"
+            CaseSlugs.MPOX_REGISTER -> "mpox-register.json"
+            CaseSlugs.RCCE -> {
 
                 val encounterQuestionnaire = FormatterClass().getSharedPref(
                     "encounterQuestionnaire",
@@ -538,8 +533,8 @@ class SummarizedActivity : AppCompatActivity() {
                 )
                 println("This is the latest encounter $encounterQuestionnaire")
                 when (encounterQuestionnaire) {
-                    "rcce-community-questionnaire" -> "social-community.json"
-                    "rcce-countysubcounty-interface" -> "social-county.json"
+                    CaseSlugs.RCCE_COMMUNITY -> "social-community.json"
+                    CaseSlugs.RCCE_COUNTY -> "social-county.json"
                     else -> ""
 
                 }

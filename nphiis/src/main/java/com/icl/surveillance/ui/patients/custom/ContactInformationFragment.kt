@@ -29,6 +29,7 @@ import com.icl.surveillance.adapters.ContactsAdapter
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.FragmentContactInformationBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
@@ -82,13 +83,6 @@ class ContactInformationFragment : Fragment() {
     return root
   }
 
-  fun String.toSlug(): String {
-    return this.trim()
-        .lowercase()
-        .replace("[^a-z0-9\\s-]".toRegex(), "")
-        .replace("\\s+".toRegex(), "-")
-        .replace("-+".toRegex(), "-")
-  }
 
   override fun onResume() {
     super.onResume()
@@ -98,7 +92,7 @@ class ContactInformationFragment : Fragment() {
 
       val patientId = FormatterClass().getSharedPref("resourceId", requireContext())
       if (currentCase != null) {
-        val slug = currentCase.toSlug()
+        val slug = currentCase.toCaseSlug()
         when (slug) {
           "measles-case-information" -> {
             patientDetailsViewModel.getPatientDiseaseData(
@@ -176,7 +170,7 @@ class ContactInformationFragment : Fragment() {
       }
     }
     if (currentCase != null) {
-      val slug = currentCase.toSlug()
+      val slug = currentCase.toCaseSlug()
       when (slug) {
         "measles-case-information" -> {
           patientDetailsViewModel.getPatientDiseaseData(
@@ -197,7 +191,7 @@ class ContactInformationFragment : Fragment() {
 
   private fun handleCase(currentCase: String?) {
     if (currentCase != null) {
-      val slug = currentCase.toSlug()
+      val slug = currentCase.toCaseSlug()
       when (slug) {
         "afp-case-information" -> {
           FormatterClass()

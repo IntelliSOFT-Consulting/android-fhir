@@ -23,6 +23,7 @@ import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.FragmentAfpFollowUpBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
@@ -64,13 +65,6 @@ class AFPFollowUpFragment : Fragment() {
   private val binding
     get() = _binding!!
 
-  fun String.toSlug(): String {
-    return this.trim()
-        .lowercase()
-        .replace("[^a-z0-9\\s-]".toRegex(), "")
-        .replace("\\s+".toRegex(), "-")
-        .replace("-+".toRegex(), "-")
-  }
 
   override fun onCreateView(
       inflater: LayoutInflater,
@@ -89,7 +83,7 @@ class AFPFollowUpFragment : Fragment() {
       val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
       val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
       if (currentCase != null) {
-        val slug = currentCase.toSlug()
+        val slug = currentCase.toCaseSlug()
         when (slug) {
           "afp-case-information" -> {
             patientDetailsViewModel.getPatientResultsDiseaseData(
@@ -149,7 +143,7 @@ class AFPFollowUpFragment : Fragment() {
       }
     }
     if (currentCase != null) {
-      val slug = currentCase.toSlug()
+      val slug = currentCase.toCaseSlug()
       when (slug) {
         "afp-case-information" -> {
           patientDetailsViewModel.getPatientResultsDiseaseData(
@@ -169,7 +163,7 @@ class AFPFollowUpFragment : Fragment() {
 
   private fun handleCase(currentCase: String?) {
     if (currentCase != null) {
-      val slug = currentCase.toSlug()
+      val slug = currentCase.toCaseSlug()
       when (slug) {
         "afp-case-information" -> {
           FormatterClass().saveSharedPref("questionnaire", "afp-sixty-days.json", requireContext())

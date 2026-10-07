@@ -1,7 +1,5 @@
 package com.icl.surveillance.ui.home
 
-import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -17,6 +15,7 @@ import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.FhirEngine
@@ -28,6 +27,8 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.clients.AddParentCaseActivity
 import com.icl.surveillance.databinding.FragmentCaseSelectionBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.models.CaseOption
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
@@ -36,6 +37,7 @@ import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
 import kotlin.collections.filter
 import kotlin.getValue
+import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -127,7 +129,7 @@ class CaseSelectionFragment : Fragment() {
                     val isMpox = option == "Add New Mpox Case"
 
                     val currentCase =
-                        if (isMpox) "Mpox - Tally Sheet" else "RCCE - County/Subcounty Interface"
+                        if (isMpox) CaseTypes.MPOX_TALLY_SHEET else CaseTypes.RCCE_COUNTY
                     val addParentTitle =
                         if (isMpox) "Mpox - Tally Sheet" else "County/Subcounty Interface"
                     val questionnaireFile =
@@ -151,7 +153,7 @@ class CaseSelectionFragment : Fragment() {
                     val isMpox = option == "Add New Mpox Case"
 
                     val currentCase =
-                        if (isMpox) "Mpox - Supervisor Checklist" else "RCCE - Community Questionnaire"
+                        if (isMpox) CaseTypes.MPOX_SUPERVISOR_CHECKLIST else CaseTypes.RCCE_COMMUNITY
                     val addParentTitle =
                         if (isMpox) "Mpox - Supervisor Checklist" else "Community Questionnaire"
                     val questionnaireFile =
@@ -212,6 +214,7 @@ class CaseSelectionFragment : Fragment() {
             when (titleName) {
                 "Visceral Leishmaniasis (Kala-azar) Case Management Form" -> "VL"
                 "Visceral Leishmaniasis Case Management Form" -> "VL"
+                getString(R.string.vhf_form) -> "VHF"
                 "Social Listening and Rumor Tracking Tool" -> "SLR"
                 "RCCE Tools" -> "RCCE"
                 else -> titleName
@@ -266,7 +269,7 @@ class CaseSelectionFragment : Fragment() {
                     }
 
                     "Add New Supervisor Checklist Case" -> {
-                        val currentCase = "Mpox - Supervisor Checklist"
+                        val currentCase = CaseTypes.MPOX_SUPERVISOR_CHECKLIST
                         val addParentTitle = "Add New Supervisor Checklist"
                         val questionnaireFile = "mpox-supervisor-checklist.json"
 
@@ -340,7 +343,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "MOH 505 Reporting Form",
+                                CaseTypes.MOH_505,
                                 requireContext()
                             )
                         FormatterClass()
@@ -369,7 +372,7 @@ class CaseSelectionFragment : Fragment() {
                     "Add New Mpox Register" -> {
                         FormatterClass().saveSharedPref(
                             "currentCase",
-                            "Mpox Register",
+                            CaseTypes.MPOX_REGISTER,
                             requireContext()
                         )
                         FormatterClass().saveSharedPref(
@@ -401,7 +404,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "MOH 505 Reporting Form",
+                                CaseTypes.MOH_505,
                                 requireContext()
                             )
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
@@ -417,7 +420,7 @@ class CaseSelectionFragment : Fragment() {
                             )
                         FormatterClass().saveSharedPref(
                             "currentCase",
-                            "Mpox - Tally Sheet",
+                            CaseTypes.MPOX_TALLY_SHEET,
                             requireContext()
                         )
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
@@ -434,7 +437,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "Mpox - Supervisor Checklist",
+                                CaseTypes.MPOX_SUPERVISOR_CHECKLIST,
                                 requireContext()
                             )
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
@@ -445,7 +448,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "Social Listening and Rumor Tracking Tool",
+                                CaseTypes.RUMOR,
                                 requireContext(),
                             )
                         FormatterClass()
@@ -474,7 +477,7 @@ class CaseSelectionFragment : Fragment() {
 
                     "Add New VL Case" -> {
                         FormatterClass()
-                            .saveSharedPref("currentCase", "VL Case Information", requireContext())
+                            .saveSharedPref("currentCase", CaseTypes.VL, requireContext())
                         FormatterClass()
                             .saveSharedPref(
                                 "AddParentTitle",
@@ -498,6 +501,31 @@ class CaseSelectionFragment : Fragment() {
                         addParentCaseLauncher.launch(intent)
                     }
 
+                    "Add New VHF Case" -> {
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
+                        FormatterClass().saveSharedPref(
+                            "AddParentTitle",
+                            getString(R.string.vhf_form),
+                            requireContext(),
+                        )
+                        FormatterClass().saveSharedPref("questionnaire", VHF_QUESTIONNAIRE, requireContext())
+
+                        if (!checkIfUserIsAllowedToAction()) {
+                            showPermissionErrorDialog(requireContext())
+                            return@CaseOptionsAdapter
+                        }
+                        val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
+                        intent.putExtra("AddParentTitle", " $titleName")
+                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
+                        addParentCaseLauncher.launch(intent)
+                    }
+
+                    "VHF Case List" -> {
+                        FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
+                        startActivity(Intent(requireContext(), CaseListingActivity::class.java))
+                    }
+
                     "Mpox Case List" -> {
                         FormatterClass().saveSharedPref(
                             "listingTitle",
@@ -506,7 +534,7 @@ class CaseSelectionFragment : Fragment() {
                         )
                         FormatterClass().saveSharedPref(
                             "currentCase",
-                            "Mpox Information",
+                            CaseTypes.MPOX_INFORMATION,
                             requireContext()
                         )
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
@@ -520,7 +548,7 @@ class CaseSelectionFragment : Fragment() {
                             requireContext()
                         )
                         FormatterClass()
-                            .saveSharedPref("currentCase", "VL Case Information", requireContext())
+                            .saveSharedPref("currentCase", CaseTypes.VL, requireContext())
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
                         startActivity(intent)
                     }
@@ -535,7 +563,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "Social Listening and Rumor Tracking Tool",
+                                CaseTypes.RUMOR,
                                 requireContext(),
                             )
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
@@ -545,7 +573,7 @@ class CaseSelectionFragment : Fragment() {
                     "Add New AFP Case" -> {
 
                         FormatterClass()
-                            .saveSharedPref("currentCase", "AFP Case Information", requireContext())
+                            .saveSharedPref("currentCase", CaseTypes.AFP, requireContext())
                         FormatterClass()
                             .saveSharedPref(
                                 "AddParentTitle",
@@ -574,7 +602,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "Measles Case Information",
+                                CaseTypes.MEASLES,
                                 requireContext()
                             )
                         FormatterClass()
@@ -611,7 +639,7 @@ class CaseSelectionFragment : Fragment() {
                         FormatterClass()
                             .saveSharedPref(
                                 "currentCase",
-                                "Measles Case Information",
+                                CaseTypes.MEASLES,
                                 requireContext()
                             )
 
@@ -626,7 +654,7 @@ class CaseSelectionFragment : Fragment() {
                             requireContext()
                         )
                         FormatterClass()
-                            .saveSharedPref("currentCase", "AFP Case Information", requireContext())
+                            .saveSharedPref("currentCase", CaseTypes.AFP, requireContext())
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
                         startActivity(intent)
                     }
@@ -639,7 +667,7 @@ class CaseSelectionFragment : Fragment() {
                         )
                         FormatterClass().saveSharedPref(
                             "currentCase",
-                            "Mpox Register",
+                            CaseTypes.MPOX_REGISTER,
                             requireContext()
                         )
                         val intent = Intent(requireContext(), CaseListingActivity::class.java)
@@ -656,17 +684,18 @@ class CaseSelectionFragment : Fragment() {
 
         val caseType =
             when (title?.trim()) {
-                "Measles" -> "measles-case-information"
-                "AFP" -> "afp-case-information"
-                "VL" -> "vl-case-information"
-                "SLR" -> "social-listening-and-rumor-tracking-tool"
-                "Social Investigation Form" -> "rcce"
-                "MOH 505" -> "moh-505-reporting-form"
-                "RCCE" -> "rcce"
-                "Mpox" -> "mpox-information"
-                "Summary Sheet" -> "mpox-tally-sheet"
-                "Supervisor Checklist" -> "mpox-supervisor-checklist"
-                "Mpox Register" -> "mpox-register"
+                "Measles" -> CaseSlugs.MEASLES
+                "AFP" -> CaseSlugs.AFP
+                "VL" -> CaseSlugs.VL
+                "VHF" -> CaseSlugs.VHF
+                "SLR" -> CaseSlugs.RUMOR
+                "Social Investigation Form" -> CaseSlugs.RCCE
+                "MOH 505" -> CaseSlugs.MOH_505
+                "RCCE" -> CaseSlugs.RCCE
+                "Mpox" -> CaseSlugs.MPOX_INFORMATION
+                "Summary Sheet" -> CaseSlugs.MPOX_TALLY_SHEET
+                "Supervisor Checklist" -> CaseSlugs.MPOX_SUPERVISOR_CHECKLIST
+                "Mpox Register" -> CaseSlugs.MPOX_REGISTER
                 else -> null
             }
         val formatter = FormatterClass()
@@ -678,7 +707,7 @@ class CaseSelectionFragment : Fragment() {
         caseType?.let {
             try {
                 when (it) {
-                    "mpox-register" -> {
+                    CaseSlugs.MPOX_REGISTER -> {
                         patientListViewModel.simulateScrollUntilEnd(
                             it,
                             units,
@@ -708,7 +737,7 @@ class CaseSelectionFragment : Fragment() {
                         }
                     }
 
-                    "social-listening-and-rumor-tracking-tool" -> {
+                    CaseSlugs.RUMOR -> {
                         patientListViewModel.handleCurrentRumorCaseListing(it, units, userRole)
                         patientListViewModel.liveRumorCases.removeObservers(viewLifecycleOwner)
                         patientListViewModel.liveRumorCases.observe(viewLifecycleOwner) { cases ->
@@ -849,6 +878,8 @@ class CaseSelectionFragment : Fragment() {
     }
 
     companion object {
+        private const val VHF_QUESTIONNAIRE = "vhf-case.json"
+
         /**
          * Use this factory method to create a new instance of this fragment using the provided
          * parameters.

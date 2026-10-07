@@ -7,9 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.PatientListItemViewBinding
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
-import com.icl.surveillance.utils.toSlug
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -78,7 +78,7 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
         val current = FormatterClass().getSharedPref("currentCase", context)
 
         if (current != null) {
-            val slug = current.toSlug()
+            val slug = current.toCaseSlug()
             when (slug) {
                 "mpox-register" -> {
                     if (!patientItem.epid.startsWith("KEN")) {

@@ -1,0 +1,5078 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "extension": [
+    {
+      "extension": [
+        {
+          "url": "name",
+          "valueCoding": {
+            "system": "http://hl7.org/fhir/uv/sdc/CodeSystem/launchContext",
+            "code": "patient"
+          }
+        },
+        {
+          "url": "type",
+          "valueCode": "Patient"
+        }
+      ],
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext"
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "countyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a3-sub-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedFacilityName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_county').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedRole",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_role').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_sub_county').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedWard",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_ward').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "assignedFacility",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='user_facility').answer.value"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedCountyNameCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyNameCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardNameCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedCountyNameNational",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999_national').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyNameNational",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642_national').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardNameNational",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434_national').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedCountyNameSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='294367770999_sub_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedSubCountyNameSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819946803642_sub_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "selectedWardNameSubCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='819943434_sub_county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode",
+      "valueCode": "prior-edit"
+    }
+  ],
+  "title": "Viral Hemorrhagic Fever Case Investigation",
+  "status": "draft",
+  "item": [
+    {
+      "item": [
+        {
+          "type": "display",
+          "linkId": "546255966914",
+          "text": "Reporting Site"
+        },
+        {
+          "linkId": "user_role",
+          "type": "string",
+          "text": "User Role",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "user_facility",
+          "type": "string",
+          "text": "User Facility",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "user_ward",
+          "type": "string",
+          "text": "User Ward",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "user_sub_county",
+          "type": "string",
+          "text": "User Sub County",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "user_county",
+          "type": "string",
+          "text": "User County",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "facility_level",
+          "text": " ",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "VACCINATOR"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803642",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedWard}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedFacility}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "radio-button",
+                        "display": "Radio Button"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+                  "valueCode": "horizontal"
+                }
+              ],
+              "linkId": "438862163919",
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "sub_county_level",
+          "text": "",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999_sub_county",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803642_sub_county",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434_sub_county",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedSubCountyNameSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677_sub_county",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedWardNameSubCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "linkId": "438862163919_sub_county",
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "radio-button",
+                        "display": "Radio Button"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+                  "valueCode": "horizontal"
+                }
+              ],
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "county_level",
+          "text": " ",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "COUNTY_DISEASE_SURVEILLANCE_OFFICER"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999_county",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?_id={{%assignedCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "linkId": "819946803642_county",
+              "type": "reference",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedCountyNameCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434_county",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedSubCountyNameCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677_county",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedWardNameCounty}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "radio-button",
+                        "display": "Radio Button"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+                  "valueCode": "horizontal"
+                }
+              ],
+              "linkId": "438862163919_county",
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "linkId": "national_level",
+          "text": " ",
+          "enableWhen": [
+            {
+              "question": "user_role",
+              "operator": "=",
+              "answerString": "ADMINISTRATOR"
+            }
+          ],
+          "item": [
+            {
+              "linkId": "294367770999_national",
+              "text": "County",
+              "type": "reference",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof=Location/0&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "linkId": "819946803642_national",
+              "type": "reference",
+              "text": "Sub County",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedCountyNameNational}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819943434_national",
+              "text": "Ward",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedSubCountyNameNational}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "reference",
+              "linkId": "819946803677_national",
+              "text": "Health Facility",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+                  "valueExpression": {
+                    "language": "application/x-fhir-query",
+                    "expression": "Location?partof={{%selectedWardNameNational}}&_sort=name"
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+                  "extension": [
+                    {
+                      "url": "path",
+                      "valueString": "name"
+                    },
+                    {
+                      "url": "forDisplay",
+                      "valueBoolean": true
+                    }
+                  ]
+                }
+              ],
+              "required": true
+            },
+            {
+              "type": "choice",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "radio-button",
+                        "display": "Radio Button"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+                  "valueCode": "horizontal"
+                }
+              ],
+              "linkId": "438862163919_national",
+              "text": "Type of health facility",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "code": "Private",
+                    "display": "Private"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Public",
+                    "display": "Public"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "code": "Faith Based",
+                    "display": "Faith Based"
+                  }
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-disease",
+          "text": "Viral Hemorrhagic Fever disease",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "ebola",
+                "display": "Ebola"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "marburg",
+                "display": "Marburg"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other VHF (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-disease-other",
+          "text": "Other VHF (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-disease",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other VHF (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-investigation-date",
+          "text": "Date of investigation",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-investigation-location",
+          "text": "Location of investigation",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "health-facility",
+                "display": "Health facility"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "community",
+                "display": "Community"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "household",
+                "display": "Household"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-investigation-location-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-investigation-location",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-case-type",
+          "text": "Type of case",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "suspected",
+                "display": "Suspected"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "probable",
+                "display": "Probable"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "confirmed",
+                "display": "Confirmed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ]
+        }
+      ],
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "linkId": "151479012557",
+      "text": "Case Investigation"
+    },
+    {
+      "linkId": "vhf-demographics",
+      "text": "Demographics",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "486402457213",
+          "text": "Family name (surname)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "873240407472",
+          "text": "Given names",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-national-id",
+          "text": "National ID number",
+          "type": "string"
+        },
+        {
+          "linkId": "929966324957",
+          "text": "Sex",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "female",
+                "display": "Female"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sex-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "929966324957",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "442636360588",
+          "text": "Date of birth known or unknown",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "known",
+                "display": "Known"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "257830485990",
+          "text": "Date of birth",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "442636360588",
+              "operator": "=",
+              "answerCoding": {
+                "code": "known",
+                "display": "Known"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "492731638700",
+          "text": "Age (years)",
+          "type": "integer",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "442636360588",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 120
+            }
+          ]
+        },
+        {
+          "linkId": "185726989867",
+          "text": "Age (months)",
+          "type": "integer",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "442636360588",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 11
+            }
+          ]
+        },
+        {
+          "linkId": "828303331247",
+          "text": "Age (days)",
+          "type": "integer",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "442636360588",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 31
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-pregnant",
+          "text": "Pregnant",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "929966324957",
+              "operator": "=",
+              "answerCoding": {
+                "code": "female",
+                "display": "Female"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-phone",
+          "text": "Phone number",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid mobile number (07xxxxxxxx)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^\\d{10,10}$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-marital-status",
+          "text": "Marital status",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "na-child",
+                "display": "N/A (child)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "single",
+                "display": "Single"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "married",
+                "display": "Married"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "divorced",
+                "display": "Divorced"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "widowed",
+                "display": "Widowed"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-occupation",
+          "text": "Occupation",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "employed",
+                "display": "Employed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unemployed",
+                "display": "Unemployed"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-occupation-specify",
+          "text": "Employed as (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-occupation",
+              "operator": "=",
+              "answerCoding": {
+                "code": "employed",
+                "display": "Employed"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-health-facility",
+          "text": "Health facility",
+          "type": "string"
+        },
+        {
+          "linkId": "vhf-education",
+          "text": "Level of education",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "primary",
+                "display": "Primary"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "secondary",
+                "display": "Secondary"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tertiary",
+                "display": "Tertiary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-insurance",
+          "text": "Insurance cover",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-current-residence",
+          "text": "Current residence",
+          "type": "string"
+        },
+        {
+          "linkId": "vhf-residence-type",
+          "text": "Type of residence",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "rural",
+                "display": "Rural"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "urban",
+                "display": "Urban"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "camp",
+                "display": "Camp"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-country",
+          "text": "Country",
+          "type": "string",
+          "required": true,
+          "initial": [
+            {
+              "valueString": "Kenya"
+            }
+          ]
+        },
+        {
+          "linkId": "a4-county",
+          "text": "County",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a3-sub-county",
+          "text": "Sub County",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a2-ward",
+          "text": "Ward",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-village",
+          "text": "Town / village / camp",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-landmark",
+          "text": "Landmark",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-next-of-kin",
+          "text": "Parent / guardian / next of kin",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-next-of-kin-phone",
+          "text": "Parent / guardian / next of kin phone number",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid mobile number (07xxxxxxxx)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^\\d{10,10}$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-respondent",
+          "text": "Respondent",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-informant",
+          "text": "Who provided the information?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "patient",
+                "display": "Patient"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "guardian",
+                "display": "Guardian"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "relative",
+                "display": "Relative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hcw",
+                "display": "Health care worker"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-informant-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-informant",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-clinical",
+      "text": "Clinical Information",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-symptoms",
+          "text": "Symptoms (tick all that apply)",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "headache",
+                "display": "Headache"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "fatigue",
+                "display": "Fatigue"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "vomiting",
+                "display": "Vomiting"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diarrhea",
+                "display": "Diarrhea"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Unexplained bleeding"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "muscle-pain",
+                "display": "Muscle pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-bleeding-site",
+          "text": "Unexplained bleeding (specify site)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Unexplained bleeding"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-symptoms-other",
+          "text": "Other symptoms (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "728034137219",
+          "text": "Date of onset",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-care",
+      "text": "Clinical Care & Treatment",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-care-type",
+          "text": "Type of care",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "inpatient",
+                "display": "Inpatient"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "outpatient",
+                "display": "Outpatient"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "home-care",
+                "display": "Home care"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-care-facility",
+          "text": "Facility name",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-care-type",
+              "operator": "!=",
+              "answerCoding": {
+                "code": "home-care",
+                "display": "Home care"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-admission-date",
+          "text": "Date of admission",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-care-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "inpatient",
+                "display": "Inpatient"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-admission-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date of admission cannot be before the date of onset"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date of admission cannot be before the date of onset"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-inpatient-number",
+          "text": "In-patient number",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-care-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "inpatient",
+                "display": "Inpatient"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-outpatient-number",
+          "text": "Out-patient number",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-care-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "outpatient",
+                "display": "Outpatient"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-treatment",
+          "text": "Treatment given",
+          "type": "text"
+        },
+        {
+          "linkId": "vhf-antibiotics",
+          "text": "Taken any antibiotics?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-antibiotic-name",
+          "text": "Name of the antibiotic",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-antibiotics",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-outcome",
+          "text": "Outcome of case",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dead",
+                "display": "Dead"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-death-date",
+          "text": "Date of death",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-outcome",
+              "operator": "=",
+              "answerCoding": {
+                "code": "dead",
+                "display": "Dead"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-death-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date of death cannot be before the date of onset"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date of death cannot be before the date of onset"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-death-place",
+          "text": "Place of death",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-outcome",
+              "operator": "=",
+              "answerCoding": {
+                "code": "dead",
+                "display": "Dead"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "community",
+                "display": "Community"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "health-facility",
+                "display": "Health facility"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-death-place-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-death-place",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-case-status",
+          "text": "Status of case",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "active",
+                "display": "Active"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "recovered",
+                "display": "Recovered"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dead",
+                "display": "Dead"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-discharge-date",
+          "text": "Date of discharge",
+          "type": "date",
+          "enableWhen": [
+            {
+              "question": "vhf-case-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "recovered",
+                "display": "Recovered"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-discharge-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date of discharge cannot be before the date of onset"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date of discharge cannot be before the date of onset"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-exposure",
+      "text": "Exposure",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-exposure-type",
+          "text": "Type of exposure",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "animal",
+                "display": "Animal contact"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-exposure-type-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-human-contact-type",
+          "text": "Type of human contact",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "direct",
+                "display": "Direct"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "indirect",
+                "display": "Indirect"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-direct-contact",
+          "text": "Type of direct contact (tick all that apply)",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-human-contact-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "direct",
+                "display": "Direct"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "touching",
+                "display": "Touching"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "body-fluids",
+                "display": "Body fluids"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "sexual",
+                "display": "Sexual contact"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-direct-contact-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-direct-contact",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-indirect-contact",
+          "text": "Type of indirect contact",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-human-contact-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "indirect",
+                "display": "Indirect"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "fomites",
+                "display": "Fomites"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "contaminated-environment",
+                "display": "Contaminated environment"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-indirect-contact-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-indirect-contact",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-symptomatic-at-contact",
+          "text": "Was the case symptomatic during contact?",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-date",
+          "text": "Date of contact",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-frequency",
+          "text": "Frequency of contact",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "daily",
+                "display": "Daily"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "weekly",
+                "display": "Weekly"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "once",
+                "display": "Once"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-duration",
+          "text": "Maximum duration of contact",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "under-15-min",
+                "display": "< 15 min"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "15-min-to-1-hour",
+                "display": "15 min - 1 hour"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "over-1-hour",
+                "display": "> 1 hour"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-location",
+          "text": "Location of contact",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "home",
+                "display": "Home"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "health-facility",
+                "display": "Health facility"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "funeral",
+                "display": "Funeral"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "workplace",
+                "display": "Workplace"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-location-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-contact-location",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-relationship",
+          "text": "Relationship to the source",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "human",
+                "display": "Human contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "family",
+                "display": "Family"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hcw",
+                "display": "Health care worker"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "friend",
+                "display": "Friend"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-relationship-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-relationship",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-animal-exposure",
+          "text": "Animal exposure type (tick all that apply)",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "animal",
+                "display": "Animal contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "handling",
+                "display": "Handling"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "butchering",
+                "display": "Butchering"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "eating",
+                "display": "Eating"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "fluids",
+                "display": "Contact with fluids"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-animal-exposure-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-animal-exposure",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-animal-species",
+          "text": "Animal species (tick all that apply)",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "animal",
+                "display": "Animal contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "bat",
+                "display": "Bat"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "monkey",
+                "display": "Monkey"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rodent",
+                "display": "Rodent"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "pig",
+                "display": "Pig"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-animal-species-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-animal-species",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-exposure-location",
+          "text": "Location of exposure",
+          "type": "string"
+        },
+        {
+          "linkId": "vhf-exposure-date",
+          "text": "Date of exposure",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-ipc",
+      "text": "Infection Prevention & Control",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-case-ppe",
+          "text": "Was the case wearing appropriate PPE?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-ppe",
+          "text": "Was the contact wearing appropriate PPE?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-ppe-items",
+          "text": "PPE items worn (tick all that apply)",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-case-ppe",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "question": "vhf-contact-ppe",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "enableBehavior": "any",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "gloves",
+                "display": "Gloves"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "gown",
+                "display": "Gown"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "mask",
+                "display": "Mask"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "goggles",
+                "display": "Goggles"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-ppe-items-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-ppe-items",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-ppe-breach",
+          "text": "Was there a breach of PPE?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-hand-hygiene-before",
+          "text": "Hand hygiene before PPE?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-hand-hygiene-after",
+          "text": "Hand hygiene after PPE?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-travel",
+      "text": "Travel History",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-travelled",
+          "text": "Did the case travel before the onset of illness?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-origin-country",
+          "text": "Travel origin country",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-origin-place",
+          "text": "Origin city / town / village",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-departure-date",
+          "text": "Date of departure",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-means",
+          "text": "Means of travel",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "land",
+                "display": "Land"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "air",
+                "display": "Air"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "water",
+                "display": "Water"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-stopovers",
+          "text": "Stopovers (specify locations)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-destination-country",
+          "text": "Destination country",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-destination-place",
+          "text": "Destination city / town / village",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-travel-arrival-date",
+          "text": "Date of arrival",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-travel-arrival-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date of arrival cannot be before the date of departure"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='vhf-travel-departure-date').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date of arrival cannot be before the date of departure"
+                },
+                {
+                  "url": "location",
+                  "valueString": "vhf-travel-departure-date"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-vaccination",
+      "text": "Vaccination (Ebola)",
+      "type": "group",
+      "enableWhen": [
+        {
+          "question": "vhf-disease",
+          "operator": "=",
+          "answerCoding": {
+            "code": "ebola",
+            "display": "Ebola"
+          }
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-ebola-vaccinated",
+          "text": "Did the patient receive Ebola vaccination?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-vaccine-name",
+          "text": "Name of vaccine",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-ebola-vaccinated",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-vaccine-doses",
+          "text": "Number of doses",
+          "type": "integer",
+          "enableWhen": [
+            {
+              "question": "vhf-ebola-vaccinated",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 10
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-vaccination-date",
+          "text": "Date of vaccination",
+          "type": "date",
+          "enableWhen": [
+            {
+              "question": "vhf-ebola-vaccinated",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-laboratory",
+      "text": "Laboratory",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-samples-collected",
+          "text": "Were samples collected?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sample-type",
+          "text": "Type of sample",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "blood",
+                "display": "Blood"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "urine",
+                "display": "Urine"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "saliva",
+                "display": "Saliva"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "tissue",
+                "display": "Tissue"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sample-type-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-specimen-id",
+          "text": "Specimen ID",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-collection-date",
+          "text": "Date of collection",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sent-date",
+          "text": "Date sample sent to the laboratory",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-sent-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date sample sent to the laboratory cannot be before the date of collection"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='vhf-collection-date').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date sample sent to the laboratory cannot be before the date of collection"
+                },
+                {
+                  "url": "location",
+                  "valueString": "vhf-collection-date"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-received-date",
+          "text": "Date sample received at the laboratory",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-received-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date sample received at the laboratory cannot be before the date the sample was sent"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='vhf-sent-date').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date sample received at the laboratory cannot be before the date the sample was sent"
+                },
+                {
+                  "url": "location",
+                  "valueString": "vhf-sent-date"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sample-condition",
+          "text": "Condition of sample",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "good",
+                "display": "Good"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "spoiled",
+                "display": "Spoiled"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-lab-tests",
+          "text": "Laboratory tests performed (tick all that apply)",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "pcr",
+                "display": "PCR"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "elisa",
+                "display": "ELISA"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "antigen-rdt",
+                "display": "Antigen rapid test"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-lab-tests-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-lab-tests",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-preliminary-result",
+          "text": "Preliminary result",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "pending",
+                "display": "Pending"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-preliminary-result-date",
+          "text": "Date of preliminary result",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-preliminary-result",
+              "operator": "=",
+              "answerCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "question": "vhf-preliminary-result",
+              "operator": "=",
+              "answerCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            }
+          ],
+          "enableBehavior": "any",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-preliminary-result-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date of preliminary result cannot be before the date of collection"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='vhf-collection-date').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date of preliminary result cannot be before the date of collection"
+                },
+                {
+                  "url": "location",
+                  "valueString": "vhf-collection-date"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-preliminary-narration",
+          "text": "Narration (preliminary)",
+          "type": "text",
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-preliminary-lab",
+          "text": "Preliminary laboratory facility",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-final-result",
+          "text": "Final result",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-final-result-date",
+          "text": "Date of final result",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-final-result",
+              "operator": "exists",
+              "answerBoolean": true
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-final-result-date-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Date of final result cannot be before the date of collection"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='vhf-collection-date').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Date of final result cannot be before the date of collection"
+                },
+                {
+                  "url": "location",
+                  "valueString": "vhf-collection-date"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-final-narration",
+          "text": "Narration (final)",
+          "type": "text",
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-final-lab",
+          "text": "Final laboratory facility",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-final-classification",
+          "text": "Final classification",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "confirmed",
+                "display": "Confirmed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "probable",
+                "display": "Probable"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "not-a-case",
+                "display": "Not a case"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-contact-follow-up",
+      "text": "Contact Follow Up",
+      "type": "group",
+      "enableWhen": [
+        {
+          "question": "vhf-case-type",
+          "operator": "=",
+          "answerCoding": {
+            "code": "contact",
+            "display": "Contact"
+          }
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-follow-up-day",
+          "text": "Day of follow up (1, 2, 3 ...)",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 21
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-date",
+          "text": "Date of follow up",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-symptomatic",
+          "text": "Symptomatic?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

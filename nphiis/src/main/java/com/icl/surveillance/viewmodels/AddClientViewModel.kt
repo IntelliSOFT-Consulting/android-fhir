@@ -13,42 +13,46 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
+import com.google.android.fhir.get
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.revInclude
-import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.ibm.icu.text.SimpleDateFormat
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.EpidNumber
+import com.icl.surveillance.fhir.forms.FhirSystems
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.PatientMapper
+import com.icl.surveillance.fhir.forms.answerOf
+import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.QuestionnaireAnswer
-import com.icl.surveillance.models.SpecimenConfig
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.Constants.ALL_LINK_IDS
 import com.icl.surveillance.utils.Constants.ALL_MPOX_LINK_IDS
 import com.icl.surveillance.utils.Constants.WEEK_ENDING_DATE
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.QuestionnaireHelper
-import java.time.LocalDate
+import java.util.Calendar
 import java.util.Date
+import java.util.LinkedList
+import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.hl7.fhir.r4.model.Address
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
-import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.DecimalType
 import org.hl7.fhir.r4.model.Encounter
-import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.Extension
-import org.hl7.fhir.r4.model.HumanName
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Location
@@ -66,9 +70,6 @@ import org.hl7.fhir.r4.model.Specimen
 import org.hl7.fhir.r4.model.StringType
 import org.json.JSONObject
 import timber.log.Timber
-import java.util.Calendar
-import java.util.LinkedList
-import java.util.Locale
 
 class AddClientViewModel(application: Application, private val state: SavedStateHandle) :
     AndroidViewModel(application) {
@@ -313,7 +314,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 tag = listOf(
                     Coding().apply {
                         system =
-                            "http://example.org/fhir/StructureDefinition/encounter-managingLocation"
+                            FhirSystems.managingLocation("encounter")
                         code = facility
                         display = facility
                     }
@@ -328,7 +329,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 tag = listOf(
                     Coding().apply {
                         system =
-                            "http://example.org/fhir/StructureDefinition/encounter-managingLocation"
+                            FhirSystems.managingLocation("encounter")
                         code = facility
                         display = facility
                     }
@@ -347,7 +348,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 tag = listOf(
                     Coding().apply {
                         system =
-                            "http://example.org/fhir/StructureDefinition/observation-managingLocation"
+                            FhirSystems.managingLocation("observation")
                         code = facility
                         display = facility
                     }
@@ -389,26 +390,26 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             return withContext(Dispatchers.IO) {
 
-                val latitude = extractedAnswers.find { it.linkId == "latitude" }?.answer
-                val longitude = extractedAnswers.find { it.linkId == "longitude" }?.answer
+                val latitude = extractedAnswers.answerOf(FormFields.Geo.LATITUDE)
+                val longitude = extractedAnswers.answerOf(FormFields.Geo.LONGITUDE)
 
                 val locationIdentifier = QuestionnaireHelper().createFullFhirIdentifier(
-                    codeData = "geo-location",
+                    codeData = FhirSystems.GEO_LOCATION,
                     valueData = "lat:${latitude},lon:${longitude}",
-                    systemData = "geo-location-details",
+                    systemData = FhirSystems.GEO_LOCATION_DETAILS,
                     displayData = "Latitude: $latitude, Longitude: $longitude"
                 )
 
                 val responseType = QuestionnaireHelper().createFullFhirIdentifier(
-                    codeData = "supervisor_checklist",
-                    valueData = "supervisor_checklist",
-                    systemData = "supervisor_checklist",
+                    codeData = FhirSystems.SUPERVISOR_CHECKLIST,
+                    valueData = FhirSystems.SUPERVISOR_CHECKLIST,
+                    systemData = FhirSystems.SUPERVISOR_CHECKLIST,
                     displayData = "Supervisor Checklist"
                 )
 
                 questionnaireResponse.identifier = locationIdentifier
                 val extension = Extension().apply {
-                    url = "supervisor_checklist"
+                    url = FhirSystems.SUPERVISOR_CHECKLIST
                     setValue(responseType)
                 }
                 questionnaireResponse.addExtension(extension)
@@ -500,7 +501,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         val measureCodeableConcept = CodeableConcept()
                         measureCodeableConcept.codingFirstRep.code = it.linkId
                         measureCodeableConcept.codingFirstRep.display = it.text
-                        measureCodeableConcept.codingFirstRep.system = "questionnaire-answers"
+                        measureCodeableConcept.codingFirstRep.system = FhirSystems.QUESTIONNAIRE_ANSWERS
                         measureCodeableConcept.text = it.text
 
                         val compo = MeasureReportGroupPopulationComponent()
@@ -586,15 +587,15 @@ class AddClientViewModel(application: Application, private val state: SavedState
             val typeCodeableConcept0 = CodeableConcept()
             val codingList0 = ArrayList<Coding>()
             val coding0 = Coding()
-            coding0.system = "system-creation"
-            coding0.code = "system_creation"
-            coding0.display = "System Creation"
+            coding0.system = FhirSystems.SYSTEM_CREATION
+            coding0.code = FhirSystems.SYSTEM_CREATION_CODE
+            coding0.display = FhirSystems.SYSTEM_CREATION_DISPLAY
             codingList0.add(coding0)
             typeCodeableConcept0.coding = codingList0
             typeCodeableConcept0.text = FormatterClass().formatDateTime(Date())
 
             identifierSystem0.value = FormatterClass().formatDateTime(Date())
-            identifierSystem0.system = "system-creation"
+            identifierSystem0.system = FhirSystems.SYSTEM_CREATION
             identifierSystem0.type = typeCodeableConcept0
 
             val patientId = generateUuid()
@@ -625,21 +626,18 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             var case = "case-info"
             if (reasonCode != null) {
-                case = reasonCode.toSlug()
+                case = reasonCode.toCaseSlug()
 
             }
 
 
             val codeableConcept = CodeableConcept()
-            codeableConcept.codingFirstRep.code = "case-information"
-            codeableConcept.codingFirstRep.display = "case-information"
-            codeableConcept.codingFirstRep.system = "case-information"
-            codeableConcept.text = "case-information"
+            codeableConcept.codingFirstRep.code = FhirSystems.CASE_INFORMATION
+            codeableConcept.codingFirstRep.display = FhirSystems.CASE_INFORMATION
+            codeableConcept.codingFirstRep.system = FhirSystems.CASE_INFORMATION
+            codeableConcept.text = FhirSystems.CASE_INFORMATION
             enc.addReasonCode(codeableConcept)
 
-            var pfirstName: String? = null
-            var psecondName: String? = null
-            var potherNames: List<String> = emptyList()
 
             val encounterReference = Reference("Encounter/$encounterId")
             val measure = MeasureReport()
@@ -692,628 +690,179 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 enc.participantFirstRep.individual = Reference("Practitioner/$practitionerId")
             }
 
+            // Module-specific mapping of the answers onto the Patient (and MeasureReport),
+            // followed by the module's EPID number.
+            val answers = extractedAnswers
+
+            suspend fun saveEpid(epid: String) = createResource(
+                qh.codingQuestionnaire(FhirSystems.EPID, FhirSystems.EPID_DISPLAY, epid),
+                subjectReference, encounterReference, context, answers
+            )
+
+            suspend fun saveSpecimen(linkId: String, date: String, type: String) =
+                createSpecimenResource(linkId, date, type, subjectReference, context, answers)
+
+            fun startSummaryMeasure(label: String) {
+                patient.nameFirstRep.family = label
+                patient.nameFirstRep.addGiven(label)
+                measure.id = generateUuid()
+                measure.subject = subjectReference
+                measure.status = MeasureReport.MeasureReportStatus.COMPLETE
+                measure.type = MeasureReport.MeasureReportType.SUMMARY
+            }
+
             when (case) {
+                CaseSlugs.MPOX_REGISTER -> {
+                    PatientMapper.applyName(
+                        patient,
+                        answers.answerOf(FormFields.Person.FIRST_NAME),
+                        answers.answerOf(FormFields.Person.MIDDLE_NAME),
+                        answers.answerOf(FormFields.Person.SURNAME),
+                        PatientMapper.NameOrder.SURNAME_AS_FAMILY
+                    )
+                    PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+                    answers.answerOf(FormFields.Person.PHONE)
+                        ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
+                    val (county, subCounty) = applyResidence(patient, answers, context)
 
-                "mpox-register" -> {
-                    val patientFNameEntry = extractedAnswers.find { it.linkId == "873240407472" }
-                    val patientMNameEntry = extractedAnswers.find { it.linkId == "246751846436" }
-                    val patientLNameEntry = extractedAnswers.find { it.linkId == "486402457213" }
-                    if (patientLNameEntry != null) {
-                        patient.nameFirstRep.family = patientLNameEntry.answer
-                    }
-
-                    if (patientFNameEntry != null) {
-                        patient.nameFirstRep.addGiven(patientFNameEntry.answer)
-                    }
-
-                    if (patientMNameEntry != null) {
-                        patient.nameFirstRep.addGiven(patientMNameEntry.answer)
-                    }
-                    val dobEntry = extractedAnswers.find { it.linkId == "257830485990" }
-                    val genderEntry = extractedAnswers.find { it.linkId == "929966324957" }
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val centerEntry = extractedAnswers.find { it.linkId == "vaccination_center" }
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-                    var county = ""
-                    var subCounty = ""
-                    var center = ""
-                    val currentYear = LocalDate.now().year
-                    if (centerEntry != null) {
-                        center = centerEntry.answer
-                    }
-                    if (dobEntry != null) {
-                        try {
-                            patient.birthDate =
-                                SimpleDateFormat("yyyy-MM-dd").parse(dobEntry.answer)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-                    if (genderEntry != null) {
-                        val gender = when (genderEntry.answer.lowercase()) {
-                            "male" -> Enumerations.AdministrativeGender.MALE
-                            "female" -> Enumerations.AdministrativeGender.FEMALE
-                            else -> Enumerations.AdministrativeGender.UNKNOWN
-                        }
-                        patient.gender = gender
-                    }
-                    val originEntry = extractedAnswers.find { it.linkId == "country_of_origin" }
-                    val pPhoneEntry = extractedAnswers.find { it.linkId == "754217593839" }
-                    val parentPhone = ContactPoint()
-                    if (pPhoneEntry != null) {
-
-                        parentPhone.value = pPhoneEntry.answer
-                        parentPhone.system = ContactPoint.ContactPointSystem.PHONE
-                        parentPhone.use = ContactPoint.ContactPointUse.MOBILE
-                    }
-
-                    val epid = if (originEntry != null) {
-                        val countryCode = originEntry.answer.padEnd(3, 'X').take(3).uppercase()
-                        "$countryCode-${
-                            center.padEnd(3, 'X').take(3).uppercase()
-                        }-$currentYear-MPOVAC-"
-                    } else {
-                        val countyCode =
-                            FormatterClass().generateInitials(county)// county.padEnd(3, 'X').take(3).uppercase()
-                        val subCountyCode =
-                            FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-                        "KEN-$countyCode-$subCountyCode-$currentYear-MPOVAC-"
-                    }
-
-                    patient.addTelecom(parentPhone)
-
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
+                    val country = answers.answerOf(FormFields.MpoxRegister.COUNTRY_OF_ORIGIN)
+                    val center = answers.answerOf(FormFields.MpoxRegister.VACCINATION_CENTER).orEmpty()
+                    saveEpid(
+                        if (country != null) EpidNumber.foreign(country, center, EpidNumber.MPOX_VACCINATION)
+                        else EpidNumber.kenyan(county, subCounty, EpidNumber.MPOX_VACCINATION)
                     )
                 }
 
-                "social-listening-and-rumor-tracking-tool" -> {
-
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-
-                    val countyCode =
-                        FormatterClass().generateInitials(county)///padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode =
-                        FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-
-
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-RTT-"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
-                    )
+                CaseSlugs.RUMOR -> {
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.RUMOR))
                 }
 
-                "measles-case-information" -> {
-                    val genderEntry = extractedAnswers.find { it.linkId == "929966324957" }
-                    val dobEntry = extractedAnswers.find { it.linkId == "257830485990" }
-                    val parentEntry = extractedAnswers.find { it.linkId == "parent" }
-                    val residenceEntry = extractedAnswers.find { it.linkId == "242811643559" }
-                    val pNeighborEntry = extractedAnswers.find { it.linkId == "946232932304" }
-                    val pStreetEntry = extractedAnswers.find { it.linkId == "424111786438" }
-                    val pTownEntry = extractedAnswers.find { it.linkId == "110761799063" }
-                    val pSubCountyEntry = extractedAnswers.find { it.linkId == "885995384353" }
-                    val pCountyEntry = extractedAnswers.find { it.linkId == "301322368614" }
-                    val pPhoneEntry = extractedAnswers.find { it.linkId == "754217593839" }
-                    val patientFNameEntry = extractedAnswers.find { it.linkId == "873240407472" }
-                    val patientMNameEntry = extractedAnswers.find { it.linkId == "246751846436" }
-                    val patientLNameEntry = extractedAnswers.find { it.linkId == "486402457213" }
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-                    val linkedEntry = extractedAnswers.find { it.linkId == "865158268604" }
-
-                    if (patientLNameEntry != null) {
-                        patient.nameFirstRep.family = patientLNameEntry.answer
-                    }
-
-                    if (patientFNameEntry != null) {
-                        patient.nameFirstRep.addGiven(patientFNameEntry.answer)
-                    }
-
-                    if (patientMNameEntry != null) {
-                        patient.nameFirstRep.addGiven(patientMNameEntry.answer)
-                    }
-
-                    parentEntry?.answer?.let { fullName ->
-                        val parts = fullName.trim().split("\\s+".toRegex())
-                        when (parts.size) {
-                            1 -> {
-                                pfirstName = parts[0]
-                            }
-
-                            2 -> {
-                                pfirstName = parts[0]
-                                psecondName = parts[1]
-                            }
-
-                            else -> {
-                                pfirstName = parts[0]
-                                psecondName = parts[1]
-                                potherNames = parts.drop(2)
-                            }
-                        }
-                    }
-
-                    if (genderEntry != null) {
-                        val gender = when (genderEntry.answer) {
-                            "Male" -> Enumerations.AdministrativeGender.MALE
-                            "Female" -> Enumerations.AdministrativeGender.FEMALE
-                            else -> Enumerations.AdministrativeGender.UNKNOWN
-                        }
-                        patient.gender = gender
-                    }
-
-                    val parentPhone = ContactPoint()
-                    if (pPhoneEntry != null) {
-
-                        parentPhone.value = pPhoneEntry.answer
-                        parentPhone.system = ContactPoint.ContactPointSystem.PHONE
-                        parentPhone.use = ContactPoint.ContactPointUse.MOBILE
-                    }
-                    val parentAddress = Address()
-
-                    if (residenceEntry != null) {
-                        parentAddress.addLine(residenceEntry.answer)
-                    }
-                    if (pNeighborEntry != null) {
-                        parentAddress.addLine(pNeighborEntry.answer)
-                    }
-                    if (pStreetEntry != null) {
-                        parentAddress.addLine(pStreetEntry.answer)
-                    }
-                    if (pTownEntry != null) {
-                        parentAddress.addLine(pTownEntry.answer)
-                    }
-                    if (pSubCountyEntry != null) {
-                        parentAddress.addLine(pSubCountyEntry.answer)
-                    }
-                    if (pCountyEntry != null) {
-                        parentAddress.addLine(pCountyEntry.answer)
-                    }
-
-
-                    val parentName = HumanName()
-                    if (pfirstName != null) {
-                        parentName.family = pfirstName
-
-                    }
-                    if (psecondName != null) {
-                        parentName.addGiven(psecondName)
-                    }
-                    if (potherNames.isNotEmpty()) {
-                        potherNames.forEach {
-                            parentName.addGiven(it)
-                        }
-                    }
-
-                    patient.contactFirstRep.name = parentName
-                    patient.contactFirstRep.address = parentAddress
-                    patient.contactFirstRep.addTelecom(parentPhone)
-
-
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-
-                    val countyCode =
-                        FormatterClass().generateInitials(county)//.padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode =
-                        FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-                    var linked = "MEA-"
-
-                    if (linkedEntry != null) {
-                        linked = when (linkedEntry.answer.lowercase()) {
-                            "yes" -> "MEA-L"
-                            else -> "MEA-"
-                        }
-                    }
-
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-$linked"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
+                CaseSlugs.MEASLES -> {
+                    PatientMapper.applyName(
+                        patient,
+                        answers.answerOf(FormFields.Person.FIRST_NAME),
+                        answers.answerOf(FormFields.Person.MIDDLE_NAME),
+                        answers.answerOf(FormFields.Person.SURNAME),
+                        PatientMapper.NameOrder.SURNAME_AS_FAMILY
                     )
-
-                    try {
-                        if (dobEntry != null) {
-                            patient.birthDate =
-                                SimpleDateFormat("yyyy-MM-dd").parse(dobEntry.answer)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
-                    // Define specimen types and their corresponding linkIds
-                    val specimenConfigs = mutableListOf<SpecimenConfig>(
-                        SpecimenConfig("Blood", "918495737998", "8962468583341"),
-                        SpecimenConfig("Urine", "433195098993", "915783129731"),
-                        SpecimenConfig("Respiratory Sample", "270749570400", "183705125522"),
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+                    PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
+                    PatientMapper.applyContact(
+                        patient,
+                        fullName = answers.answerOf(FormFields.Measles.PARENT_NAME),
+                        phone = answers.answerOf(FormFields.Person.PHONE),
+                        addressLines = FormFields.Measles.PARENT_ADDRESS_LINES.mapNotNull { answers.answerOf(it) },
                     )
-
-                    val otherSpecimenEntry = extractedAnswers.find { it.linkId == "258912872921" }
-                    if (otherSpecimenEntry != null) {
-
-                        if (otherSpecimenEntry.answer.lowercase() == "yes") {
-                            val otherSpecifyEntry =
-                                extractedAnswers.find { it.linkId == "340507649387" }
-                            if (otherSpecifyEntry != null) {
-                                val otherDateEntry =
-                                    extractedAnswers.find { it.linkId == "699353598445" }
-                                if (otherDateEntry != null) {
-                                    createSpecimenResource(
-                                        otherSpecifyEntry.linkId,
-                                        otherDateEntry.answer,
-                                        otherSpecifyEntry.answer,
-                                        subjectReference,
-                                        context,
-                                        extractedAnswers
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    for (config in specimenConfigs) {
-                        val specimenEntry =
-                            extractedAnswers.find { it.linkId == config.entryLinkId }
-                        if (specimenEntry?.answer?.lowercase() == "yes") {
-                            val dateEntry = extractedAnswers.find { it.linkId == config.dateLinkId }
-                            if (dateEntry != null) {
-                                createSpecimenResource(
-                                    specimenEntry.linkId,
-                                    dateEntry.answer,
-                                    config.type,
-                                    subjectReference,
-                                    context,
-                                    extractedAnswers
-                                )
-                            }
-                        }
-                    }
-                }
-
-                "afp-case-information" -> {
-                    val fNameEntry = extractedAnswers.find { it.linkId == "873240407472" }
-                    val mNameEntry = extractedAnswers.find { it.linkId == "246751846436" }
-                    val lNameEntry = extractedAnswers.find { it.linkId == "486402457213" }
-                    val genderEntry = extractedAnswers.find { it.linkId == "929966324957" }
-                    val dobEntry = extractedAnswers.find { it.linkId == "257830485990" }
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-                    val specimenDateEntry = extractedAnswers.find { it.linkId == "737703942433" }
-
-
-                    if (genderEntry != null) {
-                        val gender = when (genderEntry.answer.lowercase()) {
-                            "male" -> Enumerations.AdministrativeGender.MALE
-                            "female" -> Enumerations.AdministrativeGender.FEMALE
-                            else -> Enumerations.AdministrativeGender.UNKNOWN
-                        }
-                        patient.gender = gender
-                    }
-                    if (fNameEntry != null) {
-                        patient.nameFirstRep.family = fNameEntry.answer
-                    }
-                    if (mNameEntry != null) {
-                        patient.nameFirstRep.addGiven(mNameEntry.answer)
-                    }
-                    if (lNameEntry != null) {
-                        patient.nameFirstRep.addGiven(lNameEntry.answer)
-                    }
-                    val guardianEntry = extractedAnswers.find { it.linkId == "856448027666" }
-                    val fullName = guardianEntry?.answer?.trim().orEmpty()
-                    val parts = fullName.split("\\s+".toRegex()).filter { it.isNotBlank() }
-
-                    val parentName = HumanName()
-                    when {
-                        parts.isEmpty() -> {
-
-                        }
-
-                        parts.size == 1 -> {
-                            parentName.family = parts[0]
-                        }
-
-                        else -> {
-                            parentName.family = parts[0]
-                            parentName.addGiven(parts.drop(1).joinToString(" "))
-                        }
-                    }
-                    patient.contactFirstRep.name = parentName
-                    val phoneEntry = extractedAnswers.find { it.linkId == "576318206363" }
-                    val parentPhone = ContactPoint()
-                    if (phoneEntry != null) {
-
-                        parentPhone.value = phoneEntry.answer
-                        parentPhone.system = ContactPoint.ContactPointSystem.PHONE
-                        parentPhone.use = ContactPoint.ContactPointUse.MOBILE
-                    }
-                    val parentAddress = Address()
-                    patient.contactFirstRep.address = parentAddress
-                    patient.contactFirstRep.addTelecom(parentPhone)
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-
-                    val countyCode =
-                        FormatterClass().generateInitials(county)//.padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode =
-                        FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-
-
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-AFP-"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
-                    )
-
-
-                    if (specimenDateEntry != null) {
-
-                        createSpecimenResource(
-                            specimenDateEntry.linkId,
-                            specimenDateEntry.answer,
-                            "Stool",
-                            subjectReference,
-                            context,
-                            extractedAnswers
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    val isLineList =
+                        answers.answerOf(FormFields.Measles.CASE_OR_LINE_LIST).equals("yes", ignoreCase = true)
+                    saveEpid(
+                        EpidNumber.kenyan(
+                            county, subCounty,
+                            if (isLineList) EpidNumber.MEASLES_LINE_LIST else EpidNumber.MEASLES
                         )
-                    }
-
-
-                    try {
-                        if (dobEntry != null) {
-                            patient.birthDate =
-                                SimpleDateFormat("yyyy-MM-dd").parse(dobEntry.answer)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
-
-                }
-
-                "vl-case-information" -> {
-                    val fNameEntry = extractedAnswers.find { it.linkId == "817903655885" }
-                    val mNameEntry = extractedAnswers.find { it.linkId == "164840483828" }
-                    val lNameEntry = extractedAnswers.find { it.linkId == "606848143908" }
-                    val genderEntry = extractedAnswers.find { it.linkId == "543806612685" }
-                    val dobEntry = extractedAnswers.find { it.linkId == "257830485990" }
-                    val phoneEntry = extractedAnswers.find { it.linkId == "760016167907" }
-                    val contactNameEntry = extractedAnswers.find { it.linkId == "657999955440" }
-                    val contactPhoneEntry = extractedAnswers.find { it.linkId == "354738003178" }
-
-                    val casePhone = ContactPoint()
-                    val parentPhone = ContactPoint()
-                    if (phoneEntry != null) {
-                        casePhone.value = phoneEntry.answer
-                        casePhone.system = ContactPoint.ContactPointSystem.PHONE
-                        casePhone.use = ContactPoint.ContactPointUse.MOBILE
-                        patient.addTelecom(parentPhone)
-                    }
-                    if (contactPhoneEntry != null) {
-                        parentPhone.value = contactPhoneEntry.answer
-                        parentPhone.system = ContactPoint.ContactPointSystem.PHONE
-                        parentPhone.use = ContactPoint.ContactPointUse.MOBILE
-                        patient.contactFirstRep.addTelecom(parentPhone)
-                    }
-
-                    if (genderEntry != null) {
-                        val gender = when (genderEntry.answer.lowercase()) {
-                            "male" -> Enumerations.AdministrativeGender.MALE
-                            "female" -> Enumerations.AdministrativeGender.FEMALE
-                            else -> Enumerations.AdministrativeGender.UNKNOWN
-                        }
-                        patient.gender = gender
-                    }
-                    if (fNameEntry != null) {
-                        patient.nameFirstRep.family = fNameEntry.answer
-                    }
-                    if (mNameEntry != null) {
-                        patient.nameFirstRep.addGiven(mNameEntry.answer)
-                    }
-                    if (lNameEntry != null) {
-                        patient.nameFirstRep.addGiven(lNameEntry.answer)
-                    }
-
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-
-                    val countyCode =
-                        FormatterClass().generateInitials(county)//.padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode =
-                        FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-
-
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-VL-"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
-                    )
-                    try {
-                        if (dobEntry != null) {
-                            patient.birthDate =
-                                SimpleDateFormat("yyyy-MM-dd").parse(dobEntry.answer)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
-                    val fullName = contactNameEntry?.answer?.trim().orEmpty()
-                    val parts = fullName.split("\\s+".toRegex()).filter { it.isNotBlank() }
-
-                    val parentName = HumanName()
-                    when {
-                        parts.isEmpty() -> {
-
-                        }
-
-                        parts.size == 1 -> {
-                            parentName.family = parts[0]
-                        }
-
-                        else -> {
-                            parentName.family = parts[0]
-                            parentName.addGiven(parts.drop(1).joinToString(" "))
-                        }
-                    }
-                    patient.contactFirstRep.name = parentName
-                }
-
-                "moh-505-reporting-form" -> {
-
-                    patient.nameFirstRep.family = "MOH-505"
-                    patient.nameFirstRep.addGiven("MOH-505")
-
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-
-                    measure.id = generateUuid()
-                    measure.subject = subjectReference
-                    measure.status = MeasureReport.MeasureReportStatus.COMPLETE
-                    measure.type = MeasureReport.MeasureReportType.SUMMARY
-
-
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-
-                    val countyCode =
-                        FormatterClass().generateInitials(county)//.padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode =
-                        FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-                    var linked = "MOH-505-"
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-$linked"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
                     )
 
+                    if (answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_COLLECTED).equals("yes", ignoreCase = true)) {
+                        val otherType = answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_TYPE)
+                        val otherDate = answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_DATE)
+                        if (otherType != null && otherDate != null) {
+                            saveSpecimen(FormFields.Measles.OTHER_SPECIMEN_TYPE, otherDate, otherType)
+                        }
+                    }
+                    FormFields.Measles.SPECIMENS.forEach { specimen ->
+                        val collected = answers.answerOf(specimen.collectedLinkId)
+                        val date = answers.answerOf(specimen.dateLinkId)
+                        if (collected.equals("yes", ignoreCase = true) && date != null) {
+                            saveSpecimen(specimen.collectedLinkId, date, specimen.type)
+                        }
+                    }
                 }
 
-                "mpox-tally-sheet" -> {
-
-                    patient.nameFirstRep.family = "Mpox-Tally"
-                    patient.nameFirstRep.addGiven("Mpox-Tally")
-
-                    val subCountyEntry = resolveLocationEntry(extractedAnswers, isCounty = false, context = context)
-                    val countyEntry = resolveLocationEntry(extractedAnswers, isCounty = true, context = context)
-
-                    measure.id = generateUuid()
-                    measure.subject = subjectReference
-                    measure.status = MeasureReport.MeasureReportStatus.COMPLETE
-                    measure.type = MeasureReport.MeasureReportType.SUMMARY
-
-
-                    var county = ""
-                    var subCounty = ""
-                    val currentYear = LocalDate.now().year
-
-                    if (subCountyEntry != null) {
-                        subCounty = subCountyEntry.answer
-                        patient.addressFirstRep.state = subCounty
-                        patient.addressFirstRep.addLine(subCounty)
-                    }
-                    if (countyEntry != null) {
-                        county = countyEntry.answer
-                        patient.addressFirstRep.city = county
-                        patient.addressFirstRep.addLine(county)
-                    }
-
-                    val countyCode =
-                        FormatterClass().generateInitials(county)//.padEnd(3, 'X').take(3).uppercase()
-                    val subCountyCode =
-                        FormatterClass().generateInitials(subCounty)//.padEnd(3, 'X').take(3).uppercase()
-                    val linked = "Mpox-"
-                    val epid = "KEN-$countyCode-$subCountyCode-$currentYear-$linked"
-
-                    val obs = qh.codingQuestionnaire("EPID", "EPID No", epid)
-                    createResource(
-                        obs, subjectReference, encounterReference, context, extractedAnswers
+                CaseSlugs.AFP -> {
+                    PatientMapper.applyName(
+                        patient,
+                        answers.answerOf(FormFields.Person.FIRST_NAME),
+                        answers.answerOf(FormFields.Person.MIDDLE_NAME),
+                        answers.answerOf(FormFields.Person.SURNAME),
+                        PatientMapper.NameOrder.FIRST_AS_FAMILY
                     )
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+                    PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
+                    PatientMapper.applyContact(
+                        patient,
+                        fullName = answers.answerOf(FormFields.Afp.GUARDIAN_NAME),
+                        phone = answers.answerOf(FormFields.Afp.GUARDIAN_PHONE),
+                    )
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.AFP))
 
+                    answers.answerOf(FormFields.Afp.STOOL_SPECIMEN_DATE)?.let { date ->
+                        saveSpecimen(FormFields.Afp.STOOL_SPECIMEN_DATE, date, "Stool")
+                    }
                 }
 
+                CaseSlugs.VL -> {
+                    PatientMapper.applyName(
+                        patient,
+                        answers.answerOf(FormFields.Vl.FIRST_NAME),
+                        answers.answerOf(FormFields.Vl.MIDDLE_NAME),
+                        answers.answerOf(FormFields.Vl.SURNAME),
+                        PatientMapper.NameOrder.FIRST_AS_FAMILY
+                    )
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Vl.SEX))
+                    PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
+                    answers.answerOf(FormFields.Vl.PHONE)
+                        ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
+                    PatientMapper.applyContact(
+                        patient,
+                        fullName = answers.answerOf(FormFields.Vl.CONTACT_NAME),
+                        phone = answers.answerOf(FormFields.Vl.CONTACT_PHONE),
+                    )
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VL))
+                }
+
+                CaseSlugs.VHF -> {
+                    PatientMapper.applyName(
+                        patient,
+                        first = answers.answerOf(FormFields.Person.FIRST_NAME), // "Given names"
+                        middle = null,
+                        surname = answers.answerOf(FormFields.Person.SURNAME),
+                        order = PatientMapper.NameOrder.SURNAME_AS_FAMILY
+                    )
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+                    PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
+                    answers.answerOf(FormFields.Vhf.PHONE)
+                        ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
+                    answers.answerOf(FormFields.Vhf.NATIONAL_ID)?.let { nationalId ->
+                        patient.addIdentifier().apply {
+                            system = "national-id"
+                            value = nationalId
+                        }
+                    }
+                    PatientMapper.applyContact(
+                        patient,
+                        fullName = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN),
+                        phone = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN_PHONE),
+                    )
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VHF))
+                }
+
+                CaseSlugs.MOH_505 -> {
+                    startSummaryMeasure("MOH-505")
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.MOH_505))
+                }
+
+                CaseSlugs.MPOX_TALLY_SHEET -> {
+                    startSummaryMeasure("Mpox-Tally")
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.MPOX))
+                }
             }
             withMetaTags(patient)
             withMetaTags(enc)
@@ -1353,7 +902,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         val measureCodeableConcept = CodeableConcept()
                         measureCodeableConcept.codingFirstRep.code = it.linkId
                         measureCodeableConcept.codingFirstRep.display = it.text
-                        measureCodeableConcept.codingFirstRep.system = "questionnaire-answers"
+                        measureCodeableConcept.codingFirstRep.system = FhirSystems.QUESTIONNAIRE_ANSWERS
                         measureCodeableConcept.text = it.text
 
                         val compo = MeasureReportGroupPopulationComponent()
@@ -1377,7 +926,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         // check if the linkId is not in the excluded list and add to measure
 
                         when (case) {
-                            "mpox-tally-sheet" -> {
+                            CaseSlugs.MPOX_TALLY_SHEET -> {
                                 if (!ALL_MPOX_LINK_IDS.contains(it.linkId)) {
                                     measure.groupFirstRep.addPopulation(compo)
                                 }
@@ -1398,19 +947,19 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         )
                     }
                     when (case) {
-                        "moh-505-reporting-form" -> {
+                        CaseSlugs.MOH_505 -> {
                             fhirEngine.create(measure)
                         }
 
-                        "mpox-tally-sheet" -> {
+                        CaseSlugs.MPOX_TALLY_SHEET -> {
                             val latitude = FormatterClass().getSharedPref("latitude", context)
                             val longitude = FormatterClass().getSharedPref("longitude", context)
 
                             measure.addIdentifier(
                                 QuestionnaireHelper().createFullFhirIdentifier(
-                                    codeData = "geo-location",
+                                    codeData = FhirSystems.GEO_LOCATION,
                                     valueData = "lat:${latitude},lon:${longitude}",
-                                    systemData = "geo-location-details",
+                                    systemData = FhirSystems.GEO_LOCATION_DETAILS,
                                     displayData = "Latitude: $latitude, Longitude: $longitude"
                                 )
                             )
@@ -1470,7 +1019,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
         // Build and return Extension with correct data
         return Extension().apply {
-            url = "http://example.org/fhir/StructureDefinition/$resource-managingLocation"
+            url = FhirSystems.managingLocation(resource)
             setValue(
                 Reference().apply {
                     reference = "Location/${info.code}"
@@ -1492,18 +1041,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
         val userRole = UserRole.fromAny(storedRole ?: "")
 
         // Must match the facility linkId of the form variant chosen via UserRole.formRole
+        val facility = FormFields.ReportingSite.FACILITY
         val facilityLink = when (userRole?.scope) {
-            LocationLevel.COUNTY ->
-                "819946803677_county"
-
-            LocationLevel.SUB_COUNTY, LocationLevel.WARD ->
-                "819946803677_sub_county"
-
-            LocationLevel.NATIONAL ->
-                "819946803677_national"
-
-            LocationLevel.FACILITY, null ->
-                "819946803677"
+            LocationLevel.COUNTY -> facility + FormFields.ReportingSite.SUFFIX_COUNTY
+            LocationLevel.SUB_COUNTY, LocationLevel.WARD -> facility + FormFields.ReportingSite.SUFFIX_SUB_COUNTY
+            LocationLevel.NATIONAL -> facility + FormFields.ReportingSite.SUFFIX_NATIONAL
+            LocationLevel.FACILITY, null -> facility
         }
 
         val facilityEntry = extractedAnswers.find { it.linkId == facilityLink }
@@ -1545,7 +1088,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 code = "unknown"
             )
         return Coding().apply {
-            system = "http://example.org/fhir/StructureDefinition/$resource-managingLocation"
+            system = FhirSystems.managingLocation(resource)
             code = "Location/${info.code}"
             display = info.name
         }
@@ -1617,14 +1160,6 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }
     }
 
-    private fun String.toSlug(): String {
-        return this.trim() // remove leading/trailing spaces
-            .lowercase() // make all lowercase
-            .replace("[^a-z0-9\\s-]".toRegex(), "") // remove special characters
-            .replace("\\s+".toRegex(), "-") // replace spaces with hyphens
-            .replace("-+".toRegex(), "-") // collapse multiple hyphens
-    }
-
 
     private suspend fun createResource(
         obs: Observation,
@@ -1663,6 +1198,18 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }
     }
 
+    /** Resolves the case's county / sub-county and writes them as the patient's address. */
+    private suspend fun applyResidence(
+        patient: Patient,
+        answers: List<QuestionnaireAnswer>,
+        context: Context,
+    ): Pair<String, String> {
+        val county = resolveLocationEntry(answers, isCounty = true, context = context)?.answer.orEmpty()
+        val subCounty = resolveLocationEntry(answers, isCounty = false, context = context)?.answer.orEmpty()
+        PatientMapper.applyResidence(patient, county, subCounty)
+        return county to subCounty
+    }
+
     /**
      * Finds the county / sub-county answer used for EPID numbers and patient address.
      *
@@ -1677,14 +1224,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
         isCounty: Boolean,
         context: Context
     ): QuestionnaireAnswer? {
-        val base = if (isCounty) "294367770999" else "819946803642"
-        val candidates = listOf(
-            if (isCounty) "a4-county" else "a3-sub-county",
-            base,
-            "${base}_sub_county",
-            "${base}_county",
-            "${base}_national"
-        )
+        val candidates = if (isCounty) {
+            listOf(FormFields.Residence.COUNTY) + FormFields.ReportingSite.COUNTY_VARIANTS
+        } else {
+            listOf(FormFields.Residence.SUB_COUNTY) + FormFields.ReportingSite.SUB_COUNTY_VARIANTS
+        }
+        val base = candidates[1]
         val entry = candidates.firstNotNullOfOrNull { id ->
             answers.firstOrNull { it.linkId == id && it.answer.isNotBlank() }
         }

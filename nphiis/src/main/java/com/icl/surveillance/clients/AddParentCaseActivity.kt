@@ -31,6 +31,7 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FR
 import com.icl.surveillance.databinding.ActivityAddParentCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.SdcQuestionnaireResponseSaver
+import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
@@ -316,7 +317,7 @@ class AddParentCaseActivity : AppCompatActivity() {
         val case = FormatterClass().getSharedPref("currentCase", this@AddParentCaseActivity)
 
         when (case) {
-            "Mpox - Supervisor Checklist" -> {
+            CaseTypes.MPOX_SUPERVISOR_CHECKLIST -> {
                 viewModel.saveUserResponse(questionnaireResponse, case, this@AddParentCaseActivity)
 
             }

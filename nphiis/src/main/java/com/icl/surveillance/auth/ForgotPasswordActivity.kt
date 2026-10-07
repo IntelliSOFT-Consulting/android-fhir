@@ -68,13 +68,11 @@ class ForgotPasswordActivity : AppCompatActivity() {
                     email = emailAddress
                 )
                 CoroutineScope(Dispatchers.Main).launch {
-
                     val progressDialog = ProgressDialog(this@ForgotPasswordActivity)
                     progressDialog.setTitle("Please wait..")
                     progressDialog.setMessage("Authentication in progress..")
                     progressDialog.setCanceledOnTouchOutside(false)
                     progressDialog.show()
-
                     val job = Job()
                     CoroutineScope(Dispatchers.IO + job).launch {
                         FormatterClass().saveSharedPref(
@@ -102,12 +100,9 @@ class ForgotPasswordActivity : AppCompatActivity() {
                                 this@ForgotPasswordActivity.finish()
                             }
                         }
-
                     }.join()
                     progressDialog.dismiss()
-
                 }
-
             }
             haveCodeTextView.setOnClickListener {
                 startActivity(

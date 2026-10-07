@@ -40,6 +40,11 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         return Diseases.values().filter { it.count == 100 }.toList()
     }
 
+    /** Tools of the ADaM module (home tile [Layout.ADAM]). */
+    fun getAdamList(): List<Diseases> {
+        return Diseases.values().filter { it.count == ADAM_STAGE }.toList()
+    }
+
     fun getAssessmentList(): List<Diseases> {
         return Diseases.values().filter { it.count == 4 }.toList()
     }
@@ -63,6 +68,12 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         VL_FORM(
             R.drawable.searching,
             R.string.vl_form, 2, 20
+        ),
+
+        // ADaM
+        VHF(
+            R.drawable.searching,
+            R.string.vhf_form, ADAM_STAGE, 50
         ),
 
         // Mass
@@ -163,6 +174,15 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         SURVEY(
             R.drawable.presentation,
             R.string.surveys, 4
+        ),
+        ADAM(
+            R.drawable.virus,
+            R.string.adam, ADAM_STAGE
         )
+    }
+
+    companion object {
+        /** Stage/count shared by the ADaM home tile and its tools. */
+        const val ADAM_STAGE = 5
     }
 }
