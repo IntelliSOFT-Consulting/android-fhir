@@ -28,7 +28,8 @@ import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.debug.SyntheticDataDialogs
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.fhir.DemoDataStore
-import com.icl.surveillance.monitor.DialogHelper
+import com.icl.surveillance.clients.SyncActivity
+import com.icl.surveillance.utils.DialogHelper
 import com.icl.surveillance.models.UserProfilePrefs
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
@@ -92,7 +93,7 @@ class ProfileFragment : Fragment() {
 
             btnSync.setOnClickListener {
                 if (NetworkUtils.isInternetAvailable(requireContext())) {
-                    startActivity(Intent(requireContext(), SyncUploadActivity::class.java))
+                    startActivity(Intent(requireContext(), SyncActivity::class.java))
                 } else {
                     DialogHelper.showSyncRequiresInternetDialog(requireContext())
                 }

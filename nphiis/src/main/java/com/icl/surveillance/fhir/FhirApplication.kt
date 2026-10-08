@@ -22,8 +22,6 @@ import com.google.android.fhir.sync.Sync
 import com.google.android.fhir.sync.remote.HttpLogger
 import com.google.firebase.FirebaseApp
 import com.icl.surveillance.BuildConfig
-import com.icl.surveillance.monitor.FhirSyncService
-import com.icl.surveillance.monitor.NetworkModule
 import com.icl.surveillance.utils.Constants.BASE_URL
 import com.icl.surveillance.utils.Constants.TEST_TOKEN
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
@@ -65,7 +63,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                     httpLogger =
                         HttpLogger(
                             HttpLogger.Configuration(
-                                HttpLogger.Level.BASIC,
+                                HttpLogger.Level.BODY,
                             ),
                         ) { line ->
                             Timber.tag("App-HttpLog").e(line)

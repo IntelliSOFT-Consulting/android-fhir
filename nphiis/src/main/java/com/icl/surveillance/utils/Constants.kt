@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 import com.icl.surveillance.R
 
 object Constants {
-
+    const val UPLOAD_BUNDLE_SIZE = 500
     const val BASE_URL = "https://dsrfhir.intellisoftkenya.com/v2/fhir/"
     const val BASE_AUTH_URL = "https://dsrkeycloak.intellisoftkenya.com/auth/"
     const val ALERTS_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"

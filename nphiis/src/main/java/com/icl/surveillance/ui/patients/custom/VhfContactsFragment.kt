@@ -20,6 +20,7 @@ import com.icl.surveillance.fhir.forms.ContactFollowUpState
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfDemoMode
 import com.icl.surveillance.fhir.forms.valueOf
 import com.icl.surveillance.ui.patients.SummarizedActivity
 import com.icl.surveillance.utils.FormatterClass
@@ -145,6 +146,20 @@ class VhfContactsFragment : Fragment() {
         binding.lnEmpty.visibility = View.GONE
         val parent = binding.lnParent
         parent.removeAllViews()
+
+        // Demo mode: lets follow ups be recorded without waiting for each day's date.
+        val demo = VhfDemoMode.refresh(requireContext())
+        parent.addView(
+            VhfCards.toggle(
+                parent,
+                "Demo mode",
+                if (demo) "Follow ups can be recorded ahead of their dates" else "Follow ups open on their scheduled dates",
+                demo
+            ) { on ->
+                VhfDemoMode.set(requireContext(), on)
+                load()
+            }
+        )
 
         if (rows.isEmpty()) {
             binding.fab.visibility = View.GONE
