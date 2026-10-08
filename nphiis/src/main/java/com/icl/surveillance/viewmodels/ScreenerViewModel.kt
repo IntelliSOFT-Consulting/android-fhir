@@ -1,5 +1,6 @@
 package com.icl.surveillance.viewmodels
 
+import com.icl.surveillance.fhir.FhirConformance
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.ManagingLocation
 import com.icl.surveillance.models.QuestionnaireAnswer
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.QuestionnaireHelper
@@ -188,8 +190,11 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                     identifier.add(identifierSystem0)
                 }
 
-                val facility = formatter.getSharedPref("facility", appContext)
-                val facilityName = formatter.getSharedPref("facilityName", appContext)
+                // The user's facility, else the case's own: never an empty "Location/" reference.
+                val place = ManagingLocation.ofUser(appContext)
+                    ?: ManagingLocation.ofEncounter(fhirEngine, encounter)
+                val facility = place?.id
+                val facilityName = place?.name
                 if (facility != null) {
                     contact.addExtension(sourceExtension("patient", facility, facilityName))
                     enc.addExtension(sourceExtension("encounter", facility, facilityName))
@@ -226,7 +231,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 questionnaireResponse.id = generateUuid()
                 questionnaireResponse.subject = subjectReference
                 questionnaireResponse.encounter = encounterReference
-                fhirEngine.create(questionnaireResponse)
+                fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
 
                 var county = ""
                 var subCounty = ""
@@ -318,8 +323,11 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                     identifier.add(identifierSystem0)
                 }
 
-                val facility = formatter.getSharedPref("facility", appContext)
-                val facilityName = formatter.getSharedPref("facilityName", appContext)
+                // The user's facility, else the case's own: never an empty "Location/" reference.
+                val place = ManagingLocation.ofUser(appContext)
+                    ?: ManagingLocation.ofEncounter(fhirEngine, encounter)
+                val facility = place?.id
+                val facilityName = place?.name
                 if (facility != null) {
                     questionnaireResponse.meta = Meta().apply {
                         tag = listOf(
@@ -354,7 +362,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 questionnaireResponse.id = generateUuid()
                 questionnaireResponse.subject = subjectReference
                 questionnaireResponse.encounter = encounterReference
-                fhirEngine.create(questionnaireResponse)
+                fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
 
                 extractedAnswers.forEach {
                     val obs = qh.codingQuestionnaire(
@@ -472,7 +480,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 }
                 obs.addExtension(sourceExtension("observation", facility, facilityName))
             }
-            fhirEngine.create(obs)
+            fhirEngine.create(FhirConformance.ensureRequired(obs))
 
             println("Observation created: ${obs.id}")
         } catch (e: Exception) {

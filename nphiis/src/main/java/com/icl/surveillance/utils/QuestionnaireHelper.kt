@@ -1,5 +1,6 @@
 package com.icl.surveillance.utils
 
+import com.icl.surveillance.fhir.FhirConformance
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Encounter
@@ -61,7 +62,7 @@ class QuestionnaireHelper {
             val reference = Reference("Encounter/$basedOn")
             enc.partOf = reference
         }
-        return enc
+        return FhirConformance.ensureRequired(enc)
     }
 
     fun codingTimeAutoQuestionnaire(code: String, display: String, text: String): Observation {

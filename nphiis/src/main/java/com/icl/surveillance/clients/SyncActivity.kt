@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ActivitySyncBinding
-import com.icl.surveillance.monitor.DialogHelper
+import com.icl.surveillance.utils.DialogHelper
 import com.icl.surveillance.utils.NetworkUtils
 import com.icl.surveillance.viewmodels.PeriodicSyncViewModel
 import kotlinx.coroutines.launch

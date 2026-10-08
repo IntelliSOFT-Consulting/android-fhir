@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
@@ -34,6 +35,8 @@ import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.setSingleClickListener
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.collections.forEach
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -118,8 +121,12 @@ class FollowUpFormFragment : Fragment() {
                 return@observe
             }
             viewLifecycleOwner.lifecycleScope.launch {
-                val (latest, recordedOn) = latestRecord(records)
-                if (_binding != null) renderRecord(latest, recordedOn)
+                val ordered = newestFirst(records)
+                if (_binding == null) return@launch
+                val (latest, recordedOn) = ordered.first()
+                renderRecord(latest, recordedOn)
+                // Forms updated over time keep every submission; earlier ones are listed below.
+                if (allowUpdates && ordered.size > 1) addHistory(ordered.drop(1))
             }
         }
         if (currentCase != null) {
@@ -145,18 +152,64 @@ class FollowUpFormFragment : Fragment() {
         }
     }
 
-    /** The most recently submitted record; each carries its submission time on its Encounter. */
-    private suspend fun latestRecord(
+    /** Records with their submission time (kept on each Encounter), newest first. */
+    private suspend fun newestFirst(
         records: List<PatientListViewModel.LabResults>
-    ): Pair<PatientListViewModel.LabResults, String> = withContext(Dispatchers.IO) {
+    ): List<Pair<PatientListViewModel.LabResults, String>> = withContext(Dispatchers.IO) {
         records.map { record ->
             val created = runCatching {
                 fhirEngine.get<Encounter>(record.encounterId).identifier
                     .firstOrNull { it.system == FhirSystems.SYSTEM_CREATION }?.value
             }.getOrNull().orEmpty()
             record to created
-        }.maxByOrNull { it.second } ?: (records.first() to "")
+        }.sortedByDescending { it.second }
     }
+
+    /** Earlier submissions: when, and the headline answer; tap one to see all its answers. */
+    private fun addHistory(earlier: List<Pair<PatientListViewModel.LabResults, String>>) {
+        val context = requireContext()
+        parentLayout.addView(SummaryRows.title(context, "History (${earlier.size})"))
+        earlier.forEach { (record, recordedOn) ->
+            parentLayout.addView(
+                SummaryRows.field(
+                    context,
+                    formatRecordedOn(recordedOn),
+                    headline(record),
+                    onClick = { showRecord(record, recordedOn) }
+                )
+            )
+        }
+    }
+
+    /** The answer that best summarises a record: the monitoring status, else the first answer. */
+    private fun headline(record: PatientListViewModel.LabResults): String {
+        val status = record.observations
+            .find { it.code == FormFields.Vhf.MONITORING_STATUS }?.value
+        if (!status.isNullOrBlank()) return status
+        return groups.asSequence().flatMap { it.items.asSequence() }
+            .map { getValueBasedOnId(it, record.observations) }
+            .firstOrNull { it.isNotBlank() }
+            .orEmpty()
+    }
+
+    private fun showRecord(record: PatientListViewModel.LabResults, recordedOn: String) {
+        val lines = groups.flatMap { group ->
+            group.items.mapNotNull { item ->
+                getValueBasedOnId(item, record.observations).takeIf { it.isNotBlank() }
+                    ?.let { "${item.text}: $it" }
+            }
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Recorded ${formatRecordedOn(recordedOn)}")
+            .setMessage(lines.joinToString("\n\n").ifBlank { "No answers recorded." })
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
+    /** "2026-10-08 11:40:12" -> "08 Oct 2026, 11:40". */
+    private fun formatRecordedOn(value: String): String = runCatching {
+        LocalDateTime.parse(value, STORED_TIME).format(SHOWN_TIME)
+    }.getOrDefault(value.ifBlank { "Earlier entry" })
 
     private fun renderRecord(record: PatientListViewModel.LabResults, recordedOn: String) {
         parentLayout.removeAllViews()
@@ -167,7 +220,7 @@ class FollowUpFormFragment : Fragment() {
                         linkId = "recorded-on",
                         text = "Last updated",
                         type = "string",
-                        value = recordedOn
+                        value = formatRecordedOn(recordedOn)
                     )
                 )
             )
@@ -483,6 +536,8 @@ class FollowUpFormFragment : Fragment() {
         private const val ARG_QUESTIONNAIRE = "questionnaire"
         private const val ARG_ALLOW_UPDATES = "allowUpdates"
         private const val ARG_EMPTY_MESSAGE = "emptyMessage"
+        private val STORED_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        private val SHOWN_TIME = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm")
 
         /**
          * @param allowUpdates keep the add button after the first record, for forms that are

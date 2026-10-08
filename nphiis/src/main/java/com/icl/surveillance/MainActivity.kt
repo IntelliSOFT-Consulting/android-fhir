@@ -60,9 +60,6 @@ import com.icl.surveillance.auth.LoginActivity
 import com.icl.surveillance.auth.tokenizer.NPHIISTokenWorker
 import com.icl.surveillance.fhir.DemoDataStore
 import com.icl.surveillance.fhir.FhirApplication
-import com.icl.surveillance.monitor.FhirBundleService
-import com.icl.surveillance.monitor.FhirPaginatedRepository
-import com.icl.surveillance.monitor.PaginatedViewModel
 import com.icl.surveillance.network.RetrofitCallsAuthentication
 import com.icl.surveillance.network.TokenRefreshWorker
 import com.icl.surveillance.utils.NetworkUtils.isInternetAvailable
@@ -76,7 +73,6 @@ import kotlin.getValue
 import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var backupSyncViewModel: PaginatedViewModel
     private var retrofitCallsAuthentication = RetrofitCallsAuthentication()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
@@ -118,7 +114,6 @@ class MainActivity : AppCompatActivity() {
 
     private val addClientViewModel: AddClientViewModel by viewModels()
     private lateinit var fhirEngine: FhirEngine
-    private lateinit var fhirBundleService: FhirBundleService
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -126,8 +121,6 @@ class MainActivity : AppCompatActivity() {
         applySystemBarTheme()
         fhirEngine = FhirApplication.fhirEngine(this@MainActivity)
 
-        backupSyncViewModel = PaginatedViewModel(fhirEngine)
-        fhirBundleService = FhirBundleService(fhirEngine)
 
         val rootView: View = findViewById(R.id.container) // your root view ID
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
@@ -173,7 +166,6 @@ class MainActivity : AppCompatActivity() {
             AppBarConfiguration(
                 setOf(
                     R.id.navigation_home,
-                    R.id.nav_resources,
                     R.id.navigation_notifications
                 )
             )
@@ -185,12 +177,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_home -> {
                     // Do something when Home is clicked
                     navController.navigate(R.id.navigation_home)
-                    true
-                }
-
-                R.id.nav_resources -> {
-                    // Do something when Dashboard is clicked
-                    navController.navigate(R.id.nav_resources)
                     true
                 }
 
@@ -607,83 +593,10 @@ class MainActivity : AppCompatActivity() {
                 // Display toast to show sync has started
                 Toast.makeText(this, "Sync Started ... ", Toast.LENGTH_SHORT).show()
 //                  startActivity(Intent(this@MainActivity, SyncActivity::class.java))
-//                processBackupSync()
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
         }
     }
-
-    private fun processBackupSync() {
-        val repository = FhirPaginatedRepository(fhirEngine)
-        backupSyncViewModel.loadLocalResources("Patient")
-        val resources = backupSyncViewModel.resources.value
-        val token = FormatterClass().getSharedPref("access_token", this@MainActivity)
-
-        println("Resource Count: ${resources.size}")
-        if (token != null) {
-            lifecycleScope.launch {
-                resources.forEach { resourceData ->
-                    println("Resource Type: ${resourceData.resource.idElement.idPart}")
-                    val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-                    val bundle = org.hl7.fhir.r4.model.Bundle().apply {
-                        id = "upload-bundle-${System.currentTimeMillis()}"
-                        type = org.hl7.fhir.r4.model.Bundle.BundleType.TRANSACTION
-                        timestamp = Date()
-                    }
-                    val entry = org.hl7.fhir.r4.model.Bundle.BundleEntryComponent().apply {
-                        fullUrl =
-                            "${resourceData.resource.resourceType}/${resourceData.resource.logicalId}"
-                        val requestPayload =
-                            org.hl7.fhir.r4.model.Bundle.BundleEntryRequestComponent().apply {
-                                method = org.hl7.fhir.r4.model.Bundle.HTTPVerb.PUT
-                                url =
-                                    "${resourceData.resource.resourceType}/${resourceData.resource.logicalId}"
-                            }
-                        request = requestPayload
-                        resource = resourceData.resource
-                    }
-                    bundle.addEntry(entry)
-                    val resources = repository.fetchPatientRelatedResources(
-                        fhirEngine = fhirEngine,
-                        patientId = resourceData.resource.idElement.idPart,
-                        resourceTypes = listOf(
-                            ResourceType.Encounter,
-                            ResourceType.Observation,
-                            ResourceType.QuestionnaireResponse,
-                            ResourceType.Specimen,
-                            ResourceType.MeasureReport
-                        ),
-                        pageSize = 200,
-                        onlyMissingLastUpdated = true
-                    )
-                    resources.forEach { data ->
-                        println("Resource Child: ${data.resourceType} -> ${data.idElement.idPart} ")
-                        val entry = org.hl7.fhir.r4.model.Bundle.BundleEntryComponent().apply {
-                            fullUrl = "${data.resourceType}/${data.logicalId}"
-                            val requestPayload =
-                                org.hl7.fhir.r4.model.Bundle.BundleEntryRequestComponent().apply {
-                                    method = org.hl7.fhir.r4.model.Bundle.HTTPVerb.PUT
-                                    url = "${data.resourceType}/${data.logicalId}"
-                                }
-                            request = requestPayload
-                            resource = data
-                        }
-                        val questionnaireResponseString =
-                            jsonParser.encodeResourceToString(data)
-                        println("Resource Entry: $questionnaireResponseString ")
-                        bundle.addEntry(entry)
-
-                    }
-                    val questionnaireResponseString =
-                        jsonParser.encodeResourceToString(bundle)
-                    println("Resource Bundle: $questionnaireResponseString ")
-                    backupSyncViewModel.uploadBundle(bundle, token = token)
-                }
-            }
-        }
-
-    }
-
 }

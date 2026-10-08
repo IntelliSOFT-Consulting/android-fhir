@@ -44,11 +44,6 @@
             android:exported="false"
             android:launchMode="singleTop"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
-        <activity
-            android:name=".ui.profile.SyncUploadActivity"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.Surveillance.NoActionBar" />
 
         <service
             android:name=".services.AppFirebaseMessagingService"

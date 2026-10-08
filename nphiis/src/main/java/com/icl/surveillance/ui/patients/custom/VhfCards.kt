@@ -14,6 +14,7 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ItemVhfActionCardBinding
 import com.icl.surveillance.databinding.ItemVhfContactCardBinding
@@ -174,6 +175,58 @@ object VhfCards {
         })
         card.addView(row)
         card.setOnClickListener { onAction() }
+        return card
+    }
+
+    /** A settings-style switch card: title and subtitle with a switch, tinted amber when on. */
+    fun toggle(
+        parent: ViewGroup,
+        title: String,
+        subtitle: String,
+        checked: Boolean,
+        onChange: (Boolean) -> Unit,
+    ): View {
+        val context = parent.context
+        val density = context.resources.displayMetrics.density
+        val tone = if (checked) CardTone.WARNING else CardTone.NEUTRAL
+        val card = MaterialCardView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins((4 * density).toInt(), (6 * density).toInt(), (4 * density).toInt(), (6 * density).toInt()) }
+            radius = 12 * density
+            cardElevation = 0f
+            strokeWidth = (1 * density).toInt()
+            strokeColor = ContextCompat.getColor(context, R.color.vhf_card_stroke)
+            setCardBackgroundColor(ContextCompat.getColor(context, tone.tint))
+        }
+        val row = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            val pad = (14 * density).toInt()
+            setPadding(pad, (10 * density).toInt(), pad, (10 * density).toInt())
+        }
+        val texts = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        texts.addView(TextView(context).apply {
+            text = title
+            textSize = 14f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(ContextCompat.getColor(context, tone.accent))
+        })
+        texts.addView(TextView(context).apply {
+            text = subtitle
+            textSize = 12f
+            setTextColor(ContextCompat.getColor(context, R.color.vhf_text_secondary))
+        })
+        row.addView(texts)
+        row.addView(SwitchMaterial(context).apply {
+            isChecked = checked
+            contentDescription = title
+            setOnCheckedChangeListener { _, isOn -> onChange(isOn) }
+        })
+        card.addView(row)
         return card
     }
 

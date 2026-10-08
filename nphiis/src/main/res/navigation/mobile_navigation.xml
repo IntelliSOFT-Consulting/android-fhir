@@ -77,9 +77,4 @@
             android:id="@+id/action_childFragment_to_caseSelectionFragment"
             app:destination="@id/caseSelectionFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/nav_resources"
-        android:name="com.icl.surveillance.monitor.ResourceListFragment"
-        android:label="Resource List"
-        tools:layout="@layout/fragment_resource_list" />
 </navigation>

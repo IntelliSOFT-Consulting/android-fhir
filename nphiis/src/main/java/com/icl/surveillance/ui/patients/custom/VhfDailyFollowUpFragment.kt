@@ -17,6 +17,7 @@ import com.icl.surveillance.fhir.forms.ContactFollowUpState
 import com.icl.surveillance.fhir.forms.ContactFollowUpState.Companion.DISPLAY
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfDemoMode
 import com.icl.surveillance.utils.FormatterClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,6 +60,7 @@ class VhfDailyFollowUpFragment : Fragment() {
             showMessage("Unable to load this contact's follow up. Please reopen the record.")
             return
         }
+        VhfDemoMode.refresh(requireContext())
         viewLifecycleOwner.lifecycleScope.launch {
             val state = withContext(Dispatchers.IO) {
                 VhfContactTracker.load(fhirEngine, patientId, encounterId)
@@ -82,9 +84,10 @@ class VhfDailyFollowUpFragment : Fragment() {
     private fun render(state: ContactFollowUpState) {
         binding.lnEmpty.visibility = View.GONE
         val canRecord = state.isContact && !state.isClosed
-        // Testing aid (debug builds): add the next follow up in the schedule from anywhere on the tab.
+        val demo = VhfDemoMode.enabled
+        // Testing aid (debug builds and demo mode): add the next follow up in the schedule.
         binding.fab.apply {
-            visibility = if (BuildConfig.DEBUG && canRecord) View.VISIBLE else View.GONE
+            visibility = if ((BuildConfig.DEBUG || demo) && canRecord) View.VISIBLE else View.GONE
             setImageResource(R.drawable.ic_vhf_edit_calendar)
             imageTintList = ColorStateList.valueOf(Color.WHITE)
             contentDescription = "Record follow up"
@@ -93,6 +96,14 @@ class VhfDailyFollowUpFragment : Fragment() {
         val parent = binding.lnParent
         parent.removeAllViews()
 
+        if (demo && state.isContact) {
+            parent.addView(
+                VhfCards.action(
+                    parent, CardTone.WARNING, R.drawable.ic_vhf_info,
+                    "Demo mode", "Follow ups can be recorded ahead of their dates"
+                )
+            )
+        }
         parent.addView(statusCard(parent, state))
         if (state.isContact && state.exposureDate == null) {
             parent.addView(
@@ -153,7 +164,11 @@ class VhfDailyFollowUpFragment : Fragment() {
 
             // Only the next day in the schedule, once its date has arrived, can be recorded.
             if (canRecord && visits.isEmpty() && day == next && state.nextDayOpen) {
-                val caption = if (day == state.daysSinceExposure) "Due today" else "Overdue · next in the schedule"
+                val caption = when {
+                    day == state.daysSinceExposure -> "Due today"
+                    day > state.daysSinceExposure -> "Next in the schedule (demo)"
+                    else -> "Overdue · next in the schedule"
+                }
                 parent.addView(
                     VhfCards.scheduleAction(parent, label, caption, "Record") {
                         VhfContactActions.recordFollowUp(context, state, day)

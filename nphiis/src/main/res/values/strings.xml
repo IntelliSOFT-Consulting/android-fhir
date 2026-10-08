@@ -201,7 +201,6 @@
     <string name="notifications_filtered_empty_message">No notifications match your current search or filters.</string>
     <string name="notifications_unknown_month">Unknown date</string>
     <string name="you_re_all_caught_up">You\'re all caught up.</string>
-    <string name="nav_resources">Resources</string>
     <string name="sync_pending">Pending Sync</string>
     <string name="sync_syncing">Syncing…</string>
     <string name="sync_failed">Sync Failed</string>

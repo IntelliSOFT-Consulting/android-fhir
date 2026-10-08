@@ -13,12 +13,6 @@
         android:visible="false" />
 
     <item
-        android:id="@+id/nav_resources"
-        android:icon="@drawable/cases"
-        android:title="@string/nav_resources"
-        android:visible="false" />
-
-    <item
         android:id="@+id/navigation_notifications"
         android:icon="@drawable/profile"
         android:title="@string/title_notifications" />

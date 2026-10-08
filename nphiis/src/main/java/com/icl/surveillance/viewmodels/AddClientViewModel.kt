@@ -1,5 +1,6 @@
 package com.icl.surveillance.viewmodels
 
+import com.icl.surveillance.fhir.FhirConformance
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -899,12 +900,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     patient.identifier.add(identifierSystem)
                     patient.active = true
                     fhirEngine.create(patient)
-                    fhirEngine.create(enc)
+                    fhirEngine.create(FhirConformance.ensureRequired(enc))
                     questionnaireResponse.id = generateUuid()
                     questionnaireResponse.subject = subjectReference
                     questionnaireResponse.encounter = encounterReference
 
-                    fhirEngine.create(questionnaireResponse)
+                    fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
 
                     extractedAnswers.forEach {
 
@@ -1200,7 +1201,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 )
             )
             withMetaTags(obs)
-            fhirEngine.create(obs)
+            fhirEngine.create(FhirConformance.ensureRequired(obs))
 
         } catch (e: Exception) {
             Timber.tag("SavePatient").e(e, "Error saving patient")

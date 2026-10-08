@@ -1,6 +1,7 @@
 package com.icl.surveillance.fhir
 
 import android.content.Context
+import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
@@ -12,8 +13,10 @@ import com.google.android.fhir.sync.FhirSyncWorker
 import com.google.android.fhir.sync.upload.HttpCreateMethod
 import com.google.android.fhir.sync.upload.HttpUpdateMethod
 import com.google.android.fhir.sync.upload.UploadStrategy
+import com.icl.surveillance.fhir.forms.ManagingLocation
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
+import com.icl.surveillance.utils.Constants.UPLOAD_BUNDLE_SIZE
 import com.icl.surveillance.utils.FormatterClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -247,13 +250,21 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override fun getConflictResolver() = AcceptLocalConflictResolver
 
+    /** Repairs records saved with an empty Location reference before uploading (once). */
+    override suspend fun doWork(): ListenableWorker.Result {
+        ManagingLocation.repairLocalRecords(applicationContext, getFhirEngine())
+        return super.doWork()
+    }
+
     override fun getFhirEngine() = FhirApplication.fhirEngine(applicationContext)
 
+    /** Local changes are uploaded as transactions of [UPLOAD_BUNDLE_SIZE] resources. */
     override fun getUploadStrategy(): UploadStrategy =
         UploadStrategy.forBundleRequest(
             methodForCreate = HttpCreateMethod.PUT,
             methodForUpdate = HttpUpdateMethod.PATCH,
             squash = true,
-            bundleSize = 500,
+            bundleSize = UPLOAD_BUNDLE_SIZE,
         )
+
 }
