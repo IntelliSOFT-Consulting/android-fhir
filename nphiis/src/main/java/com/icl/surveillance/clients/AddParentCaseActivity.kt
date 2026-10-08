@@ -32,6 +32,8 @@ import com.icl.surveillance.databinding.ActivityAddParentCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.SdcQuestionnaireResponseSaver
 import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
@@ -332,6 +334,15 @@ class AddParentCaseActivity : AppCompatActivity() {
 
     }
 
+    override fun onDestroy() {
+        if (isFinishing) {
+            // A contact registration applies to this form only.
+            FormatterClass().deleteSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this)
+            FormPrefill.clear(this)
+        }
+        super.onDestroy()
+    }
+
     override fun onBackPressed() {
         val dialog = AlertDialog.Builder(this)
             .setTitle("Exit")
@@ -576,6 +587,17 @@ class AddParentCaseActivity : AppCompatActivity() {
 
                 null -> { /* Unknown role: no pre-filled jurisdiction */
                 }
+            }
+
+            // Answers staged by the opening screen, e.g. a contact registered from its case.
+            val prefill = FormPrefill.take(
+                this@AddParentCaseActivity,
+                formatter.getSharedPref("questionnaire", this@AddParentCaseActivity)
+            )
+            if (prefill.isNotEmpty()) {
+                val questionnaire =
+                    jsonParser.parseResource(Questionnaire::class.java, viewModel.questionnaireJson)
+                FormPrefill.applyTo(questionnaire, resource, prefill)
             }
 
             // 2. Serialize resource INTO JSON (expensive → done on background thread)

@@ -1,0 +1,239 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VHF Contact Follow Up",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "vhf-contact-follow-up",
+      "text": "Contact Follow Up",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "vhf-follow-up-day",
+          "text": "Day of follow up",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 21
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Must be between 0 and 21"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g. 1 for day one, 2 for day two"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-date",
+          "text": "Date of follow up",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-symptomatic",
+          "text": "Symptomatic?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-tracer-email",
+          "text": "Contact tracer (email address)",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid email address"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-approach",
+          "text": "Follow up approach",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "physical-visit",
+                "display": "Physical visit"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "phone-call",
+                "display": "Phone call"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-challenges",
+          "text": "Follow up challenges",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "not-found",
+                "display": "Contact not found"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unreachable",
+                "display": "Contact not reachable by phone"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "refused",
+                "display": "Refused follow up"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "relocated",
+                "display": "Relocated"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "access",
+                "display": "Insecurity / poor access"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-follow-up-challenges-other",
+          "text": "Follow up challenges (other)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-challenges",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

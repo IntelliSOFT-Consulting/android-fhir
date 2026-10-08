@@ -13,12 +13,17 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.get
 import com.google.gson.Gson
 import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.FragmentVlLabBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.FhirSystems
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
 import com.icl.surveillance.models.OutputItem
@@ -30,6 +35,10 @@ import com.icl.surveillance.utils.setSingleClickListener
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 import kotlin.collections.forEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.hl7.fhir.r4.model.Encounter
 
 
 /**
@@ -37,13 +46,16 @@ import kotlin.collections.forEach
  * Shows the latest submission, or an empty state with a button to fill the form.
  *
  * Create with [newInstance]: [ARG_TITLE] is the follow-up record's title (Encounter.reasonCode)
- * and [ARG_QUESTIONNAIRE] the questionnaire asset.
+ * and [ARG_QUESTIONNAIRE] the questionnaire asset. With [ARG_ALLOW_UPDATES] the form can be
+ * submitted again after the first record (e.g. a contact's monitoring status); the latest is shown.
  */
 class FollowUpFormFragment : Fragment() {
     private val formTitle: String
         get() = requireArguments().getString(ARG_TITLE).orEmpty()
     private val questionnaireFile: String
         get() = requireArguments().getString(ARG_QUESTIONNAIRE).orEmpty()
+    private val allowUpdates: Boolean
+        get() = requireArguments().getBoolean(ARG_ALLOW_UPDATES, false)
 
     private lateinit var fhirEngine: FhirEngine
     private lateinit var patientDetailsViewModel: ClientDetailsViewModel
@@ -82,7 +94,10 @@ class FollowUpFormFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val patientId = FormatterClass().getSharedPref("resourceId", requireContext())
+        // The case summary later overwrites "resourceId" with the case's QuestionnaireResponse id,
+        // so follow-up records (Encounter.subject = Patient) are looked up by the parent patient id.
+        val patientId = FormatterClass().getSharedPref("patientIdParent", requireContext())
+            ?: FormatterClass().getSharedPref("resourceId", requireContext())
         val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
         val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
 
@@ -96,36 +111,15 @@ class FollowUpFormFragment : Fragment() {
         parentLayout = binding.lnParent
 
         groups = parseFromAssets(requireContext())
-        patientDetailsViewModel.currentLiveLabData.observe(viewLifecycleOwner) {
-
-            if (it.isEmpty()) {
+        requireArguments().getString(ARG_EMPTY_MESSAGE)?.let { binding.tvEmptyMessage.text = it }
+        patientDetailsViewModel.currentLiveLabData.observe(viewLifecycleOwner) { records ->
+            if (records.isEmpty()) {
                 binding.lnEmpty.visibility = View.VISIBLE
-            } else {
-                // this = Context
-                parentLayout.removeAllViews()
-                for (group in groups) {
-                    val fieldView = createCustomLabel(group.text)
-                    parentLayout.addView(fieldView)
-                    for (item in group.items) {
-                        item.value = getValueBasedOnId(item, it.first().observations)
-                        val childFieldView = createCustomField(item)
-
-                        var show = true
-                        if (!item.enable) {
-                            show = false
-                            show = checkIfParentAnswerMatches(
-                                item.parentOperator,
-                                item.parentLink, item.parentResponse, group.items
-                            )
-                        }
-                        if (show) {
-                            parentLayout.addView(childFieldView)
-                        }
-                    }
-                }
-
-                binding.lnEmpty.visibility = View.GONE
-                binding.fab.visibility = View.GONE
+                return@observe
+            }
+            viewLifecycleOwner.lifecycleScope.launch {
+                val (latest, recordedOn) = latestRecord(records)
+                if (_binding != null) renderRecord(latest, recordedOn)
             }
         }
         if (currentCase != null) {
@@ -149,6 +143,72 @@ class FollowUpFormFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /** The most recently submitted record; each carries its submission time on its Encounter. */
+    private suspend fun latestRecord(
+        records: List<PatientListViewModel.LabResults>
+    ): Pair<PatientListViewModel.LabResults, String> = withContext(Dispatchers.IO) {
+        records.map { record ->
+            val created = runCatching {
+                fhirEngine.get<Encounter>(record.encounterId).identifier
+                    .firstOrNull { it.system == FhirSystems.SYSTEM_CREATION }?.value
+            }.getOrNull().orEmpty()
+            record to created
+        }.maxByOrNull { it.second } ?: (records.first() to "")
+    }
+
+    private fun renderRecord(record: PatientListViewModel.LabResults, recordedOn: String) {
+        parentLayout.removeAllViews()
+        if (allowUpdates && recordedOn.isNotBlank()) {
+            parentLayout.addView(
+                createCustomField(
+                    OutputItem(
+                        linkId = "recorded-on",
+                        text = "Last updated",
+                        type = "string",
+                        value = recordedOn
+                    )
+                )
+            )
+        }
+        for (group in groups) {
+            val fieldView = createCustomLabel(group.text)
+            parentLayout.addView(fieldView)
+            for (item in group.items) {
+                item.value = getValueBasedOnId(item, record.observations)
+                val childFieldView = createCustomField(item)
+
+                var show = true
+                if (!item.enable) {
+                    show = false
+                    show = checkIfParentAnswerMatches(
+                        item.parentOperator,
+                        item.parentLink, item.parentResponse, group.items
+                    )
+                }
+                if (show) {
+                    parentLayout.addView(childFieldView)
+                }
+            }
+        }
+        addDerivedFields(record.observations)
+
+        binding.lnEmpty.visibility = View.GONE
+        binding.fab.visibility = if (allowUpdates) View.VISIBLE else View.GONE
+    }
+
+    /** Values computed from the answers rather than captured, e.g. the VHF final classification. */
+    private fun addDerivedFields(observations: List<PatientListViewModel.ObservationItem>) {
+        if (questionnaireFile != FormFields.Vhf.LAB_FORM) return
+        val finalResult = observations.find { it.code == FormFields.Vhf.FINAL_RESULT }?.value
+        val classification = OutputItem(
+            linkId = "vhf-derived-final-classification",
+            text = FormFields.Vhf.FINAL_CLASSIFICATION_LABEL,
+            type = "string",
+            value = FormFields.Vhf.finalClassification(finalResult)
+        )
+        parentLayout.addView(createCustomField(classification))
     }
 
     private fun checkIfParentAnswerMatches(
@@ -191,6 +251,10 @@ class FollowUpFormFragment : Fragment() {
     }
 
     private fun handleDataClick(currentCase: String) {
+        if (questionnaireFile == FormFields.Vhf.CONTACT_MONITORING_FORM) {
+            openContactMonitoring()
+            return
+        }
         FormatterClass().saveSharedPref(
             "questionnaire", questionnaireFile, requireContext()
         )
@@ -202,6 +266,18 @@ class FollowUpFormFragment : Fragment() {
             QUESTIONNAIRE_FILE_PATH_KEY, questionnaireFile
         )
         startActivity(intent)
+    }
+
+    /** Contact monitoring is pre-filled with the missed days worked out from the daily follow ups. */
+    private fun openContactMonitoring() {
+        val patientId = FormatterClass().getSharedPref("patientIdParent", requireContext())
+        val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
+        viewLifecycleOwner.lifecycleScope.launch {
+            val state = if (patientId != null && encounterId != null) {
+                withContext(Dispatchers.IO) { VhfContactTracker.load(fhirEngine, patientId, encounterId) }
+            } else null
+            if (_binding != null) VhfContactActions.updateMonitoring(requireContext(), state)
+        }
     }
 
     private fun getValueBasedOnId(
@@ -405,12 +481,27 @@ class FollowUpFormFragment : Fragment() {
     companion object {
         private const val ARG_TITLE = "title"
         private const val ARG_QUESTIONNAIRE = "questionnaire"
+        private const val ARG_ALLOW_UPDATES = "allowUpdates"
+        private const val ARG_EMPTY_MESSAGE = "emptyMessage"
 
+        /**
+         * @param allowUpdates keep the add button after the first record, for forms that are
+         *   updated over time (the latest submission is shown).
+         * @param emptyMessage text shown before anything is recorded (defaults to the lab message).
+         */
         @JvmStatic
-        fun newInstance(title: String, questionnaireFile: String) = FollowUpFormFragment().apply {
+        @JvmOverloads
+        fun newInstance(
+            title: String,
+            questionnaireFile: String,
+            allowUpdates: Boolean = false,
+            emptyMessage: String? = null,
+        ) = FollowUpFormFragment().apply {
             arguments = Bundle().apply {
                 putString(ARG_TITLE, title)
                 putString(ARG_QUESTIONNAIRE, questionnaireFile)
+                putBoolean(ARG_ALLOW_UPDATES, allowUpdates)
+                emptyMessage?.let { putString(ARG_EMPTY_MESSAGE, it) }
             }
         }
     }

@@ -388,50 +388,6 @@
           "linkId": "vhf-final-lab",
           "text": "Final laboratory facility",
           "type": "string"
-        },
-        {
-          "linkId": "vhf-final-classification",
-          "text": "Final classification",
-          "type": "choice",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "radio-button",
-                    "display": "Radio Button"
-                  }
-                ]
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
-              "valueCode": "horizontal"
-            }
-          ],
-          "answerOption": [
-            {
-              "valueCoding": {
-                "code": "confirmed",
-                "display": "Confirmed"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "probable",
-                "display": "Probable"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "not-a-case",
-                "display": "Not a case"
-              }
-            }
-          ]
         }
       ]
     }
