@@ -96,14 +96,14 @@ class VhfDailyFollowUpFragment : Fragment() {
         val parent = binding.lnParent
         parent.removeAllViews()
 
-        if (demo && state.isContact) {
-            parent.addView(
-                VhfCards.action(
-                    parent, CardTone.WARNING, R.drawable.ic_vhf_info,
-                    "Demo mode", "Follow ups can be recorded ahead of their dates"
-                )
-            )
-        }
+        //if (demo && state.isContact) {
+          //  parent.addView(
+           //     VhfCards.action(
+            //        parent, CardTone.WARNING, R.drawable.ic_vhf_info,
+            //        "Demo mode", "Follow ups can be recorded ahead of their dates"
+           //     )
+         //   )
+      //  }
         parent.addView(statusCard(parent, state))
         if (state.isContact && state.exposureDate == null) {
             parent.addView(
@@ -202,6 +202,17 @@ class VhfDailyFollowUpFragment : Fragment() {
                 "Type of case: ${state.caseType.ifBlank { "not set" }}"
             )
 
+            // Outcome recorded as "Became a suspected case" but the record is still a contact.
+            state.monitoringStatus.equals(FormFields.Vhf.STATUS_BECAME_CASE, ignoreCase = true) ->
+                VhfCards.action(
+                    parent, CardTone.ALERT, R.drawable.ic_vhf_warning,
+                    "Became a suspected case",
+                    "Convert the record to a suspected case to record clinical details and collect samples.",
+                    actionText = "Convert to case",
+                    actionIcon = R.drawable.ic_vhf_swap,
+                    onAction = { VhfContactActions.convertToCase(context, state) }
+                )
+
             state.isClosed -> VhfCards.action(
                 parent,
                 if (state.monitoringStatus == FormFields.Vhf.STATUS_COMPLETED) CardTone.SUCCESS else CardTone.NEUTRAL,
@@ -216,7 +227,7 @@ class VhfDailyFollowUpFragment : Fragment() {
                 symptomatic.date?.let { DISPLAY.format(it) }.orEmpty(),
                 actionText = "Convert to case",
                 actionIcon = R.drawable.ic_vhf_swap,
-                onAction = { VhfContactActions.convertToCase(context) }
+                onAction = { VhfContactActions.convertToCase(context, state) }
             )
 
             state.windowComplete -> VhfCards.action(

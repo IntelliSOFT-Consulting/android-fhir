@@ -71,6 +71,12 @@ class SummarizedActivity : AppCompatActivity() {
 
     private var tabConfig: TabConfig? = null
 
+    /**
+     * The patient this screen shows. Read once: "resourceId" is later overwritten with the case's
+     * QuestionnaireResponse id (for editing), so it must not be re-read as the patient id.
+     */
+    private var casePatientId: String? = null
+
     /** Data and tab titles the pager was last built from; unchanged data keeps the same tabs. */
     private var tabSignature: String? = null
     private var tabMediator: TabLayoutMediator? = null
@@ -85,6 +91,7 @@ class SummarizedActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val patientId = FormatterClass().getSharedPref("resourceId", this@SummarizedActivity)
+        casePatientId = patientId
         val currentCase = FormatterClass().getSharedPref("currentCase", this@SummarizedActivity)
 
 
@@ -114,7 +121,7 @@ class SummarizedActivity : AppCompatActivity() {
     }
 
     fun loadData() {
-        val patientId = FormatterClass().getSharedPref("resourceId", this@SummarizedActivity)
+        val patientId = casePatientId
         val currentCase = FormatterClass().getSharedPref("currentCase", this)
         val latestEncounter = FormatterClass().getSharedPref("latestEncounter", this)
         val isCase = FormatterClass().getSharedPref("isCase", this)
@@ -343,8 +350,9 @@ class SummarizedActivity : AppCompatActivity() {
     ) {
         if (patientId != null) {
             lifecycleScope.launch {
-                val logicalId =
-                    patientDetailsViewModel.checkIfResourceHasQuestionnaireResponse(patientId)
+                val caseEncounterId = FormatterClass().getSharedPref("encounterId", context)
+                val logicalId = patientDetailsViewModel
+                    .checkIfResourceHasQuestionnaireResponse(patientId, caseEncounterId)
 
                 if (logicalId.isNotEmpty()) {
                     // create the option menu:
