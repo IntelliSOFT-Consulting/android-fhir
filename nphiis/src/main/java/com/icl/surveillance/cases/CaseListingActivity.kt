@@ -603,7 +603,7 @@ class CaseListingActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_upload, menu)
+        menuInflater.inflate(R.menu.menu_case_filters, menu)
         return true
     }
 
@@ -634,31 +634,6 @@ class CaseListingActivity : AppCompatActivity() {
 
             R.id.action_reset_location_filters -> {
                 resetLocationFilters()
-                true
-            }
-
-            R.id.action_refresh -> {
-//                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
-//                    .setTitleText("Are you sure?")
-//                    .setContentText("Are you sure you wish to upload your  data?")
-//                    .setConfirmText("Yes,Upload!")
-//                    .setConfirmClickListener { sDialog ->
-//                        lifecycleScope.launch {
-//                            //  patientListViewModel.prepareUploadData(CaseSlugs.MPOX_REGISTER)
-//                            val workRequest = OneTimeWorkRequestBuilder<MpoxSyncWorker>().build()
-//                            WorkManager.getInstance(this@CaseListingActivity).enqueue(workRequest)
-//                        }
-//                        Toast.makeText(
-//                            this@CaseListingActivity,
-//                            "Uploading data.....",
-//                            Toast.LENGTH_SHORT
-//                        )
-//                            .show()
-//                        sDialog.dismissWithAnimation()
-//                    }
-//                    .show()
-
-
                 true
             }
 

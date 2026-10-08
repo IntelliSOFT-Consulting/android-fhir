@@ -14,7 +14,7 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
-import com.google.android.material.switchmaterial.SwitchMaterial
+import androidx.appcompat.widget.SwitchCompat
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.ItemVhfActionCardBinding
 import com.icl.surveillance.databinding.ItemVhfContactCardBinding
@@ -50,7 +50,7 @@ object VhfCards {
         val accent = ContextCompat.getColor(context, tone.accent)
         val binding = ItemVhfActionCardBinding.inflate(LayoutInflater.from(context), parent, false)
         binding.actionCard.setCardBackgroundColor(ContextCompat.getColor(context, tone.tint))
-        binding.actionCard.strokeColor = withAlpha(accent, 0x40)
+        binding.actionCard.setStrokeColor(withAlpha(accent, 0x40))
         binding.actionIcon.setImageResource(icon)
         binding.actionIcon.imageTintList = ColorStateList.valueOf(accent)
         binding.actionTitle.text = title
@@ -133,10 +133,10 @@ object VhfCards {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, (6 * density).toInt(), 0, (6 * density).toInt()) }
-            radius = 12 * density
+            setRadius(12 * density)
             cardElevation = 0f
             strokeWidth = (1 * density).toInt()
-            strokeColor = withAlpha(accent, 0x55)
+            setStrokeColor(withAlpha(accent, 0x55))
             setCardBackgroundColor(ContextCompat.getColor(context, tone.tint))
         }
         val row = LinearLayout(context).apply {
@@ -193,10 +193,10 @@ object VhfCards {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { setMargins((4 * density).toInt(), (6 * density).toInt(), (4 * density).toInt(), (6 * density).toInt()) }
-            radius = 12 * density
+            setRadius(12 * density)
             cardElevation = 0f
             strokeWidth = (1 * density).toInt()
-            strokeColor = ContextCompat.getColor(context, R.color.vhf_card_stroke)
+            setStrokeColor(ContextCompat.getColor(context, R.color.vhf_card_stroke))
             setCardBackgroundColor(ContextCompat.getColor(context, tone.tint))
         }
         val row = LinearLayout(context).apply {
@@ -221,7 +221,7 @@ object VhfCards {
             setTextColor(ContextCompat.getColor(context, R.color.vhf_text_secondary))
         })
         row.addView(texts)
-        row.addView(SwitchMaterial(context).apply {
+        row.addView(SwitchCompat(context).apply {
             isChecked = checked
             contentDescription = title
             setOnCheckedChangeListener { _, isOn -> onChange(isOn) }
@@ -262,7 +262,7 @@ object VhfCards {
                     isAllCaps = false
                     cornerRadius = (20 * density).toInt()
                     setTextColor(accent)
-                    strokeColor = ColorStateList.valueOf(accent)
+                    setStrokeColor(ColorStateList.valueOf(accent))
                     actionIcon?.let {
                         setIconResource(it)
                         iconTint = ColorStateList.valueOf(accent)

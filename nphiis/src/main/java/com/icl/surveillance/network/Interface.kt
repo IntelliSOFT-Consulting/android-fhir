@@ -45,21 +45,6 @@ interface Interface {
         @Header("Authorization") token: String
     ): Response<Any>
 
-    @PUT("Patient/{id}")
-    @Headers("Content-Type: application/json")
-    suspend fun sendPatientToServer(
-        @Path("id") id: String,
-        @Body payload: RequestBody,
-        @Header("Authorization") token: String
-    ): Response<Any>
-
-    @POST(BASE_URL)
-    @Headers("Content-Type: application/json")
-    suspend fun sendBundleToServer(
-        @Body payload: RequestBody,
-        @Header("Authorization") token: String
-    ): Response<Any>
-
     @GET("provider/me")
     suspend fun getUserInfo(
         @Header("Authorization") token: String

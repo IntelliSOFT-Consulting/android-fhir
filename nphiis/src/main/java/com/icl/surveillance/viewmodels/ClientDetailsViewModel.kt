@@ -135,14 +135,13 @@ class ClientDetailsViewModel(
             .map { it.resource }
     }
 
-    suspend fun checkIfResourceHasQuestionnaireResponse(patientId: String): String =
+    /** The case form's response (not a lab / follow-up response of the same patient). */
+    suspend fun checkIfResourceHasQuestionnaireResponse(
+        patientId: String,
+        caseEncounterId: String? = null,
+    ): String =
         withContext(Dispatchers.IO) {
-            val searchResult = fhirEngine.search<QuestionnaireResponse> {
-                filter(QuestionnaireResponse.SUBJECT, { value = "Patient/$patientId" })
-            }
-            val logicalId = searchResult.firstOrNull()?.resource?.logicalId ?: ""
-            println("Logical Id $logicalId")
-            logicalId
+            com.icl.surveillance.fhir.forms.CaseResponse.findId(fhirEngine, patientId, caseEncounterId)
         }
 
     private suspend fun epidSummary(slug: String): PatientListViewModel.CaseId {

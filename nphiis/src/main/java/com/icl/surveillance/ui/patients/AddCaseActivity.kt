@@ -25,6 +25,7 @@ import com.icl.surveillance.databinding.ActivityAddCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.ContactFollowUpState
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.ui.patients.custom.VhfContactActions
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfDemoMode
@@ -174,7 +175,11 @@ class AddCaseActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        if (isFinishing) FormPrefill.clear(this)
+        if (isFinishing) {
+            FormPrefill.clear(this)
+            // A cancelled "Convert to case" must not carry over to the next monitoring entry.
+            FormatterClass().deleteSharedPref(VhfContactActions.PREF_CONVERT_AFTER_MONITORING, this)
+        }
         super.onDestroy()
     }
 
@@ -457,8 +462,24 @@ class AddCaseActivity : AppCompatActivity() {
                 return@observe
             }
 
+            if (continueConversion()) return@observe
             showSuccessDialog(this@AddCaseActivity)
         }
+    }
+
+    /**
+     * Step 2 of "Convert to case": once its monitoring outcome is saved, the contact's case form
+     * opens (Type of case set to Suspected) in place of the success dialog.
+     */
+    private fun continueConversion(): Boolean {
+        val formatter = FormatterClass()
+        val pending = formatter.getSharedPref(VhfContactActions.PREF_CONVERT_AFTER_MONITORING, this)
+        val questionnaire = formatter.getSharedPref("questionnaire", this)
+        formatter.deleteSharedPref(VhfContactActions.PREF_CONVERT_AFTER_MONITORING, this)
+        if (pending != "true" || questionnaire != FormFields.Vhf.CONTACT_MONITORING_FORM) return false
+        Toast.makeText(this, "Outcome saved. Now complete the case details.", Toast.LENGTH_LONG).show()
+        VhfContactActions.editRecord(this, convertToSuspected = true) { finish() }
+        return true
     }
 
     fun showSuccessDialog(context: Context) {

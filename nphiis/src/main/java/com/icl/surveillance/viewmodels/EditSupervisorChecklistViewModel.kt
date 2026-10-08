@@ -12,6 +12,9 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.CaseResponse
+import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.ui.patients.custom.VhfContactActions.PREF_CONVERT_TO_SUSPECTED
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.answerOf
@@ -59,9 +62,11 @@ class EditSupervisorChecklistViewModel(
     )
     val liveEditData = liveData { emit(prepareEditRecord()) }
 
+    /** The response being edited ("resourceId" may still hold the patient id; see [resolveResponse]). */
+    private var responseId: String = questionnaireId
+
     private suspend fun prepareEditRecord(): Pair<String, String> {
-        // This is actually a QuestionnaireResponse, not a Patient
-        val questionnaireResponse = fhirEngine.get<QuestionnaireResponse>(questionnaireId)
+        val questionnaireResponse = resolveResponse()
 
         // Read the original Questionnaire from assets
         val questionnaireJson =
@@ -74,6 +79,19 @@ class EditSupervisorChecklistViewModel(
         val questionnaire =
             parser.parseResource(Questionnaire::class.java, questionnaireJson) as Questionnaire
 
+        // "Convert to case": the contact's record opens with Type of case = Suspected.
+        val app = getApplication<Application>()
+        if (formatter.getSharedPref(PREF_CONVERT_TO_SUSPECTED, app) == "true") {
+            formatter.deleteSharedPref(PREF_CONVERT_TO_SUSPECTED, app)
+            if (this.questionnaire == FormFields.Vhf.CASE_FORM) {
+                FormPrefill.applyTo(
+                    questionnaire, questionnaireResponse,
+                    mapOf(FormFields.Vhf.CASE_TYPE to FormFields.Vhf.CASE_TYPE_SUSPECTED_CODE),
+                    overwrite = true,
+                )
+            }
+        }
+
         // Convert the existing QuestionnaireResponse to JSON string
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
 
@@ -81,6 +99,24 @@ class EditSupervisorChecklistViewModel(
         return questionnaireJson to questionnaireResponseJson
     }
 
+
+    /**
+     * The response to edit: "resourceId" normally holds the case's QuestionnaireResponse id, but
+     * when the screen is opened before the summary has looked it up it still holds the patient id;
+     * then the patient's case response is used. A blank response is returned if neither exists.
+     */
+    private suspend fun resolveResponse(): QuestionnaireResponse {
+        runCatching { fhirEngine.get<QuestionnaireResponse>(questionnaireId) }.getOrNull()
+            ?.let { return it }
+        val encounterId = formatter.getSharedPref("encounterId", getApplication())
+        val caseResponse = CaseResponse.find(fhirEngine, questionnaireId, encounterId)
+        if (caseResponse != null) {
+            responseId = caseResponse.idElement.idPart
+            return caseResponse
+        }
+        Timber.w("No QuestionnaireResponse found for %s", questionnaireId)
+        return QuestionnaireResponse()
+    }
 
     val isResourcesSaved = MutableLiveData<Boolean>()
 
@@ -95,16 +131,21 @@ class EditSupervisorChecklistViewModel(
         questionnaireResponseString: String
     ) {
         viewModelScope.launch {
-            val original = runCatching { fhirEngine.get<QuestionnaireResponse>(questionnaireId) }.getOrNull()
-            questionnaireResponse.id = questionnaireId
-            original?.let { keepRecordLinks(from = it, to = questionnaireResponse) }
+            val original = runCatching { fhirEngine.get<QuestionnaireResponse>(responseId) }.getOrNull()
+            if (original == null) {
+                // Nothing to update (the record could not be found); never create a stray response.
+                isResourcesSaved.value = false
+                return@launch
+            }
+            questionnaireResponse.id = responseId
+            keepRecordLinks(from = original, to = questionnaireResponse)
             fhirEngine.update(questionnaireResponse)
             isResourcesSaved.value = true
 
             // Case forms (response linked to a patient): update the patient and stored answers.
-            val isCaseForm = original?.subject?.referenceElement?.resourceType == "Patient"
+            val isCaseForm = original.subject?.referenceElement?.resourceType == "Patient"
             if (isCaseForm && questionnaire != null) {
-                startBackgroundProcessing(original!!, questionnaireResponse, questionnaireResponseString, questionnaire)
+                startBackgroundProcessing(original, questionnaireResponse, questionnaireResponseString, questionnaire)
             }
         }
     }

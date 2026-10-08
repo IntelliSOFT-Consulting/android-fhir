@@ -18,9 +18,4 @@
                 android:title="@string/reset_filters" />
         </menu>
     </item>
-    <item
-        android:id="@+id/action_refresh"
-        android:icon="@android:drawable/ic_menu_rotate"
-        android:title="Upload"
-        app:showAsAction="never" />
 </menu>

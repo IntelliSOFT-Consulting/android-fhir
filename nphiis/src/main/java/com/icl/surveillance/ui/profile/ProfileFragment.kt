@@ -28,6 +28,8 @@ import com.icl.surveillance.databinding.FragmentProfileBinding
 import com.icl.surveillance.debug.SyntheticDataDialogs
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.fhir.DemoDataStore
+import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.ManagingLocation
 import com.icl.surveillance.clients.SyncActivity
 import com.icl.surveillance.utils.DialogHelper
 import com.icl.surveillance.models.UserProfilePrefs
@@ -37,7 +39,9 @@ import com.icl.surveillance.network.SessionManager
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.NetworkUtils
 import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProfileFragment : Fragment() {
 
@@ -99,6 +103,14 @@ class ProfileFragment : Fragment() {
                 }
             }
 
+            btnUpdateData.setOnClickListener {
+                showConfirmationDialog(
+                    title = getString(R.string.update_data),
+                    message = getString(R.string.update_data_confirm),
+                    onConfirm = { updateLocalData() }
+                )
+            }
+
             btnClearCache.setOnClickListener {
                 showConfirmationDialog(
                     title = "Confirmation?",
@@ -115,7 +127,8 @@ class ProfileFragment : Fragment() {
                 )
             }
             if (BuildConfig.DEBUG) {
-                btnGenerateSyntheticData.visibility = View.VISIBLE
+                btnUpdateData.visibility = View.GONE
+                btnGenerateSyntheticData.visibility = View.GONE
                 btnGenerateSyntheticData.setOnClickListener {
                     SyntheticDataDialogs.open(this@ProfileFragment)
                 }
@@ -323,6 +336,46 @@ class ProfileFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
          }
+    }
+
+    /**
+     * "Update Data": corrects records saved on this device that the server cannot accept (an
+     * empty facility reference), then starts a sync so they upload.
+     */
+    private fun updateLocalData() {
+        val appContext = requireContext().applicationContext
+        val progress = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.update_data)
+            .setMessage(R.string.update_data_progress)
+            .setCancelable(false)
+            .show()
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                ManagingLocation.repairLocalRecords(
+                    appContext, FhirApplication.fhirEngine(appContext), force = true
+                )
+            }
+            progress.dismiss()
+            if (!isAdded) return@launch
+            val failed = result == null || result.error != null
+            if (!failed) {
+                Sync.oneTimeSync<AppFhirSyncWorker>(
+                    context = appContext,
+                    existingWorkPolicy = ExistingWorkPolicy.REPLACE,
+                )
+            }
+            val fixed = result?.fixed ?: 0
+            val message = when {
+                failed -> getString(R.string.update_data_failed)
+                fixed == 0 -> getString(R.string.update_data_none)
+                else -> getString(R.string.update_data_done, fixed)
+            }
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.update_data)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
     }
 
     private fun showConfirmationDialog(

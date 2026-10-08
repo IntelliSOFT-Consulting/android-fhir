@@ -1936,6 +1936,16 @@
       "linkId": "vhf-clinical",
       "text": "Clinical Information",
       "type": "group",
+      "enableWhen": [
+        {
+          "question": "vhf-case-type",
+          "operator": "!=",
+          "answerCoding": {
+            "code": "contact",
+            "display": "Contact"
+          }
+        }
+      ],
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -2090,6 +2100,16 @@
       "linkId": "vhf-care",
       "text": "Clinical Care & Treatment",
       "type": "group",
+      "enableWhen": [
+        {
+          "question": "vhf-case-type",
+          "operator": "!=",
+          "answerCoding": {
+            "code": "contact",
+            "display": "Contact"
+          }
+        }
+      ],
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",

@@ -149,17 +149,17 @@ class VhfContactsFragment : Fragment() {
 
         // Demo mode: lets follow ups be recorded without waiting for each day's date.
         val demo = VhfDemoMode.refresh(requireContext())
-        parent.addView(
-            VhfCards.toggle(
-                parent,
-                "Demo mode",
-                if (demo) "Follow ups can be recorded ahead of their dates" else "Follow ups open on their scheduled dates",
-                demo
-            ) { on ->
-                VhfDemoMode.set(requireContext(), on)
-                load()
-            }
-        )
+      //  parent.addView(
+        //    VhfCards.toggle(
+          //      parent,
+           //     "Demo mode",
+            //    if (demo) "Follow ups can be recorded ahead of their dates" else "Follow ups open on their scheduled dates",
+           //     demo
+          //  ) { on ->
+          //      VhfDemoMode.set(requireContext(), on)
+          //      load()
+        //    }
+      //  )
 
         if (rows.isEmpty()) {
             binding.fab.visibility = View.GONE

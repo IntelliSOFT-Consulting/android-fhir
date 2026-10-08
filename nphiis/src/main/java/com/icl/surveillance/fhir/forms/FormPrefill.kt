@@ -51,26 +51,31 @@ object FormPrefill {
         formatter.deleteSharedPref(PREF_VALUES, context)
     }
 
-    /** Merges [values] into [response], keeping its existing answers and questionnaire order. */
+    /**
+     * Merges [values] into [response] in questionnaire order. Existing answers are kept unless
+     * [overwrite] is true (used to change one answer of a saved record, e.g. Type of case).
+     */
     fun applyTo(
         questionnaire: Questionnaire,
         response: QuestionnaireResponse,
-        values: Map<String, String>
+        values: Map<String, String>,
+        overwrite: Boolean = false,
     ) {
         if (values.isEmpty()) return
-        response.item = merge(questionnaire.item, response.item, values)
+        response.item = merge(questionnaire.item, response.item, values, overwrite)
     }
 
     private fun merge(
         questions: List<Questionnaire.QuestionnaireItemComponent>,
         existing: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
-        values: Map<String, String>
+        values: Map<String, String>,
+        overwrite: Boolean,
     ): MutableList<QuestionnaireResponse.QuestionnaireResponseItemComponent> {
         val result = mutableListOf<QuestionnaireResponse.QuestionnaireResponseItemComponent>()
         for (question in questions) {
             val current = existing.firstOrNull { it.linkId == question.linkId }
             if (question.type == Questionnaire.QuestionnaireItemType.GROUP) {
-                val children = merge(question.item, current?.item.orEmpty(), values)
+                val children = merge(question.item, current?.item.orEmpty(), values, overwrite)
                 if (current != null || children.isNotEmpty()) {
                     val group = current ?: newItem(question)
                     group.item = children
@@ -80,6 +85,9 @@ object FormPrefill {
             }
             val answer = values[question.linkId]?.let { answerFor(question, it) }
             when {
+                current != null && answer != null && overwrite -> result.add(
+                    current.apply { this.answer = mutableListOf(); addAnswer().value = answer }
+                )
                 current != null && (current.hasAnswer() || answer == null) -> result.add(current)
                 answer != null -> result.add(
                     (current ?: newItem(question)).apply { addAnswer().value = answer }

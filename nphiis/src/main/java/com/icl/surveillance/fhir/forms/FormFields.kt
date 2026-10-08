@@ -245,6 +245,10 @@ object FormFields {
         const val STATUS_UNDER_FOLLOW_UP = "Under follow up"
         const val STATUS_COMPLETED = "Completed follow up (released)"
         const val STATUS_COMPLETED_CODE = "completed"
+        const val STATUS_BECAME_CASE = "Became a suspected case"
+        const val STATUS_BECAME_CASE_CODE = "became-case"
+        const val FINAL_OUTCOME_DATE = "vhf-final-outcome-date"
+        const val CASE_TYPE_SUSPECTED_CODE = "suspected"
 
         /** Case-form fields used to register a contact from its source case. */
         const val EXPOSURE_TYPE = "vhf-exposure-type"
