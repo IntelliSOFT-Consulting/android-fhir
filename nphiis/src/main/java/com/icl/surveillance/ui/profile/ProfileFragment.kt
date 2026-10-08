@@ -113,14 +113,12 @@ class ProfileFragment : Fragment() {
                     onConfirm = { clearAppData() }
                 )
             }
-
             if (BuildConfig.DEBUG) {
                 btnGenerateSyntheticData.visibility = View.VISIBLE
                 btnGenerateSyntheticData.setOnClickListener {
                     SyntheticDataDialogs.open(this@ProfileFragment)
                 }
             }
-
             btnLogout.setOnClickListener {
                 showConfirmationDialog(
                     title = "Logout Confirmation?",
@@ -128,7 +126,6 @@ class ProfileFragment : Fragment() {
                     onConfirm = { logoutUser() }
                 )
             }
-
             btnChangePassword.setOnClickListener {
                 startActivity(
                     Intent(requireContext(), PinLockActivity::class.java).apply {

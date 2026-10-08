@@ -222,6 +222,36 @@ object FormFields {
         const val LAB_FORM = "vhf-lab-results.json"
         const val LAB_TITLE = "VHF Laboratory Results"
 
+        /** The VHF case investigation form; contacts are registered with the same form. */
+        const val CASE_FORM = "vhf-case.json"
+
+        // ---- Contact follow-up. A contact is a VHF record whose "Type of case" is Contact; it is
+        // followed for 21 days from the date of contact (day 0), per the CIF / data dictionary.
+        const val CASE_TYPE_CONTACT = "Contact"
+        const val FOLLOW_UP_WINDOW_DAYS = 21
+
+        /** Daily follow-up (dictionary contact_follow_up, repeatable: one record per day 0-21). */
+        const val CONTACT_FOLLOW_UP_FORM = "vhf-contact-follow-up.json"
+        const val CONTACT_FOLLOW_UP_TITLE = "VHF Contact Follow Up"
+        const val FOLLOW_UP_DAY = "vhf-follow-up-day"
+        const val FOLLOW_UP_DATE = "vhf-follow-up-date"
+        const val FOLLOW_UP_SYMPTOMATIC = "vhf-follow-up-symptomatic"
+
+        /** Contact monitoring status and sign-off (dictionary contact_monitoring + official). */
+        const val CONTACT_MONITORING_FORM = "vhf-contact-monitoring.json"
+        const val CONTACT_MONITORING_TITLE = "VHF Contact Monitoring"
+        const val MONITORING_STATUS = "vhf-monitoring-status"
+        const val MISSED_FOLLOW_UP_DAYS = "vhf-missed-follow-up-days"
+        const val STATUS_UNDER_FOLLOW_UP = "Under follow up"
+        const val STATUS_COMPLETED = "Completed follow up (released)"
+        const val STATUS_COMPLETED_CODE = "completed"
+
+        /** Case-form fields used to register a contact from its source case. */
+        const val EXPOSURE_TYPE = "vhf-exposure-type"
+        const val EXPOSURE_HUMAN_CONTACT = "human"
+        const val CONTACT_DATE = "vhf-contact-date"
+        const val DISEASE_OTHER = "vhf-disease-other"
+
         const val DISEASE = "vhf-disease"
         const val CASE_TYPE = "vhf-case-type"
         const val NATIONAL_ID = "vhf-national-id"
@@ -234,7 +264,20 @@ object FormFields {
         const val SAMPLES_COLLECTED = "vhf-samples-collected"
         const val PRELIMINARY_RESULT = "vhf-preliminary-result"
         const val FINAL_RESULT = "vhf-final-result"
-        const val FINAL_CLASSIFICATION = "vhf-final-classification"
+
+        /** Label shown for the derived classification on the lab tab. */
+        const val FINAL_CLASSIFICATION_LABEL = "Final Classification"
+
+        /**
+         * Final classification is not captured on the lab form; like Measles it is derived from
+         * the laboratory's final result, using the same status labels as the other modules.
+         */
+        fun finalClassification(finalResult: String?): String =
+            when (finalResult?.trim()?.lowercase()) {
+                "positive" -> "Confirmed by lab"
+                "negative" -> "Discarded"
+                else -> "Pending Results"
+            }
     }
 
     object MpoxRegister {

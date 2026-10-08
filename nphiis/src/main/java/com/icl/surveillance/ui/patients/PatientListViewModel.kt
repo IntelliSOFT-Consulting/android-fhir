@@ -27,6 +27,7 @@ import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.fhir.forms.valueOf
 import com.icl.surveillance.models.QuestionnaireAnswer
@@ -450,6 +451,7 @@ class PatientListViewModel(
         data = when (nameQuery) {
             CaseSlugs.VL -> enrichLabResultsForVL(childEncounter, data)
             CaseSlugs.AFP -> enrichLabResultsForAFP(childEncounter, data)
+            CaseSlugs.VHF -> processVhfCase(fhirEngine, childEncounter, data, logicalId)
             else -> enrichLabResultsForMeasles(childEncounter, data)
         }
 
@@ -1048,6 +1050,10 @@ class PatientListViewModel(
                                 data = processAfpCase(fhirEngine, childEncounter, data)
                             }
 
+                            CaseSlugs.VHF -> {
+                                data = processVhfCase(fhirEngine, childEncounter, data, logicalId)
+                            }
+
                             else -> {
                                 var measlesIgm: String
                                 var finalClassification: String
@@ -1202,9 +1208,17 @@ class PatientListViewModel(
                         it.reasonCode == "Measles Lab Information"
                     }
 
+                    val hasVhfLabData = childEncounter.any { child ->
+                        child.reasonCode in VHF_CHILD_RECORDS
+                    }
+
                     when {
                         hasAfpLabData -> {
                             item = processAfpCase(fhirEngine, childEncounter, item)
+                        }
+
+                        hasVhfLabData -> {
+                            item = processVhfCase(fhirEngine, childEncounter, item, it.logicalId)
                         }
 
                         childCaseInfoEncounter != null -> {
@@ -1428,6 +1442,49 @@ class PatientListViewModel(
         return data.copy(labResults = results, status = status)
     }
 
+    /**
+     * VHF list columns. Lab: the latest "VHF Laboratory Results" final result (or the preliminary
+     * one while the final is outstanding) and the classification derived from it. Contacts: the
+     * status shows where the contact is in the 21-day follow up (e.g. "Day 7/21 - due today").
+     */
+    private suspend fun processVhfCase(
+        fhirEngine: FhirEngine,
+        childEncounters: List<EncounterItem>,
+        data: PatientItem,
+        caseEncounterId: String,
+    ): PatientItem {
+        var result = data
+        val labEncounter = childEncounters
+            .filter { it.reasonCode == FormFields.Vhf.LAB_TITLE }
+            .maxByOrNull { it.lastUpdated }
+        if (labEncounter != null) {
+            val obs = fhirEngine.search<Observation> {
+                filter(Observation.ENCOUNTER, { value = "Encounter/${labEncounter.id}" })
+            }
+            val finalResult = obs.valueOf(FormFields.Vhf.FINAL_RESULT)
+            val preliminary = obs.valueOf(FormFields.Vhf.PRELIMINARY_RESULT)
+            val labResults = when {
+                finalResult.isNotBlank() -> finalResult
+                preliminary.isNotBlank() && !preliminary.equals("Pending", ignoreCase = true) ->
+                    "Preliminary: $preliminary"
+                else -> "Pending"
+            }
+            result = data.copy(
+                labResults = labResults,
+                status = FormFields.Vhf.finalClassification(finalResult)
+            )
+        }
+
+        val caseType = fhirEngine.search<Observation> {
+            filter(Observation.ENCOUNTER, { value = "Encounter/$caseEncounterId" })
+            filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.CASE_TYPE }) })
+        }.valueOf(FormFields.Vhf.CASE_TYPE)
+        if (!caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return result
+        val contact = VhfContactTracker.load(fhirEngine, data.resourceId, caseEncounterId)
+            ?: return result
+        return result.copy(status = contact.summary)
+    }
+
     private suspend fun processAfpCase(
         fhirEngine: FhirEngine, childEncounters: List<EncounterItem>, data: PatientItem
     ): PatientItem {
@@ -1605,6 +1662,13 @@ class PatientListViewModel(
 
             CaseSlugs.AFP -> {
                 processAFPLabResults(data, patientId)
+            }
+
+            CaseSlugs.VHF -> try {
+                processVhfCase(fhirEngine, loadChildEncounter(data.resourceId, patientId), data, patientId)
+            } catch (e: Exception) {
+                println("Error processing VHF lab results: ${e.message}")
+                data
             }
 
             else -> {
@@ -1862,6 +1926,13 @@ class PatientListViewModel(
 
     data class CaseDiseaseData(
         val logicalId: String, val name: String, val fever: String = "", val rash: String = ""
+    )
+
+    /** Child records of a VHF case: lab results and, for contacts, follow up and monitoring. */
+    private val VHF_CHILD_RECORDS = setOf(
+        FormFields.Vhf.LAB_TITLE,
+        FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE,
+        FormFields.Vhf.CONTACT_MONITORING_TITLE,
     )
 
     data class LabResults(

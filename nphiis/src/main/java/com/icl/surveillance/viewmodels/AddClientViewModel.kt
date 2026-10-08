@@ -25,6 +25,7 @@ import com.icl.surveillance.fhir.forms.EpidNumber
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.PatientMapper
+import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.answerOf
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
@@ -848,6 +849,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         fullName = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN),
                         phone = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN_PHONE),
                     )
+                    // Registered from a case's Contacts tab: link the contact to its source case.
+                    FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { sourcePatientId ->
+                            patient.addLink()
+                                .setOther(Reference("Patient/$sourcePatientId"))
+                                .setType(Patient.LinkType.SEEALSO)
+                        }
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VHF))
                 }

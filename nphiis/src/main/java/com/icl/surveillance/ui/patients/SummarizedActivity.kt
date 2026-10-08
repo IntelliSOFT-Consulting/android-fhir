@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.FhirEngine
@@ -35,6 +36,8 @@ import com.icl.surveillance.ui.patients.custom.RegionalLabFragment
 import com.icl.surveillance.ui.patients.custom.VlFollowupFragment
 import com.icl.surveillance.ui.patients.custom.VlLabFragment
 import com.icl.surveillance.ui.patients.custom.VlTreatmentFragment
+import com.icl.surveillance.ui.patients.custom.VhfContactsFragment
+import com.icl.surveillance.ui.patients.custom.VhfDailyFollowUpFragment
 import com.icl.surveillance.ui.patients.custom.afp.AFPFollowUpFragment
 import com.icl.surveillance.ui.patients.data.LabResultsFragment
 import com.icl.surveillance.ui.patients.data.RegionalLabResultsFragment
@@ -57,6 +60,20 @@ import timber.log.Timber
 
 class SummarizedActivity : AppCompatActivity() {
     private lateinit var groups: MutableList<OutputGroup>
+
+    /** What the summary observer needs to build the tabs for the record that is open. */
+    private data class TabConfig(
+        val groups: MutableList<OutputGroup>,
+        val currentCase: String?,
+        val latestEncounter: String,
+        val customFragments: List<Pair<String, Fragment>>,
+    )
+
+    private var tabConfig: TabConfig? = null
+
+    /** Data and tab titles the pager was last built from; unchanged data keeps the same tabs. */
+    private var tabSignature: String? = null
+    private var tabMediator: TabLayoutMediator? = null
     private lateinit var binding: ActivitySummarizedBinding
     private lateinit var fhirEngine: FhirEngine
     private lateinit var patientDetailsViewModel: ClientDetailsViewModel
@@ -81,7 +98,10 @@ class SummarizedActivity : AppCompatActivity() {
                 ),
             ).get(ClientDetailsViewModel::class.java)
 
-        loadData()
+        // One observer for the life of the screen (data is loaded in onResume).
+        patientDetailsViewModel.liveSummaryData.observe(this) { data ->
+            tabConfig?.let { showSummary(it, data) }
+        }
     }
 
     override fun onResume() {
@@ -118,10 +138,7 @@ class SummarizedActivity : AppCompatActivity() {
         latestEncounter: String,
         isCase: String?
     ) {
-        groups = parsedGroups
-        val viewPager = binding.viewPager
-        val tabLayout = binding.tabLayout
-
+        var summaryKey: String? = null
         if (currentCase != null) {
             val slug = currentCase.toCaseSlug()
             val key = when (slug) {
@@ -137,7 +154,7 @@ class SummarizedActivity : AppCompatActivity() {
 
                 else -> slug
             }
-            patientDetailsViewModel.getPatientInfoSummaryData(key)
+            summaryKey = key
         }
 
         var customFragments = when (latestEncounter) {
@@ -158,14 +175,8 @@ class SummarizedActivity : AppCompatActivity() {
                 )
             }
 
-            CaseSlugs.VHF -> {
-                listOf(
-                    "Laboratory Results" to FollowUpFormFragment.newInstance(
-                        FormFields.Vhf.LAB_TITLE,
-                        FormFields.Vhf.LAB_FORM
-                    )
-                )
-            }
+            // Chosen once the record's answers load: contacts and cases get different tabs.
+            CaseSlugs.VHF -> emptyList()
 
             CaseSlugs.VL -> {
                 listOf(
@@ -180,53 +191,113 @@ class SummarizedActivity : AppCompatActivity() {
 
         if (isCase != null) {
             if (isCase != "Case") {
-                val itemToRemove = groups.find { it.linkId == "271053545237" }
+                val itemToRemove = parsedGroups.find { it.linkId == "271053545237" }
                 if (itemToRemove != null) {
-                    groups.remove(itemToRemove)
+                    parsedGroups.remove(itemToRemove)
                     customFragments = emptyList()
 
                 }
             }
         }
-        patientDetailsViewModel.liveSummaryData.observe(this) { data ->
-            updateSummaryHeader(currentCase, latestEncounter, data)
-            groups.forEach { group ->
-                // For each item inside the group
-                group.items.forEach { outputItem ->
-                    // Try to find a matching observation
-                    val matchingObservation = data.observations.find { obs ->
-                        obs.code == outputItem.linkId
+        tabConfig = TabConfig(parsedGroups, currentCase, latestEncounter, customFragments)
+        summaryKey?.let { patientDetailsViewModel.getPatientInfoSummaryData(it) }
+    }
+
+    /**
+     * Fills the summary from the record's data. The pager is rebuilt only when the data or the
+     * tabs changed: rebuilding recreates every tab (each then reloads) and resets the selection,
+     * so on a plain return to this screen the tabs stay and refresh themselves.
+     */
+    private fun showSummary(config: TabConfig, data: PatientListViewModel.CaseDetailSummaryData) {
+        val currentCase = config.currentCase
+        val latestEncounter = config.latestEncounter
+        updateSummaryHeader(currentCase, latestEncounter, data)
+        config.groups.forEach { group ->
+            // For each item inside the group
+            group.items.forEach { outputItem ->
+                // Try to find a matching observation
+                val matchingObservation = data.observations.find { obs ->
+                    obs.code == outputItem.linkId
+                }
+                when (outputItem.linkId) {
+                    "992818778559" -> { // Retrieve EPID No.
+                        outputItem.value = data.epidNo
                     }
-                    when (outputItem.linkId) {
-                        "992818778559" -> { // Retrieve EPID No.
-                            outputItem.value = data.epidNo
-                        }
 
-                        "920645761660" -> { // Calculate Days since onset
-                            outputItem.value = calculateDaysSinceOnset(data.observations)
-                        }
-
-                        "calculated_age" -> { // Calculate Days since onset
-                            outputItem.value = calculatePatientAge(data.observations)
-                        }
-
-                        "age-at-onset" -> {  // Calculate Age at Onset
-                            outputItem.value = calculateAgeAtOnset(data.observations)
-                        }
-
-                        else ->
-                            if (matchingObservation != null) {
-                                outputItem.value = matchingObservation.value
-                            }
+                    "920645761660" -> { // Calculate Days since onset
+                        outputItem.value = calculateDaysSinceOnset(data.observations)
                     }
+
+                    "calculated_age" -> { // Calculate Days since onset
+                        outputItem.value = calculatePatientAge(data.observations)
+                    }
+
+                    "age-at-onset" -> {  // Calculate Age at Onset
+                        outputItem.value = calculateAgeAtOnset(data.observations)
+                    }
+
+                    else ->
+                        if (matchingObservation != null) {
+                            outputItem.value = matchingObservation.value
+                        }
                 }
             }
-            val adapter = GroupPagerAdapter(this, groups, customFragments)
-            viewPager.adapter = adapter
+        }
+        val tabs = if (latestEncounter == CaseSlugs.VHF) vhfTabs(data.observations) else config.customFragments
 
-            TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-                tab.text = adapter.getTabTitle(position)
-            }.attach()
+        val signature = buildString {
+            append(latestEncounter)
+            config.groups.forEach { group ->
+                append('|').append(group.linkId)
+                group.items.forEach { append(';').append(it.linkId).append('=').append(it.value) }
+            }
+            tabs.forEach { append('#').append(it.first) }
+        }
+        val viewPager = binding.viewPager
+        if (signature == tabSignature && viewPager.adapter != null) return
+
+        val selectedTitle = (viewPager.adapter as? GroupPagerAdapter)?.getTabTitle(viewPager.currentItem)
+        groups = config.groups
+        val adapter = GroupPagerAdapter(this, groups, tabs)
+        viewPager.adapter = adapter
+        tabMediator?.detach()
+        tabMediator = TabLayoutMediator(binding.tabLayout, viewPager) { tab, position ->
+            tab.text = adapter.getTabTitle(position)
+        }.also { it.attach() }
+        tabSignature = signature
+
+        // Keep the tab the user was on (e.g. Contacts after registering a contact).
+        selectedTitle?.let { title ->
+            (0 until adapter.itemCount).firstOrNull { adapter.getTabTitle(it) == title }
+                ?.let { viewPager.setCurrentItem(it, false) }
+        }
+    }
+
+    /**
+     * VHF tabs by Type of case: a contact is followed up daily for 21 days and has a monitoring
+     * status; any other VHF record lists the contacts registered against it.
+     */
+    private fun vhfTabs(
+        observations: List<PatientListViewModel.ObservationItem>
+    ): List<Pair<String, Fragment>> {
+        val lab = "Laboratory Results" to FollowUpFormFragment.newInstance(
+            FormFields.Vhf.LAB_TITLE,
+            FormFields.Vhf.LAB_FORM
+        )
+        val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
+        return if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) {
+            listOf(
+                "Daily Follow Up" to VhfDailyFollowUpFragment(),
+                "Contact Monitoring" to FollowUpFormFragment.newInstance(
+                    FormFields.Vhf.CONTACT_MONITORING_TITLE,
+                    FormFields.Vhf.CONTACT_MONITORING_FORM,
+                    allowUpdates = true,
+                    emptyMessage = "No monitoring status recorded yet"
+                ),
+                lab
+            )
+        } else {
+            listOf(lab, "Contacts" to VhfContactsFragment())
         }
     }
 

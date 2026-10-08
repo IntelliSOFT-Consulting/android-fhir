@@ -153,7 +153,10 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
             }
 
             else -> {
-                this.status.setTextColor(this.status.context.getColor(R.color.pending))
+                // A VHF contact who became symptomatic during the 21-day follow up stands out.
+                val color =
+                    if (final.trim().startsWith("Symptomatic")) R.color.red else R.color.pending
+                this.status.setTextColor(this.status.context.getColor(color))
             }
         }
 

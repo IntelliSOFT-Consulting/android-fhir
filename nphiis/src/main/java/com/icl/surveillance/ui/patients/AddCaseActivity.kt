@@ -23,7 +23,11 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FRAGMENT_TAG
 import com.icl.surveillance.databinding.ActivityAddCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.ContactFollowUpState
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfDemoMode
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
 import com.icl.surveillance.utils.FormatterClass
@@ -32,12 +36,16 @@ import com.icl.surveillance.utils.ProgressDialogManager
 import com.icl.surveillance.viewmodels.ScreenerViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.Type
@@ -73,6 +81,10 @@ class AddCaseActivity : AppCompatActivity() {
                     SaveCaseConfig(SaveCaseType.LAB, "AFP ITD Lab Information"),
             FormFields.Vhf.LAB_FORM to
                     SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.LAB_TITLE),
+            FormFields.Vhf.CONTACT_FOLLOW_UP_FORM to
+                    SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE),
+            FormFields.Vhf.CONTACT_MONITORING_FORM to
+                    SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.CONTACT_MONITORING_TITLE),
             "vl-case-lab-information.json" to
                     SaveCaseConfig(SaveCaseType.LAB, "VL Laboratory Examination"),
             "vl-case-sixMonthsFollowup.json" to
@@ -161,6 +173,11 @@ class AddCaseActivity : AppCompatActivity() {
         )
     }
 
+    override fun onDestroy() {
+        if (isFinishing) FormPrefill.clear(this)
+        super.onDestroy()
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         showCancelScreenerQuestionnaireAlertDialog()
         return true
@@ -179,6 +196,7 @@ class AddCaseActivity : AppCompatActivity() {
             val questionnaireResponseString =
                 jsonParser.encodeResourceToString(questionnaireResponse)
             println("Response $questionnaireResponseString")
+            if (!passesContactChecks(questionnaireResponse)) return@launch
             saveCase(questionnaireFragment.getQuestionnaireResponse(), questionnaireResponseString)
         }
     }
@@ -246,6 +264,73 @@ class AddCaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * VHF contact rules that need the contact's own record: a follow-up cannot be dated before the
+     * date of contact, and a contact cannot be released before all 21 days have passed.
+     */
+    private suspend fun passesContactChecks(response: QuestionnaireResponse): Boolean {
+        val formatter = FormatterClass()
+        val questionnaire = formatter.getSharedPref("questionnaire", this@AddCaseActivity)
+        if (questionnaire != FormFields.Vhf.CONTACT_FOLLOW_UP_FORM &&
+            questionnaire != FormFields.Vhf.CONTACT_MONITORING_FORM
+        ) return true
+        val patientId = formatter.getSharedPref("patientIdParent", this@AddCaseActivity) ?: return true
+        val encounterId = formatter.getSharedPref("encounterId", this@AddCaseActivity) ?: return true
+        val demo = VhfDemoMode.refresh(this@AddCaseActivity)
+        val state = withContext(Dispatchers.IO) {
+            VhfContactTracker.load(fhirEngine, patientId, encounterId)
+        } ?: return true
+
+        val answers = flattenItems(response.item)
+        fun answer(linkId: String) =
+            answers.firstOrNull { it.linkId == linkId }?.answer?.firstOrNull()?.value
+
+        val problem = if (questionnaire == FormFields.Vhf.CONTACT_FOLLOW_UP_FORM) {
+            val exposure = state.exposureDate
+            val followUpDate = (answer(FormFields.Vhf.FOLLOW_UP_DATE) as? DateType)
+                ?.valueAsString?.let(VhfContactTracker::parseDate)
+            val day = (answer(FormFields.Vhf.FOLLOW_UP_DAY) as? IntegerType)?.value
+            val format = ContactFollowUpState.DISPLAY
+            val dateProblem = when {
+                // Demo mode records any day in the schedule dated today.
+                demo || exposure == null || followUpDate == null -> null
+                followUpDate.isBefore(exposure) ->
+                    "Date of follow up cannot be before the date of contact (${format.format(exposure)})."
+
+                // Day of follow up and its date must agree: day N is N days after the date of contact.
+                day != null && exposure.plusDays(day.toLong()) != followUpDate -> {
+                    val actualDay = ChronoUnit.DAYS.between(exposure, followUpDate)
+                    "Day $day falls on ${format.format(exposure.plusDays(day.toLong()))}, but the date " +
+                            "of follow up is ${format.format(followUpDate)} (day $actualDay). " +
+                            "Correct the day or the date."
+                }
+
+                else -> null
+            }
+            val next = state.nextDay
+            dateProblem ?: when {
+                day == null -> null
+                day in state.recordedDays -> "Day $day follow up is already recorded."
+                // The schedule is filled in order: day N needs days 1 to N-1 first.
+                day >= 1 && next != null && day > next ->
+                    "Record day $next first. Follow ups are recorded in order."
+
+                else -> null
+            }
+        } else {
+            val status = answer(FormFields.Vhf.MONITORING_STATUS) as? Coding
+            if (status?.code == FormFields.Vhf.STATUS_COMPLETED_CODE && !state.windowComplete) {
+                "A contact can only be released once the day 21 follow up " +
+                        "(${ContactFollowUpState.DISPLAY.format(state.lastDay)}) is recorded or has passed."
+            } else null
+        }
+        if (problem != null) {
+            Toast.makeText(this@AddCaseActivity, problem, Toast.LENGTH_LONG).show()
+            return false
+        }
+        return true
+    }
+
     fun flattenItems(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>):
             List<QuestionnaireResponse.QuestionnaireResponseItemComponent> {
 
@@ -255,6 +340,10 @@ class AddCaseActivity : AppCompatActivity() {
     }
 
     private fun addQuestionnaireFragment() {
+        // Answers staged by the case summary (e.g. the contact's follow-up day); taken once.
+        val prefill = FormPrefill.take(
+            this, FormatterClass().getSharedPref("questionnaire", this)
+        )
         val resourceId = FormatterClass().getSharedPref(
             "resourceId", this@AddCaseActivity
         ) // aka Questionnaire
@@ -307,6 +396,12 @@ class AddCaseActivity : AppCompatActivity() {
                         else -> {
 
                         }
+                    }
+
+                    if (prefill.isNotEmpty()) {
+                        val questionnaire = FhirContext.forR4Cached().newJsonParser()
+                            .parseResource(Questionnaire::class.java, viewModel.questionnaire)
+                        FormPrefill.applyTo(questionnaire, resource, prefill)
                     }
 
                     val questionnaireResponseJson =
