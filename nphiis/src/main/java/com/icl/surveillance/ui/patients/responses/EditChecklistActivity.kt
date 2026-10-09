@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +40,11 @@ class EditChecklistActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditChecklistBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Phone Back: from Android 16 (target SDK 36) the system back goes through this
+        // dispatcher and onBackPressed() is not called, so the confirmation is registered here.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = confirmLeave()
+        })
         enableEdgeToEdge()
         binding = ActivityEditChecklistBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -91,28 +97,23 @@ class EditChecklistActivity : AppCompatActivity() {
             QuestionnaireFragment.CANCEL_REQUEST_KEY,
             this@EditChecklistActivity,
         ) { _, _ ->
-            onBackPressed()
+            confirmLeave()
         }
     }
 
+    // The toolbar arrow asks first too (the back dispatcher would close without asking).
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed()
+        confirmLeave()
         return true
     }
 
-    override fun onBackPressed() {
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Exit")
-            .setMessage("Are you sure you want to exit?")
-            .setPositiveButton("Yes") { _, _ ->
-                super.onBackPressed() // Exit the activity
-            }
-            .setNegativeButton("No") { dialog, _ ->
-                dialog.dismiss() // Dismiss the dialog
-            }
-            .create()
-
-        dialog.show()
+    /** Leaving the form discards the edits: ask first; "Yes" closes the screen. */
+    private fun confirmLeave() {
+        AlertDialog.Builder(this)
+            .setMessage(getString(R.string.cancel_questionnaire_message))
+            .setPositiveButton(getString(android.R.string.yes)) { _, _ -> finish() }
+            .setNegativeButton(getString(android.R.string.no)) { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     private fun onSubmitAction() {
