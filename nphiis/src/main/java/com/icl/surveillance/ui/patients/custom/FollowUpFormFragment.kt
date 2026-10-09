@@ -24,6 +24,10 @@ import com.icl.surveillance.databinding.FragmentVlLabBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.ui.patients.responses.EditChecklistActivity
+import org.hl7.fhir.r4.model.QuestionnaireResponse
+import com.google.android.fhir.search.search
+import android.widget.Toast
 import org.hl7.fhir.r4.model.Patient
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.FormPrefill
@@ -206,7 +210,34 @@ class FollowUpFormFragment : Fragment() {
             .setTitle("Recorded ${formatRecordedOn(recordedOn)}")
             .setMessage(lines.joinToString("\n\n").ifBlank { "No answers recorded." })
             .setPositiveButton("Close", null)
+            .setNeutralButton("Edit") { _, _ -> editRecord(record) }
             .show()
+    }
+
+    /**
+     * Opens a saved record of this form for editing, with its answers. The record's response is
+     * found by its encounter; saving updates that response and its answer observations in place.
+     */
+    private fun editRecord(record: PatientListViewModel.LabResults) {
+        val context = requireContext()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val responseId = withContext(Dispatchers.IO) {
+                runCatching {
+                    fhirEngine.search<QuestionnaireResponse> {
+                        filter(QuestionnaireResponse.ENCOUNTER, { value = "Encounter/${record.encounterId}" })
+                    }.firstOrNull()?.resource?.idElement?.idPart
+                }.getOrNull()
+            }
+            if (!isAdded) return@launch
+            if (responseId.isNullOrBlank()) {
+                Toast.makeText(context, "This record cannot be edited (its form was not found).", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val formatter = FormatterClass()
+            formatter.saveSharedPref("resourceId", responseId, context)
+            formatter.saveSharedPref("questionnaire", questionnaireFile, context)
+            startActivity(Intent(context, EditChecklistActivity::class.java))
+        }
     }
 
     /** "2026-10-08 11:40:12" -> "08 Oct 2026, 11:40". */
@@ -216,6 +247,15 @@ class FollowUpFormFragment : Fragment() {
 
     private fun renderRecord(record: PatientListViewModel.LabResults, recordedOn: String) {
         parentLayout.removeAllViews()
+        parentLayout.addView(
+            VhfCards.sectionHeader(
+                parentLayout,
+                if (allowUpdates) "Latest entry" else formTitle,
+                actionText = "Edit",
+                actionIcon = R.drawable.ic_vhf_edit_calendar,
+                onAction = { editRecord(record) }
+            )
+        )
         if (allowUpdates && recordedOn.isNotBlank()) {
             parentLayout.addView(
                 createCustomField(

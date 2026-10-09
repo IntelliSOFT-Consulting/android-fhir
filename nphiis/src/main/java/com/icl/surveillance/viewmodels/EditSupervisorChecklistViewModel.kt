@@ -199,14 +199,17 @@ class EditSupervisorChecklistViewModel(
         questionnaire: String,
     ) {
         backgroundProcessingScope.launch {
-            try {
-                val patientId = original.subject.referenceElement.idPart ?: return@launch
-                val answers = extractStructuredAnswers(edited, editedJson)
-                updatePatientDetails(patientId, answers, questionnaire)
-                if (questionnaire == FormFields.Vhf.CASE_FORM) linkVhfSourceCase(patientId, answers)
-                updateAnswerObservations(original, patientId, answers, questionnaire)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to update the case after editing %s", questionnaire)
+            val patientId = original.subject.referenceElement.idPart ?: return@launch
+            val answers = extractStructuredAnswers(edited, editedJson)
+            // The answers shown on the case summary come first; each step runs on its own so a
+            // failure in one (e.g. the patient's name) cannot leave the summary out of date.
+            runCatching { updateAnswerObservations(original, patientId, answers, questionnaire) }
+                .onFailure { Timber.e(it, "Failed to update the answers after editing %s", questionnaire) }
+            runCatching { updatePatientDetails(patientId, answers, questionnaire) }
+                .onFailure { Timber.e(it, "Failed to update the patient after editing %s", questionnaire) }
+            if (questionnaire == FormFields.Vhf.CASE_FORM) {
+                runCatching { linkVhfSourceCase(patientId, answers) }
+                    .onFailure { Timber.e(it, "Failed to link the source case after editing") }
             }
         }
     }

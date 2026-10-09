@@ -1136,7 +1136,7 @@
         },
         {
           "linkId": "vhf-source-case-epid",
-          "text": "Contact of case (EPID number)",
+          "text": "Contact Link to Case",
           "type": "choice",
           "enableWhen": [
             {
@@ -2247,7 +2247,7 @@
         },
         {
           "linkId": "728034137219",
-          "text": "Date of onset",
+          "text": "Date of onset (first symptom)",
           "type": "date",
           "required": true,
           "extension": [
@@ -2272,6 +2272,558 @@
                   }
                 ]
               }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-fever",
+          "text": "Onset date: fever",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-fever-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: fever cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: fever cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-headache",
+          "text": "Onset date: headache",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "headache",
+                "display": "Headache"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-headache-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: headache cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: headache cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-fatigue",
+          "text": "Onset date: fatigue",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "fatigue",
+                "display": "Fatigue"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-fatigue-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: fatigue cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: fatigue cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-vomiting",
+          "text": "Onset date: vomiting",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "vomiting",
+                "display": "Vomiting"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-vomiting-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: vomiting cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: vomiting cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-diarrhea",
+          "text": "Onset date: diarrhea",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "diarrhea",
+                "display": "Diarrhea"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-diarrhea-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: diarrhea cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: diarrhea cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-unexplained-bleeding",
+          "text": "Onset date: unexplained bleeding",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Unexplained bleeding"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-unexplained-bleeding-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: unexplained bleeding cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: unexplained bleeding cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-muscle-pain",
+          "text": "Onset date: muscle pain",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "muscle-pain",
+                "display": "Muscle pain"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-muscle-pain-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: muscle pain cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: muscle pain cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-onset-other",
+          "text": "Onset date: other symptom",
+          "type": "date",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "vhf-onset-other-after"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "Onset date: other symptom cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value >= %resource.descendants().where(linkId='728034137219').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Onset date: other symptom cannot be before the date of onset (first symptom)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "728034137219"
+                }
+              ]
             }
           ]
         }
@@ -4305,8 +4857,8 @@
         },
         {
           "linkId": "vhf-vaccine-name",
-          "text": "Name of vaccine",
-          "type": "string",
+          "text": "Name of vaccine (tick all received)",
+          "type": "choice",
           "enableWhen": [
             {
               "question": "vhf-ebola-vaccinated",
@@ -4314,6 +4866,69 @@
               "answerCoding": {
                 "code": "yes",
                 "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "ervebo",
+                "display": "Ervebo (rVSV-ZEBOV)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "zabdeno",
+                "display": "Zabdeno (Ad26.ZEBOV) - dose 1"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "mvabea",
+                "display": "Mvabea (MVA-BN-Filo) - dose 2"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "repeats": true
+        },
+        {
+          "linkId": "vhf-vaccine-name-other",
+          "text": "Other vaccine (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-vaccine-name",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
               }
             }
           ]
@@ -4511,6 +5126,22 @@
               "answerCoding": {
                 "code": "other",
                 "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sample-tissue-type",
+          "text": "Tissue type (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "tissue",
+                "display": "Tissue"
               }
             }
           ]
