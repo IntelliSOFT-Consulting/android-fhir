@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -77,6 +78,11 @@ class AddParentCaseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Phone Back: from Android 16 (target SDK 36) the system back goes through this
+        // dispatcher and onBackPressed() is not called, so the confirmation is registered here.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = showCancelScreenerQuestionnaireAlertDialog()
+        })
         enableEdgeToEdge()
         binding = ActivityAddParentCaseBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -106,7 +112,7 @@ class AddParentCaseActivity : AppCompatActivity() {
             QuestionnaireFragment.CANCEL_REQUEST_KEY,
             this@AddParentCaseActivity,
         ) { _, _ ->
-            onBackPressed()
+            showCancelScreenerQuestionnaireAlertDialog()
         }
     }
 
@@ -343,21 +349,6 @@ class AddParentCaseActivity : AppCompatActivity() {
             FormPrefill.clear(this)
         }
         super.onDestroy()
-    }
-
-    override fun onBackPressed() {
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Exit")
-            .setMessage("Are you sure you want to exit?")
-            .setPositiveButton("Yes") { _, _ ->
-                super.onBackPressed() // Exit the activity
-            }
-            .setNegativeButton("No") { dialog, _ ->
-                dialog.dismiss() // Dismiss the dialog
-            }
-            .create()
-
-        dialog.show()
     }
 
     private fun addUserCountyResponse(

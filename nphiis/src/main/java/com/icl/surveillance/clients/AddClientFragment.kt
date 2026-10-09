@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -43,14 +45,32 @@ class AddClientFragment : Fragment(R.layout.fragment_add_client) {
             QuestionnaireFragment.CANCEL_REQUEST_KEY,
             viewLifecycleOwner,
         ) { _, _ ->
-            NavHostFragment.findNavController(this).navigateUp()
+            confirmLeave()
         }
+        // System back asks before leaving the form too.
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() = confirmLeave()
+            }
+        )
+    }
+
+    /** Leaving the form discards what was entered: ask first. */
+    private fun confirmLeave() {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.cancel_questionnaire_message))
+            .setPositiveButton(getString(android.R.string.yes)) { _, _ ->
+                NavHostFragment.findNavController(this).navigateUp()
+            }
+            .setNegativeButton(getString(android.R.string.no), null)
+            .show()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                NavHostFragment.findNavController(this).navigateUp()
+                confirmLeave()
                 true
             }
 

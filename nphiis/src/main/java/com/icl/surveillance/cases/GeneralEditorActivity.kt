@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -45,6 +46,11 @@ class GeneralEditorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Phone Back: from Android 16 (target SDK 36) the system back goes through this
+        // dispatcher and onBackPressed() is not called, so the confirmation is registered here.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = showCancelScreenerQuestionnaireAlertDialog()
+        })
         enableEdgeToEdge()
         binding = ActivityGeneralEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -73,7 +79,7 @@ class GeneralEditorActivity : AppCompatActivity() {
             QuestionnaireFragment.CANCEL_REQUEST_KEY,
             this@GeneralEditorActivity,
         ) { _, _ ->
-            onBackPressed()
+            showCancelScreenerQuestionnaireAlertDialog()
         }
     }
 
@@ -298,12 +304,6 @@ class GeneralEditorActivity : AppCompatActivity() {
 
         alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         alertDialog.show()
-    }
-
-    override fun onBackPressed() {
-
-        showCancelScreenerQuestionnaireAlertDialog()
-        super.onBackPressed()
     }
 
     private fun updateArguments() {

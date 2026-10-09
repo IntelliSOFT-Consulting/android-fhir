@@ -32,7 +32,7 @@
     <string name="welcome_back">Welcome Back</string>
     <string name="last_sync_timestamp">Last sync time: %1$s</string>
     <string name="current_status">Current sync status: %1$s</string>
-    <string name="cancel_questionnaire_message">Are you sure you want to cancel?</string>
+    <string name="cancel_questionnaire_message">Leave this form? Anything you have entered will not be saved.</string>
     <string name="lab_results_not_captured">Lab results not captured</string>
     <string name="patient_name">Patient Name</string>
     <string name="epid">Search for case</string>
