@@ -246,6 +246,9 @@ object FormFields {
         const val STATUS_COMPLETED = "Completed follow up (released)"
         const val STATUS_COMPLETED_CODE = "completed"
         const val STATUS_BECAME_CASE = "Became a suspected case"
+
+        /** Derived on the case summary (not a question): the record has daily follow ups. */
+        const val HAS_FOLLOW_UPS = "vhf-derived-has-follow-ups"
         const val STATUS_BECAME_CASE_CODE = "became-case"
         const val FINAL_OUTCOME_DATE = "vhf-final-outcome-date"
         const val CASE_TYPE_SUSPECTED_CODE = "suspected"

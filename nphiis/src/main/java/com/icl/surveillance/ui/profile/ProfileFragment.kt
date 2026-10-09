@@ -29,6 +29,7 @@ import com.icl.surveillance.debug.SyntheticDataDialogs
 import com.icl.surveillance.databinding.ItemLabelValueModernBinding
 import com.icl.surveillance.fhir.DemoDataStore
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.ManagingLocation
 import com.icl.surveillance.clients.SyncActivity
 import com.icl.surveillance.utils.DialogHelper
@@ -350,10 +351,11 @@ class ProfileFragment : Fragment() {
             .setCancelable(false)
             .show()
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                ManagingLocation.repairLocalRecords(
-                    appContext, FhirApplication.fhirEngine(appContext), force = true
-                )
+            val (result, resaved) = withContext(Dispatchers.IO) {
+                val engine = FhirApplication.fhirEngine(appContext)
+                val repaired = ManagingLocation.repairLocalRecords(appContext, engine, force = true)
+                // Edits the server would refuse as out of date (HTTP 409) upload as replacements.
+                repaired to LocalWins.replacePendingUpdates(appContext, engine, force = true)
             }
             progress.dismiss()
             if (!isAdded) return@launch
@@ -364,7 +366,7 @@ class ProfileFragment : Fragment() {
                     existingWorkPolicy = ExistingWorkPolicy.REPLACE,
                 )
             }
-            val fixed = result?.fixed ?: 0
+            val fixed = (result?.fixed ?: 0) + (resaved ?: 0)
             val message = when {
                 failed -> getString(R.string.update_data_failed)
                 fixed == 0 -> getString(R.string.update_data_none)
