@@ -1133,6 +1133,39 @@
               }
             }
           ]
+        },
+        {
+          "linkId": "vhf-source-case-epid",
+          "text": "Contact of case (EPID number)",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-case-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "open-choice",
+                    "display": "Open Choice"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Pick the case, or type its EPID number"
+            }
+          ]
         }
       ],
       "type": "group",
@@ -1183,11 +1216,6 @@
           "text": "Given names",
           "type": "string",
           "required": true
-        },
-        {
-          "linkId": "vhf-national-id",
-          "text": "National ID number",
-          "type": "string"
         },
         {
           "linkId": "929966324957",
@@ -1392,6 +1420,159 @@
               "valueInteger": 31
             }
           ]
+        },
+        {
+          "linkId": "vhf-id-type",
+          "text": "Type of identification",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-enableWhenExpression",
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "iif(%resource.repeat(item).where(linkId='442636360588').answer.value.code = 'known', %resource.repeat(item).where(linkId='257830485990').answer.value <= today() - 18 years, %resource.repeat(item).where(linkId='492731638700').answer.value >= 18)"
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "national-id",
+                "display": "National ID"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "passport",
+                "display": "Passport"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "birth-certificate",
+                "display": "Birth certificate"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-id-type-minor",
+          "text": "Type of identification",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-enableWhenExpression",
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "iif(%resource.repeat(item).where(linkId='442636360588').answer.value.code = 'known', %resource.repeat(item).where(linkId='257830485990').answer.value > today() - 18 years, %resource.repeat(item).where(linkId='492731638700').answer.value < 18)"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "birth-certificate",
+                "display": "Birth certificate"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "passport",
+                "display": "Passport"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-national-id",
+          "text": "Identification number",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-id-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "national-id",
+                "display": "National ID"
+              }
+            },
+            {
+              "question": "vhf-id-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "passport",
+                "display": "Passport"
+              }
+            },
+            {
+              "question": "vhf-id-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "birth-certificate",
+                "display": "Birth certificate"
+              }
+            },
+            {
+              "question": "vhf-id-type-minor",
+              "operator": "=",
+              "answerCoding": {
+                "code": "birth-certificate",
+                "display": "Birth certificate"
+              }
+            },
+            {
+              "question": "vhf-id-type-minor",
+              "operator": "=",
+              "answerCoding": {
+                "code": "passport",
+                "display": "Passport"
+              }
+            }
+          ],
+          "enableBehavior": "any"
         },
         {
           "linkId": "vhf-pregnant",
@@ -2668,10 +2849,6 @@
                   }
                 ]
               }
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
-              "valueCode": "horizontal"
             }
           ],
           "answerOption": [
@@ -2691,6 +2868,12 @@
               "valueCoding": {
                 "code": "other",
                 "display": "Other (specify)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None"
               }
             }
           ]
@@ -3405,12 +3588,32 @@
         {
           "linkId": "vhf-exposure-location",
           "text": "Location of exposure",
-          "type": "string"
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "!=",
+              "answerCoding": {
+                "code": "none",
+                "display": "None"
+              }
+            }
+          ]
         },
         {
           "linkId": "vhf-exposure-date",
           "text": "Date of exposure",
           "type": "date",
+          "enableWhen": [
+            {
+              "question": "vhf-exposure-type",
+              "operator": "!=",
+              "answerCoding": {
+                "code": "none",
+                "display": "None"
+              }
+            }
+          ],
           "extension": [
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
@@ -4308,22 +4511,6 @@
               "answerCoding": {
                 "code": "other",
                 "display": "Other (specify)"
-              }
-            }
-          ]
-        },
-        {
-          "linkId": "vhf-specimen-id",
-          "text": "Specimen ID",
-          "type": "string",
-          "required": true,
-          "enableWhen": [
-            {
-              "question": "vhf-samples-collected",
-              "operator": "=",
-              "answerCoding": {
-                "code": "yes",
-                "display": "Yes"
               }
             }
           ]

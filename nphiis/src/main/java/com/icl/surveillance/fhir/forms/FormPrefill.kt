@@ -99,6 +99,13 @@ object FormPrefill {
         return result
     }
 
+    private fun isOpenChoice(question: Questionnaire.QuestionnaireItemComponent) =
+        question.extension.any { extension ->
+            extension.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" &&
+                (extension.value as? org.hl7.fhir.r4.model.CodeableConcept)
+                    ?.coding?.any { it.code == "open-choice" } == true
+        }
+
     private fun newItem(question: Questionnaire.QuestionnaireItemComponent) =
         QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
             linkId = question.linkId
@@ -112,6 +119,8 @@ object FormPrefill {
                     option.hasValueCoding() &&
                         (option.valueCoding.code == raw || option.valueCoding.display == raw)
                 }?.valueCoding?.copy()
+                // An open-choice question also takes a typed answer.
+                ?: StringType(raw).takeIf { isOpenChoice(question) }
 
             Questionnaire.QuestionnaireItemType.DATE -> runCatching { DateType(raw) }.getOrNull()
             Questionnaire.QuestionnaireItemType.INTEGER -> raw.toIntOrNull()?.let { IntegerType(it) }

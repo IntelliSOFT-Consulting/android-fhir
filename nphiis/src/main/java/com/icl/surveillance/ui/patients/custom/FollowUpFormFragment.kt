@@ -24,6 +24,9 @@ import com.icl.surveillance.databinding.FragmentVlLabBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
+import org.hl7.fhir.r4.model.Patient
+import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.models.ChildItem
 import com.icl.surveillance.models.OutputGroup
@@ -308,6 +311,14 @@ class FollowUpFormFragment : Fragment() {
             openContactMonitoring()
             return
         }
+        if (questionnaireFile == FormFields.Vhf.LAB_FORM) {
+            openVhfLabResults()
+            return
+        }
+        openForm()
+    }
+
+    private fun openForm() {
         FormatterClass().saveSharedPref(
             "questionnaire", questionnaireFile, requireContext()
         )
@@ -319,6 +330,27 @@ class FollowUpFormFragment : Fragment() {
             QUESTIONNAIRE_FILE_PATH_KEY, questionnaireFile
         )
         startActivity(intent)
+    }
+
+    /**
+     * VHF lab results: the Specimen ID is assigned at the lab (meeting 8 Oct 2026); the case's EPID
+     * number is suggested so the sample can be labelled with it. Left empty before the case syncs.
+     */
+    private fun openVhfLabResults() {
+        val patientId = FormatterClass().getSharedPref("patientIdParent", requireContext())
+        viewLifecycleOwner.lifecycleScope.launch {
+            val epid = patientId?.let { id ->
+                withContext(Dispatchers.IO) {
+                    runCatching { fhirEngine.get<Patient>(id) }.getOrNull()
+                        ?.let { VhfSourceCases.epidOf(it) }
+                }
+            }
+            if (!isAdded) return@launch
+            epid?.let {
+                FormPrefill.stage(requireContext(), FormFields.Vhf.LAB_FORM, mapOf(FormFields.Vhf.SPECIMEN_ID to it))
+            }
+            openForm()
+        }
     }
 
     /** Contact monitoring is pre-filled with the missed days worked out from the daily follow ups. */

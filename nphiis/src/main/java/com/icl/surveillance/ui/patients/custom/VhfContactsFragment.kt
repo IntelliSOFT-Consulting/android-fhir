@@ -21,6 +21,7 @@ import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfDemoMode
+import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.valueOf
 import com.icl.surveillance.ui.patients.SummarizedActivity
 import com.icl.surveillance.utils.FormatterClass
@@ -112,19 +113,26 @@ class VhfContactsFragment : Fragment() {
         }
     }
 
-    private data class SourceCase(val patientId: String, val name: String, val disease: String, val diseaseOther: String)
+    private data class SourceCase(
+        val patientId: String,
+        val name: String,
+        val disease: String,
+        val diseaseOther: String,
+        val epid: String?,
+    )
 
     private suspend fun loadSource(patientId: String, encounterId: String): SourceCase {
         val answers = fhirEngine.search<Observation> {
             filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
         }
-        val name = runCatching { fhirEngine.get<Patient>(patientId).nameFirstRep.nameAsSingleString }
-            .getOrNull().orEmpty()
+        val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull()
+        val name = patient?.nameFirstRep?.nameAsSingleString.orEmpty()
         return SourceCase(
             patientId = patientId,
             name = name,
             disease = answers.valueOf(FormFields.Vhf.DISEASE),
             diseaseOther = answers.valueOf(FormFields.Vhf.DISEASE_OTHER),
+            epid = patient?.let { VhfSourceCases.epidOf(it) },
         )
     }
 
@@ -266,6 +274,7 @@ class VhfContactsFragment : Fragment() {
                 put(FormFields.Vhf.EXPOSURE_TYPE, FormFields.Vhf.EXPOSURE_HUMAN_CONTACT)
                 if (source.disease.isNotBlank()) put(FormFields.Vhf.DISEASE, source.disease)
                 if (source.diseaseOther.isNotBlank()) put(FormFields.Vhf.DISEASE_OTHER, source.diseaseOther)
+                source.epid?.let { put(FormFields.Vhf.SOURCE_CASE_EPID, it) }
             }
         )
         returnToCase.launch(

@@ -14,6 +14,7 @@ import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseResponse
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.ui.patients.custom.VhfContactActions.PREF_CONVERT_TO_SUSPECTED
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.PatientMapper
@@ -92,8 +93,32 @@ class EditSupervisorChecklistViewModel(
             }
         }
 
+        // VHF records saved before the identification type existed: their number was a national ID.
+        if (this.questionnaire == FormFields.Vhf.CASE_FORM) {
+            val answered = { linkId: String ->
+                questionnaireResponse.item.flatMap { listOf(it) + it.item }
+                    .any { it.linkId == linkId && it.hasAnswer() }
+            }
+            if (answered(FormFields.Vhf.NATIONAL_ID) && !answered(FormFields.Vhf.ID_TYPE) &&
+                !answered(FormFields.Vhf.ID_TYPE_MINOR)
+            ) {
+                FormPrefill.applyTo(
+                    questionnaire, questionnaireResponse,
+                    mapOf(FormFields.Vhf.ID_TYPE to FormFields.Vhf.ID_TYPE_NATIONAL_ID_CODE),
+                )
+            }
+        }
+
         // Convert the existing QuestionnaireResponse to JSON string
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+
+        // VHF: offer the cases on this device as choices for "Contact of case (EPID number)".
+        if (this.questionnaire == FormFields.Vhf.CASE_FORM) {
+            val patientId = questionnaireResponse.subject?.referenceElement?.idPart
+            val options = runCatching { VhfSourceCases.options(fhirEngine, excludePatientId = patientId) }
+                .getOrDefault(emptyList())
+            return VhfSourceCases.withOptions(questionnaireJson, options) to questionnaireResponseJson
+        }
 
 
         return questionnaireJson to questionnaireResponseJson
@@ -178,11 +203,24 @@ class EditSupervisorChecklistViewModel(
                 val patientId = original.subject.referenceElement.idPart ?: return@launch
                 val answers = extractStructuredAnswers(edited, editedJson)
                 updatePatientDetails(patientId, answers, questionnaire)
+                if (questionnaire == FormFields.Vhf.CASE_FORM) linkVhfSourceCase(patientId, answers)
                 updateAnswerObservations(original, patientId, answers, questionnaire)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update the case after editing %s", questionnaire)
             }
         }
+    }
+
+    /** A VHF contact named its source case by EPID number: link it, if not linked already. */
+    private suspend fun linkVhfSourceCase(patientId: String, answers: List<QuestionnaireAnswer>) {
+        val epid = VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID)) ?: return
+        val source = VhfSourceCases.findByEpid(fhirEngine, epid) ?: return
+        val sourceId = source.idElement.idPart
+        if (sourceId == patientId) return
+        val patient = fhirEngine.get<Patient>(patientId)
+        if (patient.link.any { it.other?.referenceElement?.idPart == sourceId }) return
+        patient.addLink().setOther(Reference("Patient/$sourceId")).setType(Patient.LinkType.SEEALSO)
+        fhirEngine.update(patient)
     }
 
     /** Name / sex / date of birth, using each form's own questions and name order. */
