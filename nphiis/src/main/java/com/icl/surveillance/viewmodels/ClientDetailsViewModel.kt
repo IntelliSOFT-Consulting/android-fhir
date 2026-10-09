@@ -15,6 +15,8 @@ import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import com.icl.surveillance.R
+import com.icl.surveillance.fhir.forms.CaseResponse
+import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.ui.patients.PatientListViewModel.ClinicalData
 import com.icl.surveillance.ui.patients.PatientListViewModel.ContactResults
@@ -269,6 +271,27 @@ class ClientDetailsViewModel(
                             ?.value
                             ?.asStringValue() ?: ""
                     }
+
+                    // VHF: the saved case form is the source of truth for its answers. Answers
+                    // without an observation (or with an out-of-date one) are shown from the form.
+                    if (slug == CaseSlugs.VHF) {
+                        runCatching {
+                            CaseResponse.find(fhirEngine, patientId, matchingIdentifier.value)
+                        }.getOrNull()?.let { response ->
+                            val fromForm = answersOf(response.item)
+                            observations.removeAll { it.code in fromForm.keys }
+                            fromForm.forEach { (code, value) ->
+                                observations.add(
+                                    PatientListViewModel.ObservationItem(
+                                        id = "${response.idElement.idPart}#$code",
+                                        code = code,
+                                        value = value,
+                                        created = ""
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
 
             }
@@ -282,6 +305,31 @@ class ClientDetailsViewModel(
             observations = observations,
             epidNo = epidNo
         )
+    }
+
+    /** linkId -> answer as shown on the summary (choices by display, several joined by ", "). */
+    private fun answersOf(
+        items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
+    ): Map<String, String> {
+        val result = LinkedHashMap<String, String>()
+        fun visit(list: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            list.forEach { item ->
+                val values = item.answer.mapNotNull { answer ->
+                    when (val value = answer.value) {
+                        is Coding -> value.display ?: value.code
+                        null -> null
+                        else -> value.primitiveValue()
+                    }?.takeIf { it.isNotBlank() }
+                }
+                if (values.isNotEmpty() && item.linkId != null) {
+                    result[item.linkId] = values.joinToString(", ")
+                }
+                visit(item.item)
+                item.answer.forEach { visit(it.item) }
+            }
+        }
+        visit(items)
+        return result
     }
 
     private suspend fun getClinicalInfoCard(slug: String): ClinicalData {

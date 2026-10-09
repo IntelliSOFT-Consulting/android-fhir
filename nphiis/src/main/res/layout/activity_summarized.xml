@@ -119,19 +119,24 @@
             android:clipToOutline="true"
             android:elevation="4dp"
             android:outlineProvider="background"
-            android:padding="6dp">
+            android:paddingHorizontal="4dp">
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:background="@android:color/transparent"
-                app:tabBackground="@drawable/summary_tab_item_background"
                 app:tabGravity="fill"
-                app:tabIndicatorHeight="0dp"
-                app:tabMode="scrollable"
-                app:tabRippleColor="@color/summary_tab_ripple"
+                app:tabIndicatorColor="@color/summary_tab_selected_text"
+                app:tabIndicatorFullWidth="true"
+                app:tabIndicatorHeight="3dp"
+                app:tabMode="auto"
+                app:tabPaddingEnd="14dp"
+                app:tabPaddingStart="14dp"
+                app:tabRippleColor="@android:color/transparent"
+                app:tabUnboundedRipple="false"
                 app:tabSelectedTextColor="@color/summary_tab_selected_text"
+                app:tabTextAppearance="@style/SummaryTabText"
                 app:tabTextColor="@color/summary_tab_unselected_text" />
         </FrameLayout>
 

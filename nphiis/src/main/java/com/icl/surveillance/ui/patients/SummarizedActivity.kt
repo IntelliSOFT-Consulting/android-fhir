@@ -264,8 +264,10 @@ class SummarizedActivity : AppCompatActivity() {
         if (signature == tabSignature && viewPager.adapter != null) return
 
         val selectedTitle = (viewPager.adapter as? GroupPagerAdapter)?.getTabTitle(viewPager.currentItem)
-        groups = config.groups
-        val adapter = GroupPagerAdapter(this, groups, tabs)
+        groups = visibleGroups(config.groups, latestEncounter, data.observations).toMutableList()
+        // One tab per form section, then the workflow tabs. A new generation per rebuild so the
+        // pager never shows a tab built from older data.
+        val adapter = GroupPagerAdapter(this, groups, tabs, generation = signature.hashCode().toLong())
         viewPager.adapter = adapter
         tabMediator?.detach()
         tabMediator = TabLayoutMediator(binding.tabLayout, viewPager) { tab, position ->
@@ -281,21 +283,36 @@ class SummarizedActivity : AppCompatActivity() {
     }
 
     /**
+     * The form sections shown as tabs. A VHF contact skips Clinical Information and Clinical Care
+     * & Treatment (they are filled in when the contact becomes a case), so those tabs are left out.
+     */
+    private fun visibleGroups(
+        all: List<OutputGroup>,
+        latestEncounter: String,
+        observations: List<PatientListViewModel.ObservationItem>,
+    ): List<OutputGroup> {
+        if (latestEncounter != CaseSlugs.VHF) return all
+        val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
+        if (!caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return all
+        return all.filterNot { it.linkId in CONTACT_SKIPPED_SECTIONS }
+    }
+
+    /**
      * VHF tabs by Type of case: a contact is followed up daily for 21 days and has a monitoring
      * status; any other VHF record lists the contacts registered against it.
      */
     private fun vhfTabs(
         observations: List<PatientListViewModel.ObservationItem>
     ): List<Pair<String, Fragment>> {
-        val lab = "Laboratory Results" to FollowUpFormFragment.newInstance(
+        val lab = "Laboratory" to FollowUpFormFragment.newInstance(
             FormFields.Vhf.LAB_TITLE,
             FormFields.Vhf.LAB_FORM
         )
         val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
         return if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) {
             listOf(
-                "Daily Follow Up" to VhfDailyFollowUpFragment(),
-                "Contact Monitoring" to FollowUpFormFragment.newInstance(
+                "Follow up" to VhfDailyFollowUpFragment(),
+                "Monitoring" to FollowUpFormFragment.newInstance(
                     FormFields.Vhf.CONTACT_MONITORING_TITLE,
                     FormFields.Vhf.CONTACT_MONITORING_FORM,
                     allowUpdates = true,
@@ -692,3 +709,6 @@ class SummarizedActivity : AppCompatActivity() {
     }
 
 }
+
+/** VHF case-form pages a contact skips (enableWhen Type of case != Contact). */
+private val CONTACT_SKIPPED_SECTIONS = setOf("vhf-clinical", "vhf-care")

@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import com.google.android.material.card.MaterialCardView
 import com.google.gson.Gson
 import com.icl.surveillance.R
 import com.icl.surveillance.models.OutputGroup
@@ -42,10 +43,18 @@ class GroupFragment : Fragment() {
     private lateinit var parentLayout: LinearLayout
     private lateinit var group: OutputGroup
 
+    /** Several sections shown together (one card each), or null for a single section. */
+    private var sections: List<OutputGroup>? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val groupJson = requireArguments().getString("group")
-        group = Gson().fromJson(groupJson, OutputGroup::class.java)
+        val args = requireArguments()
+        args.getString("groups")?.let { json ->
+            sections = Gson().fromJson(json, Array<OutputGroup>::class.java).toList()
+        }
+        val groupJson = args.getString("group")
+        group = if (groupJson != null) Gson().fromJson(groupJson, OutputGroup::class.java)
+        else sections.orEmpty().firstOrNull() ?: OutputGroup("", "", "group")
     }
 
     override fun onCreateView(
@@ -59,12 +68,63 @@ class GroupFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         parentLayout = view.findViewById(R.id.ln_parent)
+        sections?.let {
+            showSections(view, it)
+            return
+        }
 
         // Now dynamically add fields
         addChildItems()
         val textView = view.findViewById<TextView>(R.id.tv_title)
         textView.text = "${group.text}"
     }
+
+    /**
+     * All sections on one page, a card each with its title; sections with nothing to show (e.g.
+     * pages a contact skips) are left out.
+     */
+    private fun showSections(view: View, all: List<OutputGroup>) {
+        val firstCard = parentLayout.parent as MaterialCardView
+        val column = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, dp(24))
+        }
+        val scroll = view as ViewGroup
+        scroll.removeAllViews()
+        scroll.addView(column)
+        all.forEach { section ->
+            val card = MaterialCardView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(dp(10), dp(6), dp(10), dp(6)) }
+                radius = firstCard.radius
+                cardElevation = 0f
+                setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.summary_page_item_bg))
+                strokeColor = ContextCompat.getColor(requireContext(), R.color.summary_page_item_border)
+                strokeWidth = dp(1)
+            }
+            val body = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12), dp(12), dp(12), dp(6))
+            }
+            body.addView(TextView(requireContext()).apply {
+                text = section.text.trim()
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_title_text))
+                setTypeface(ResourcesCompat.getFont(requireContext(), R.font.inter), Typeface.BOLD)
+                setPadding(dp(4), 0, 0, dp(6))
+            })
+            group = section
+            parentLayout = body
+            addChildItems()
+            if (body.childCount > 1) {
+                card.addView(body)
+                column.addView(card)
+            }
+        }
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun addChildItems() {
         val role = group.items.find {
@@ -342,6 +402,11 @@ class GroupFragment : Fragment() {
 
 
     companion object {
+        /** Several sections on one scrolling page. */
+        fun newInstance(groups: List<OutputGroup>): GroupFragment = GroupFragment().apply {
+            arguments = Bundle().apply { putString("groups", Gson().toJson(groups)) }
+        }
+
         fun newInstance(group: OutputGroup): GroupFragment {
             val fragment = GroupFragment()
             val bundle = Bundle()

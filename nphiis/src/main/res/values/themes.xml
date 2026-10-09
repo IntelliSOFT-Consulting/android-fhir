@@ -75,4 +75,13 @@
         <item name="android:lineSpacingExtra">1dp</item>
     </style>
 
+    <!-- Patient summary tabs: sentence case, semi-bold, no all-caps. -->
+    <style name="SummaryTabText" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="textAllCaps">false</item>
+        <item name="fontFamily">@font/montserratsemi</item>
+        <item name="android:fontFamily">@font/montserratsemi</item>
+    </style>
+
 </resources>

@@ -24,6 +24,14 @@ import com.icl.surveillance.utils.ProgressDialogManager
 import com.icl.surveillance.viewmodels.EditSupervisorChecklistViewModel
 import com.icl.surveillance.viewmodels.factories.EditSupervisorChecklistViewModelFactory
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.ContactFollowUpState
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfContactTracker
+import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.QuestionnaireResponse
 
 class EditChecklistActivity : AppCompatActivity() {
     private lateinit var viewModel: EditSupervisorChecklistViewModel
@@ -44,6 +52,8 @@ class EditChecklistActivity : AppCompatActivity() {
             "afp-case.json" -> "Edit AFP Case"
             "vl-case.json" -> "Edit VL Case"
             "vhf-case.json" -> "Edit VHF Case"
+            "vhf-lab-results.json" -> "Edit Laboratory Results"
+            "vhf-contact-monitoring.json" -> "Edit Contact Monitoring"
             "rumor-tracking-case.json" -> "Edit Rumor Report"
             "social-community.json", "social-county.json" -> "Edit Social Investigation"
             else -> "Edit Record"
@@ -118,6 +128,10 @@ class EditChecklistActivity : AppCompatActivity() {
             val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
             val questionnaireResponseString =
                 jsonParser.encodeResourceToString(questionnaireResponse)
+            if (!passesMonitoringRule(questionnaire, questionnaireResponse)) {
+                ProgressDialogManager.dismiss()
+                return@launch
+            }
 
             viewModel.updatePatient(
                 this@EditChecklistActivity,
@@ -128,6 +142,35 @@ class EditChecklistActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * The release rule of a new monitoring entry applies to an edited one too: a contact can only
+     * be released once the day 21 follow up is recorded or has passed.
+     */
+    private suspend fun passesMonitoringRule(
+        questionnaire: String?,
+        response: QuestionnaireResponse,
+    ): Boolean {
+        if (questionnaire != FormFields.Vhf.CONTACT_MONITORING_FORM) return true
+        val status = response.item.flatMap { listOf(it) + it.item }
+            .firstOrNull { it.linkId == FormFields.Vhf.MONITORING_STATUS }
+            ?.answer?.firstOrNull()?.value as? Coding
+        if (status?.code != FormFields.Vhf.STATUS_COMPLETED_CODE) return true
+        val formatter = FormatterClass()
+        val patientId = formatter.getSharedPref("patientIdParent", this) ?: return true
+        val encounterId = formatter.getSharedPref("encounterId", this) ?: return true
+        val state = withContext(Dispatchers.IO) {
+            VhfContactTracker.load(FhirApplication.fhirEngine(this@EditChecklistActivity), patientId, encounterId)
+        } ?: return true
+        if (state.windowComplete) return true
+        Toast.makeText(
+            this,
+            "A contact can only be released once the day 21 follow up " +
+                "(${ContactFollowUpState.DISPLAY.format(state.lastDay)}) is recorded or has passed.",
+            Toast.LENGTH_LONG
+        ).show()
+        return false
+    }
+
     private fun addQuestionnaireFragment(pair: Pair<String, String>) {
 
         lifecycleScope.launch {
@@ -135,6 +178,8 @@ class EditChecklistActivity : AppCompatActivity() {
                 add(
                     R.id.add_patient_container,
                     QuestionnaireFragment.builder().apply {
+                        // Edits must pass validation: no "Submit anyway" in the errors dialog.
+                        setShowSubmitAnywayButton(false)
                         setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(
                             ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
                                 .LOCATION_WIDGET_PROVIDER,
