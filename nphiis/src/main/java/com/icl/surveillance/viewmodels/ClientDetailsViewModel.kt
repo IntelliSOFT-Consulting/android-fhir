@@ -17,6 +17,8 @@ import com.google.android.fhir.search.search
 import com.icl.surveillance.R
 import com.icl.surveillance.fhir.forms.CaseResponse
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.ui.patients.PatientListViewModel.ClinicalData
 import com.icl.surveillance.ui.patients.PatientListViewModel.ContactResults
@@ -270,6 +272,25 @@ class ClientDetailsViewModel(
                             ?.resource
                             ?.value
                             ?.asStringValue() ?: ""
+                    }
+
+                    // VHF: a record followed up as a contact keeps its Follow up / Monitoring tabs
+                    // after it is converted to a case.
+                    if (slug == CaseSlugs.VHF) {
+                        val followedUp = runCatching {
+                            VhfContactTracker.load(fhirEngine, patientId, matchingIdentifier.value)
+                                ?.visits?.isNotEmpty() == true
+                        }.getOrDefault(false)
+                        if (followedUp) {
+                            observations.add(
+                                PatientListViewModel.ObservationItem(
+                                    id = "derived-has-follow-ups",
+                                    code = FormFields.Vhf.HAS_FOLLOW_UPS,
+                                    value = "true",
+                                    created = ""
+                                )
+                            )
+                        }
                     }
 
                     // VHF: the saved case form is the source of truth for its answers. Answers

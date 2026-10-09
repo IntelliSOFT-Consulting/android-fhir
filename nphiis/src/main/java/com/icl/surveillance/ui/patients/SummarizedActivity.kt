@@ -320,6 +320,19 @@ class SummarizedActivity : AppCompatActivity() {
                 ),
                 lab
             )
+        } else if (observations.any { it.code == FormFields.Vhf.HAS_FOLLOW_UPS }) {
+            // A contact converted to a case keeps its follow-up history (read-only).
+            listOf(
+                lab,
+                "Contacts" to VhfContactsFragment(),
+                "Follow up" to VhfDailyFollowUpFragment(),
+                "Monitoring" to FollowUpFormFragment.newInstance(
+                    FormFields.Vhf.CONTACT_MONITORING_TITLE,
+                    FormFields.Vhf.CONTACT_MONITORING_FORM,
+                    allowUpdates = true,
+                    emptyMessage = "No monitoring status recorded"
+                ),
+            )
         } else {
             listOf(lab, "Contacts" to VhfContactsFragment())
         }

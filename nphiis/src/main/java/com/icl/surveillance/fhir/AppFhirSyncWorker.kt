@@ -13,6 +13,7 @@ import com.google.android.fhir.sync.FhirSyncWorker
 import com.google.android.fhir.sync.upload.HttpCreateMethod
 import com.google.android.fhir.sync.upload.HttpUpdateMethod
 import com.google.android.fhir.sync.upload.UploadStrategy
+import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.ManagingLocation
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
@@ -253,6 +254,7 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
     /** Repairs records saved with an empty Location reference before uploading (once). */
     override suspend fun doWork(): ListenableWorker.Result {
         ManagingLocation.repairLocalRecords(applicationContext, getFhirEngine())
+        LocalWins.replacePendingUpdates(applicationContext, getFhirEngine())
         return super.doWork()
     }
 

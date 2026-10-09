@@ -83,7 +83,9 @@ class VhfDailyFollowUpFragment : Fragment() {
 
     private fun render(state: ContactFollowUpState) {
         binding.lnEmpty.visibility = View.GONE
-        val canRecord = state.isContact && !state.isClosed
+        // Recording stops once the contact is symptomatic (convert to case), closed or converted;
+        // the schedule stays visible and its rows say why when tapped.
+        val canRecord = state.isContact && !state.isClosed && state.firstSymptomaticVisit == null
         val demo = VhfDemoMode.enabled
         // Testing aid (debug builds and demo mode): add the next follow up in the schedule.
         binding.fab.apply {
@@ -117,75 +119,82 @@ class VhfDailyFollowUpFragment : Fragment() {
             )
         }
 
-        if (state.isContact) {
-            val missed = state.missedDays.size
-            parent.addView(
-                VhfCards.stats(
-                    parent,
-                    listOf(
-                        Triple("Follow-up day", dayValue(state), CardTone.INFO),
-                        Triple("Recorded", state.visits.size.toString(), CardTone.SUCCESS),
-                        Triple("Missed", missed.toString(), if (missed > 0) CardTone.WARNING else CardTone.NEUTRAL),
-                        Triple("Days left", daysLeft(state).toString(), CardTone.NEUTRAL),
-                    )
-                )
-            )
-        }
-
+        // A record that is no longer a contact keeps its follow-up history, read-only.
+        if (!state.isContact && state.visits.isEmpty()) return
         val context = requireContext()
-        parent.addView(SummaryRows.title(context, "Follow-up window"))
-        parent.addView(
-            SummaryRows.field(
-                context, "Date of contact (day 0)",
-                state.exposureDate?.let { DISPLAY.format(it) } ?: "Not captured"
-            )
-        )
-        parent.addView(SummaryRows.field(context, "Last day of follow up (day $window)", DISPLAY.format(state.lastDay)))
-        if (state.missedDays.isNotEmpty()) {
-            parent.addView(
-                SummaryRows.field(
-                    context, "Missed days", "Day ${state.missedDays.joinToString(", ")}", R.color.vhf_warning
-                )
-            )
+        val missed = state.missedDays.size
+        val started = state.daysSinceExposure >= 0
+        val (statusLabel, statusTone) = when {
+            !state.isContact -> "Converted to case" to CardTone.ALERT
+            state.isClosed -> state.monitoringStatus to
+                if (state.monitoringStatus == FormFields.Vhf.STATUS_COMPLETED) CardTone.SUCCESS else CardTone.NEUTRAL
+            state.firstSymptomaticVisit != null -> "Symptomatic" to CardTone.ALERT
+            !started -> "Not started" to CardTone.NEUTRAL
+            else -> FormFields.Vhf.STATUS_UNDER_FOLLOW_UP to CardTone.INFO
         }
         parent.addView(
-            SummaryRows.field(
-                context, "Monitoring status",
-                state.monitoringStatus.ifBlank { FormFields.Vhf.STATUS_UNDER_FOLLOW_UP }
+            VhfScheduleCards.progress(
+                parent,
+                headline = if (started) "Day ${state.currentDay} of $window" else "Starts ${DISPLAY.format(state.dayZero)}",
+                window = "${DISPLAY.format(state.dayZero)}  to  ${DISPLAY.format(state.lastDay)}" +
+                    if (state.exposureDate == null) " (from registration)" else "",
+                recorded = state.recordedDays.count { it in 1..window },
+                total = window,
+                status = statusLabel,
+                statusTone = statusTone,
+                figures = listOf(
+                    Triple("Recorded", state.visits.size.toString(), CardTone.SUCCESS),
+                    Triple("Missed", missed.toString(), if (missed > 0) CardTone.WARNING else CardTone.NEUTRAL),
+                    Triple("Days left", daysLeft(state).toString(), CardTone.INFO),
+                )
             )
         )
 
         parent.addView(VhfCards.sectionHeader(parent, "Follow-up schedule"))
         val next = state.nextDay
-        for (day in 0..window) {
+        val rows = (0..window).mapNotNull { day ->
             val visits = state.visits.filter { it.day == day }
-            if (day == 0 && visits.isEmpty()) continue
-            val label = "Day $day · ${DISPLAY.format(state.dateOfDay(day))}"
-
+            if (day == 0 && visits.isEmpty()) return@mapNotNull null
+            val date = SCHEDULE_DATE.format(state.dateOfDay(day))
             // Only the next day in the schedule, once its date has arrived, can be recorded.
             if (canRecord && visits.isEmpty() && day == next && state.nextDayOpen) {
                 val caption = when {
                     day == state.daysSinceExposure -> "Due today"
-                    day > state.daysSinceExposure -> "Next in the schedule (demo)"
-                    else -> "Overdue · next in the schedule"
+                    day > state.daysSinceExposure -> "Next in the schedule"
+                    else -> "Overdue"
                 }
-                parent.addView(
-                    VhfCards.scheduleAction(parent, label, caption, "Record") {
-                        VhfContactActions.recordFollowUp(context, state, day)
-                    }
+                return@mapNotNull ScheduleRow(day, date, caption, caption, CardTone.INFO,
+                    onRecord = { VhfContactActions.recordFollowUp(context, state, day) })
+            }
+            val tap = { message: String -> { toast(message) } }
+            when {
+                visits.any { it.symptomatic } -> ScheduleRow(
+                    day, date, "Follow up recorded", "Symptomatic", CardTone.ALERT,
+                    onTap = tap("Day $day: symptomatic at follow up.")
                 )
-                continue
+                visits.isNotEmpty() -> ScheduleRow(
+                    day, date, "Follow up recorded", "No symptoms", CardTone.SUCCESS,
+                    onTap = tap("Day $day: no symptoms at follow up.")
+                )
+                !canRecord -> ScheduleRow(
+                    day, date, "Follow up closed", "Not recorded", CardTone.NEUTRAL,
+                    onTap = tap(closedReason(state))
+                )
+                day <= state.daysSinceExposure -> ScheduleRow(
+                    day, date, "Not recorded", "Missed", CardTone.WARNING,
+                    onTap = tap(next?.let { "Record day $it first. Follow ups are recorded in order." }
+                        ?: "Day $day was not recorded.")
+                )
+                else -> ScheduleRow(
+                    day, date, "Opens on this date", "Upcoming", CardTone.NEUTRAL,
+                    onTap = tap("Day $day opens on ${DISPLAY.format(state.dateOfDay(day))}.")
+                )
             }
-
-            val (value, color) = when {
-                visits.any { it.symptomatic } -> "Symptomatic" to R.color.vhf_alert
-                visits.isNotEmpty() -> "No symptoms" to R.color.vhf_success
-                state.isClosed || !state.isContact -> "Not recorded" to R.color.vhf_text_secondary
-                day <= state.daysSinceExposure -> "Missed · locked" to R.color.vhf_warning
-                else -> "Upcoming" to R.color.vhf_text_secondary
-            }
-            parent.addView(SummaryRows.field(context, label, value, color))
         }
+        parent.addView(VhfScheduleCards.schedule(parent, rows))
+        parent.addView(View(context).apply {
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (88 * resources.displayMetrics.density).toInt())
+        })
     }
 
     /**
@@ -198,8 +207,9 @@ class VhfDailyFollowUpFragment : Fragment() {
         return when {
             !state.isContact -> VhfCards.action(
                 parent, CardTone.NEUTRAL, R.drawable.ic_vhf_info,
-                "Not a contact record",
-                "Type of case: ${state.caseType.ifBlank { "not set" }}"
+                if (state.visits.isNotEmpty()) "Converted to a suspected case" else "Not a contact record",
+                if (state.visits.isNotEmpty()) "Follow up closed. The contact's follow-up history is kept below."
+                else "Type of case: ${state.caseType.ifBlank { "not set" }}"
             )
 
             // Outcome recorded as "Became a suspected case" but the record is still a contact.
@@ -289,9 +299,24 @@ class VhfDailyFollowUpFragment : Fragment() {
         }
     }
 
-    private fun dayValue(state: ContactFollowUpState): String =
-        if (state.daysSinceExposure < 0) "–" else "${state.currentDay}/$window"
+    /** Why no more follow ups can be recorded for this record. */
+    private fun closedReason(state: ContactFollowUpState): String = when {
+        !state.isContact -> "Follow up closed: this contact was converted to a suspected case."
+        state.firstSymptomaticVisit != null && !state.isClosed ->
+            "Follow up stopped: the contact is symptomatic. Convert to case."
+        else -> "Follow up closed: ${state.monitoringStatus.ifBlank { "no further follow up" }}."
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
 
     private fun daysLeft(state: ContactFollowUpState): Int =
         (window - state.daysSinceExposure).coerceIn(0, window)
+
+    private companion object {
+        /** "Thu, 17 Sep 2026" */
+        val SCHEDULE_DATE: java.time.format.DateTimeFormatter =
+            java.time.format.DateTimeFormatter.ofPattern("EEE, dd MMM yyyy")
+    }
 }

@@ -14,6 +14,7 @@ import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseResponse
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.ui.patients.custom.VhfContactActions.PREF_CONVERT_TO_SUSPECTED
 import com.icl.surveillance.fhir.forms.FormFields
@@ -272,15 +273,24 @@ class EditSupervisorChecklistViewModel(
             val code = observation.code.codingFirstRep.code ?: return@forEach
             val answer = answerByCode[code]
             when {
-                answer != null && observation.value?.primitiveValue() != answer.answer -> {
+                answer != null && (observation.value?.primitiveValue() != answer.answer ||
+                    observation.status == Observation.ObservationStatus.ENTEREDINERROR) -> {
                     observation.value = StringType(answer.answer)
                     observation.code.text = answer.answer
-                    fhirEngine.update(observation)
+                    observation.status = Observation.ObservationStatus.FINAL
+                    LocalWins.save(fhirEngine, observation)
                 }
 
-                // Only answers of this form are removed (never EPID or follow-up form data).
-                answer == null && encounterId != null && code in questionIds ->
-                    fhirEngine.delete(ResourceType.Observation, observation.idElement.idPart)
+                // Only answers of this form are removed (never EPID or follow-up form data). A
+                // removed answer is marked entered-in-error rather than deleted: a delete is
+                // version-checked on upload and fails once the server holds a newer version.
+                answer == null && encounterId != null && code in questionIds &&
+                    observation.status != Observation.ObservationStatus.ENTEREDINERROR -> {
+                    observation.status = Observation.ObservationStatus.ENTEREDINERROR
+                    observation.value = null
+                    observation.code.text = null
+                    LocalWins.save(fhirEngine, observation)
+                }
             }
         }
 
