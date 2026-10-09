@@ -258,7 +258,17 @@ object FormFields {
 
         const val DISEASE = "vhf-disease"
         const val CASE_TYPE = "vhf-case-type"
+        /** Identification number (any type); its type is ID_TYPE (18+) or ID_TYPE_MINOR. */
         const val NATIONAL_ID = "vhf-national-id"
+        const val ID_TYPE = "vhf-id-type"
+        const val ID_TYPE_MINOR = "vhf-id-type-minor"
+        const val ID_TYPE_NATIONAL_ID_CODE = "national-id"
+
+        /** A contact's source case, by EPID number (see VhfSourceCases). */
+        const val SOURCE_CASE_EPID = "vhf-source-case-epid"
+
+        /** Assigned at the laboratory; asked on the lab results form. */
+        const val SPECIMEN_ID = "vhf-specimen-id"
         const val PHONE = "vhf-phone"
         const val VILLAGE = "vhf-village"
         const val NEXT_OF_KIN = "vhf-next-of-kin"

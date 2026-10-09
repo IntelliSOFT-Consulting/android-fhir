@@ -27,6 +27,7 @@ import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.answerOf
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
@@ -839,10 +840,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
                     answers.answerOf(FormFields.Vhf.PHONE)
                         ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
-                    answers.answerOf(FormFields.Vhf.NATIONAL_ID)?.let { nationalId ->
+                    answers.answerOf(FormFields.Vhf.NATIONAL_ID)?.let { idNumber ->
+                        // Type of identification (meeting 8 Oct 2026); older records were national IDs.
+                        val idType = (answers.answerOf(FormFields.Vhf.ID_TYPE)
+                            ?: answers.answerOf(FormFields.Vhf.ID_TYPE_MINOR))
+                            ?.trim()?.lowercase()?.replace(' ', '-')
                         patient.addIdentifier().apply {
-                            system = "national-id"
-                            value = nationalId
+                            system = idType?.takeIf { it != "none" } ?: "national-id"
+                            value = idNumber
                         }
                     }
                     PatientMapper.applyContact(
@@ -850,9 +855,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         fullName = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN),
                         phone = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN_PHONE),
                     )
-                    // Registered from a case's Contacts tab: link the contact to its source case.
-                    FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
+                    // Link a contact to its source case: the case it was registered from (Contacts
+                    // tab), else the case named by "Contact of case (EPID number)" if it is on the device.
+                    (FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
                         ?.takeIf { it.isNotBlank() }
+                        ?: VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID))
+                            ?.let { VhfSourceCases.findByEpid(fhirEngine, it)?.logicalId })
                         ?.let { sourcePatientId ->
                             patient.addLink()
                                 .setOther(Reference("Patient/$sourcePatientId"))
@@ -1325,6 +1333,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }?.takeIf { it.isNotBlank() }
     }
 
+
+    /** Replaces the form (e.g. with choices filled in at runtime) before it is shown. */
+    fun useQuestionnaireJson(json: String) {
+        _questionnaireJson = json
+    }
 
     private fun fetchQuestionnaireJson(): String {
         _questionnaireJson?.let {

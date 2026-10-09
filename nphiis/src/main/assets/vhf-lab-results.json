@@ -14,6 +14,12 @@
       "type": "group",
       "item": [
         {
+          "linkId": "vhf-specimen-id",
+          "text": "Specimen ID",
+          "type": "string",
+          "required": true
+        },
+        {
           "linkId": "vhf-received-date",
           "text": "Date sample received at the laboratory",
           "type": "date",

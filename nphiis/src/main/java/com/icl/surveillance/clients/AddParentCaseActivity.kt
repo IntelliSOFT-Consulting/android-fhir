@@ -34,6 +34,8 @@ import com.icl.surveillance.fhir.SdcQuestionnaireResponseSaver
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
@@ -587,6 +589,20 @@ class AddParentCaseActivity : AppCompatActivity() {
 
                 null -> { /* Unknown role: no pre-filled jurisdiction */
                 }
+            }
+
+            // VHF: offer the cases on this device as choices for "Contact of case (EPID number)".
+            if (formatter.getSharedPref("questionnaire", this@AddParentCaseActivity) ==
+                FormFields.Vhf.CASE_FORM
+            ) {
+                runCatching {
+                    val options = VhfSourceCases.options(
+                        FhirApplication.fhirEngine(this@AddParentCaseActivity)
+                    )
+                    viewModel.useQuestionnaireJson(
+                        VhfSourceCases.withOptions(viewModel.questionnaireJson, options)
+                    )
+                }.onFailure { Timber.tag(TAG).w(it, "Could not load VHF source cases") }
             }
 
             // Answers staged by the opening screen, e.g. a contact registered from its case.
