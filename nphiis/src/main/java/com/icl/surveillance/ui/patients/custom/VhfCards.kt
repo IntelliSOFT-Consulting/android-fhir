@@ -22,11 +22,11 @@ import com.icl.surveillance.databinding.ItemVhfStatTileBinding
 
 /** Colour pairs (accent on a light tint) used by the VHF contact cards. */
 enum class CardTone(@ColorRes val accent: Int, @ColorRes val tint: Int) {
-    INFO(R.color.vhf_info, R.color.vhf_info_bg),
-    ALERT(R.color.vhf_alert, R.color.vhf_alert_bg),
-    SUCCESS(R.color.vhf_success, R.color.vhf_success_bg),
-    WARNING(R.color.vhf_warning, R.color.vhf_warning_bg),
-    NEUTRAL(R.color.vhf_neutral, R.color.vhf_neutral_bg),
+    INFO(R.color.home_icon_tint, R.color.home_icon_container_background),
+    ALERT(R.color.account_danger_action, R.color.home_card_background),
+    SUCCESS(R.color.selection_sheet_secondary_icon_tint, R.color.selection_sheet_secondary_icon_bg),
+    WARNING(R.color.snackbar_warning, R.color.home_card_background),
+    NEUTRAL(R.color.home_card_chevron_tint, R.color.home_surface_background),
 }
 
 /** Builds the cards used on the VHF Daily Follow Up and Contacts tabs. */
@@ -158,7 +158,7 @@ object VhfCards {
         texts.addView(TextView(context).apply {
             text = caption
             textSize = 12f
-            setTextColor(ContextCompat.getColor(context, R.color.vhf_text_secondary))
+            setTextColor(ContextCompat.getColor(context, R.color.home_card_subtitle))
         })
         row.addView(texts)
         row.addView(MaterialButton(context).apply {
@@ -166,9 +166,9 @@ object VhfCards {
             isAllCaps = false
             cornerRadius = (20 * density).toInt()
             backgroundTintList = ColorStateList.valueOf(accent)
-            setTextColor(Color.WHITE)
+            setTextColor(ContextCompat.getColor(context, R.color.home_card_background))
             setIconResource(R.drawable.ic_vhf_edit_calendar)
-            iconTint = ColorStateList.valueOf(Color.WHITE)
+            iconTint = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.home_card_background))
             iconSize = (18 * density).toInt()
             iconPadding = (6 * density).toInt()
             setOnClickListener { onAction() }
@@ -196,7 +196,7 @@ object VhfCards {
             setRadius(12 * density)
             cardElevation = 0f
             strokeWidth = (1 * density).toInt()
-            setStrokeColor(ContextCompat.getColor(context, R.color.vhf_card_stroke))
+            setStrokeColor(ContextCompat.getColor(context, R.color.home_card_stroke))
             setCardBackgroundColor(ContextCompat.getColor(context, tone.tint))
         }
         val row = LinearLayout(context).apply {
@@ -218,7 +218,7 @@ object VhfCards {
         texts.addView(TextView(context).apply {
             text = subtitle
             textSize = 12f
-            setTextColor(ContextCompat.getColor(context, R.color.vhf_text_secondary))
+            setTextColor(ContextCompat.getColor(context, R.color.home_card_subtitle))
         })
         row.addView(texts)
         row.addView(SwitchCompat(context).apply {
@@ -240,7 +240,7 @@ object VhfCards {
     ): View {
         val context = parent.context
         val density = context.resources.displayMetrics.density
-        val accent = ContextCompat.getColor(context, R.color.vhf_info)
+        val accent = ContextCompat.getColor(context, R.color.home_icon_tint)
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -252,7 +252,7 @@ object VhfCards {
             text = title
             textSize = 16f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(ContextCompat.getColor(context, R.color.vhf_text_primary))
+            setTextColor(ContextCompat.getColor(context, R.color.home_card_title))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         if (actionText != null && onAction != null) {

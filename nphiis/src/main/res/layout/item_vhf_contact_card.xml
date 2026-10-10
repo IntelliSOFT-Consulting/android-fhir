@@ -9,8 +9,9 @@
     android:clickable="true"
     android:focusable="true"
     app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/home_card_background"
     app:cardElevation="0dp"
-    app:strokeColor="@color/vhf_card_stroke"
+    app:strokeColor="@color/home_card_stroke"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -42,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/vhf_text_primary"
+                android:textColor="@color/home_card_title"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -50,7 +51,7 @@
                 android:id="@+id/contact_epid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/vhf_text_secondary"
+                android:textColor="@color/home_card_subtitle"
                 android:textSize="12sp" />
 
             <TextView
@@ -70,6 +71,6 @@
             android:layout_height="16dp"
             android:importantForAccessibility="no"
             android:src="@drawable/baseline_arrow_forward_ios_24"
-            app:tint="@color/vhf_text_secondary" />
+            app:tint="@color/home_card_subtitle" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
