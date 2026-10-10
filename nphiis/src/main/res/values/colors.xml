@@ -74,17 +74,4 @@
     <color name="success_dialog_primary_action_text">@color/white</color>
 
     <!-- VHF contact follow-up cards: accent on a light tint per tone -->
-    <color name="vhf_info">#1565C0</color>
-    <color name="vhf_info_bg">#EAF2FC</color>
-    <color name="vhf_alert">#C62828</color>
-    <color name="vhf_alert_bg">#FDECEC</color>
-    <color name="vhf_success">#2E7D32</color>
-    <color name="vhf_success_bg">#EAF5EA</color>
-    <color name="vhf_warning">#B45309</color>
-    <color name="vhf_warning_bg">#FFF4E5</color>
-    <color name="vhf_neutral">#455A64</color>
-    <color name="vhf_neutral_bg">#EEF1F3</color>
-    <color name="vhf_card_stroke">#E3E6EA</color>
-    <color name="vhf_text_primary">#1A1C1E</color>
-    <color name="vhf_text_secondary">#5F6368</color>
 </resources>

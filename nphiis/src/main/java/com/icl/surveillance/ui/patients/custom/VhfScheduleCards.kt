@@ -56,8 +56,8 @@ object VhfScheduleCards {
         top.addView(LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(text(context, headline, 18f, R.color.vhf_text_primary, bold = true))
-            addView(text(context, window, 12f, R.color.vhf_text_secondary).apply { setPadding(0, dp(context, 2), 0, 0) })
+            addView(text(context, headline, 18f, R.color.home_card_title, bold = true))
+            addView(text(context, window, 12f, R.color.home_card_subtitle).apply { setPadding(0, dp(context, 2), 0, 0) })
         })
         top.addView(pill(context, status, statusTone))
         body.addView(top)
@@ -70,10 +70,10 @@ object VhfScheduleCards {
             progress = recorded.coerceIn(0, total)
             trackThickness = dp(context, 8)
             trackCornerRadius = dp(context, 4)
-            setIndicatorColor(ContextCompat.getColor(context, R.color.vhf_success))
-            trackColor = ContextCompat.getColor(context, R.color.vhf_neutral_bg)
+            setIndicatorColor(ContextCompat.getColor(context, R.color.selection_sheet_secondary_icon_tint))
+            trackColor = ContextCompat.getColor(context, R.color.home_surface_background)
         })
-        body.addView(text(context, "$recorded of $total days recorded", 12f, R.color.vhf_text_secondary).apply {
+        body.addView(text(context, "$recorded of $total days recorded", 12f, R.color.home_card_subtitle).apply {
             setPadding(0, dp(context, 6), 0, 0)
         })
 
@@ -86,14 +86,14 @@ object VhfScheduleCards {
         figures.forEachIndexed { index, (label, value, tone) ->
             if (index > 0) row.addView(View(context).apply {
                 layoutParams = LinearLayout.LayoutParams(dp(context, 1), LinearLayout.LayoutParams.MATCH_PARENT)
-                setBackgroundColor(ContextCompat.getColor(context, R.color.vhf_card_stroke))
+                setBackgroundColor(ContextCompat.getColor(context, R.color.home_card_stroke))
             })
             row.addView(LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 addView(text(context, value, 18f, tone.accent, bold = true).apply { gravity = Gravity.CENTER })
-                addView(text(context, label, 11f, R.color.vhf_text_secondary).apply { gravity = Gravity.CENTER })
+                addView(text(context, label, 11f, R.color.home_card_subtitle).apply { gravity = Gravity.CENTER })
             })
         }
         body.addView(row)
@@ -110,7 +110,7 @@ object VhfScheduleCards {
             if (index > 0) list.addView(View(context).apply {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(context, 1))
                     .apply { marginStart = dp(context, 64) }
-                setBackgroundColor(ContextCompat.getColor(context, R.color.vhf_card_stroke))
+                setBackgroundColor(ContextCompat.getColor(context, R.color.home_card_stroke))
             })
             list.addView(scheduleRow(context, row))
         }
@@ -146,7 +146,7 @@ object VhfScheduleCards {
             background = ContextCompat.getDrawable(context, R.drawable.bg_vhf_circle)
             if (done) {
                 backgroundTintList = ColorStateList.valueOf(accent)
-                setTextColor(Color.WHITE)
+                setTextColor(ContextCompat.getColor(context, R.color.home_card_background))
             } else {
                 backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, row.tone.tint))
                 setTextColor(accent)
@@ -157,8 +157,8 @@ object VhfScheduleCards {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 .apply { marginStart = dp(context, 14) }
-            addView(text(context, row.date, 14f, R.color.vhf_text_primary, bold = true))
-            addView(text(context, row.detail, 12f, R.color.vhf_text_secondary).apply {
+            addView(text(context, row.date, 14f, R.color.home_card_title, bold = true))
+            addView(text(context, row.detail, 12f, R.color.home_card_subtitle).apply {
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
             })
@@ -175,9 +175,9 @@ object VhfScheduleCards {
                 setPadding(dp(context, 14), dp(context, 8), dp(context, 14), dp(context, 8))
                 cornerRadius = dp(context, 18)
                 backgroundTintList = ColorStateList.valueOf(accent)
-                setTextColor(Color.WHITE)
+                setTextColor(ContextCompat.getColor(context, R.color.home_card_background))
                 setIconResource(R.drawable.ic_vhf_edit_calendar)
-                iconTint = ColorStateList.valueOf(Color.WHITE)
+                iconTint = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.home_card_background))
                 iconSize = dp(context, 16)
                 iconPadding = dp(context, 6)
                 setOnClickListener { row.onRecord?.invoke() }
@@ -198,8 +198,8 @@ object VhfScheduleCards {
             radius = dp(context, 14).toFloat()
             cardElevation = 0f
             strokeWidth = dp(context, 1)
-            setStrokeColor(ContextCompat.getColor(context, R.color.vhf_card_stroke))
-            setCardBackgroundColor(Color.WHITE)
+            setStrokeColor(ContextCompat.getColor(context, R.color.home_card_stroke))
+            setCardBackgroundColor(ContextCompat.getColor(context, R.color.home_card_background))
         }
     }
 

@@ -51,7 +51,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:lineSpacingExtra="2dp"
-                    android:textColor="@color/vhf_text_secondary"
+                    android:textColor="@color/home_card_subtitle"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
@@ -65,12 +65,12 @@
             android:minHeight="44dp"
             android:paddingHorizontal="20dp"
             android:textAllCaps="false"
-            android:textColor="@android:color/white"
+            android:textColor="@color/home_card_background"
             android:textSize="14sp"
             app:cornerRadius="22dp"
             app:iconGravity="textStart"
             app:iconPadding="8dp"
             app:iconSize="18dp"
-            app:iconTint="@android:color/white" />
+            app:iconTint="@color/home_card_background" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

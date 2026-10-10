@@ -8,7 +8,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * "Contact of case (EPID number)" on the VHF case form (meeting 8 Oct 2026): a contact names the
+ * "Contact of case (EPID number)" on the VHF case form a contact names the
  * case it was in contact with by that case's EPID number. The EPID number is assigned by the server,
  * so only cases already synced to this device can be offered; any other can be typed in.
  */
