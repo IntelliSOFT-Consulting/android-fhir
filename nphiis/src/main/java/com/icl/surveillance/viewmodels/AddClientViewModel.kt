@@ -25,6 +25,7 @@ import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.EpidNumber
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
@@ -323,7 +324,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
                 )
             }
-            fhirEngine.update(newEncounter)
+            LocalWins.update(fhirEngine, newEncounter)
         }
         if (noResponseTag == true) {
             val newResponse = res.copy()
@@ -338,7 +339,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
                 )
             }
-            fhirEngine.update(newResponse)
+            LocalWins.update(fhirEngine, newResponse)
         }
         observations.forEach { obs ->
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
@@ -357,7 +358,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
                 )
             }
-            fhirEngine.update(newObs)
+            LocalWins.update(fhirEngine, newObs)
         }
     }
 
@@ -543,8 +544,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     e.printStackTrace()
                 }
             }
-            fhirEngine.update(questionnaireResponse)
-            fhirEngine.update(measureReport)
+            LocalWins.update(fhirEngine, questionnaireResponse, measureReport)
 
             withContext(Dispatchers.Main) { isPatientSaved.value = true }
         }

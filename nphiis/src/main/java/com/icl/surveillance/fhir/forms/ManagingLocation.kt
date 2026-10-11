@@ -222,7 +222,7 @@ object ManagingLocation {
             fhirEngine.purge(resource.resourceType, resource.logicalId, forcePurge = true)
             fhirEngine.create(resource)
         } else {
-            fhirEngine.update(resource)
+            LocalWins.update(fhirEngine, resource)
         }
         return true
     }

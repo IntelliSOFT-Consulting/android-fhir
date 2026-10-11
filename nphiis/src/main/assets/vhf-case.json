@@ -1136,7 +1136,7 @@
         },
         {
           "linkId": "vhf-source-case-epid",
-          "text": "Contact Link to Case",
+          "text": "Contact of case (EPID number)",
           "type": "choice",
           "enableWhen": [
             {
@@ -2036,12 +2036,6 @@
               "valueString": "^\\d{10,10}$"
             }
           ]
-        },
-        {
-          "linkId": "vhf-respondent",
-          "text": "Respondent",
-          "type": "string",
-          "required": true
         },
         {
           "linkId": "vhf-informant",
@@ -4216,6 +4210,16 @@
           "linkId": "vhf-case-ppe",
           "text": "Was the case wearing appropriate PPE?",
           "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-case-type",
+              "operator": "!=",
+              "answerCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ],
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -4253,6 +4257,16 @@
           "linkId": "vhf-contact-ppe",
           "text": "Was the contact wearing appropriate PPE?",
           "type": "choice",
+          "enableWhen": [
+            {
+              "question": "vhf-case-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ],
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -4999,6 +5013,16 @@
       "linkId": "vhf-laboratory",
       "text": "Laboratory (Specimen Collection)",
       "type": "group",
+      "enableWhen": [
+        {
+          "question": "vhf-case-type",
+          "operator": "!=",
+          "answerCoding": {
+            "code": "contact",
+            "display": "Contact"
+          }
+        }
+      ],
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",

@@ -165,7 +165,9 @@ class EditSupervisorChecklistViewModel(
             }
             questionnaireResponse.id = responseId
             keepRecordLinks(from = original, to = questionnaireResponse)
-            fhirEngine.update(questionnaireResponse)
+            // Full replacement, not a PATCH: a JSON diff of an edited response (pages shown or
+            // hidden, items reordered) can name paths the server copy lacks -> HTTP 400 HAPI-1272.
+            LocalWins.save(fhirEngine, questionnaireResponse)
             isResourcesSaved.value = true
 
             // Case forms (response linked to a patient): update the patient and stored answers.
@@ -224,7 +226,7 @@ class EditSupervisorChecklistViewModel(
         val patient = fhirEngine.get<Patient>(patientId)
         if (patient.link.any { it.other?.referenceElement?.idPart == sourceId }) return
         patient.addLink().setOther(Reference("Patient/$sourceId")).setType(Patient.LinkType.SEEALSO)
-        fhirEngine.update(patient)
+        LocalWins.update(fhirEngine, patient)
     }
 
     /** Name / sex / date of birth, using each form's own questions and name order. */
@@ -244,7 +246,7 @@ class EditSupervisorChecklistViewModel(
         }
         PatientMapper.applySex(patient, answers.answerOf(fields.sex))
         PatientMapper.applyBirthDate(patient, answers.answerOf(FormFields.Person.DATE_OF_BIRTH))
-        fhirEngine.update(patient)
+        LocalWins.update(fhirEngine, patient)
     }
 
     /**
