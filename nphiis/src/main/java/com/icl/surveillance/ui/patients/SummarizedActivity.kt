@@ -318,7 +318,7 @@ class SummarizedActivity : AppCompatActivity() {
                     allowUpdates = true,
                     emptyMessage = "No monitoring status recorded yet"
                 ),
-                lab
+                // No Laboratory tab: contacts give no sample (it returns once converted to a case).
             )
         } else if (observations.any { it.code == FormFields.Vhf.HAS_FOLLOW_UPS }) {
             // A contact converted to a case keeps its follow-up history (read-only).
@@ -724,4 +724,4 @@ class SummarizedActivity : AppCompatActivity() {
 }
 
 /** VHF case-form pages a contact skips (enableWhen Type of case != Contact). */
-private val CONTACT_SKIPPED_SECTIONS = setOf("vhf-clinical", "vhf-care")
+private val CONTACT_SKIPPED_SECTIONS = setOf("vhf-clinical", "vhf-care", "vhf-laboratory")

@@ -1,8 +1,13 @@
 package com.icl.surveillance.fhir.forms
 
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.asStringValue
 import com.google.android.fhir.datacapture.extensions.logicalId
+import com.google.android.fhir.get
 import com.google.android.fhir.search.search
+import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.IdType
+import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.json.JSONArray
 import org.json.JSONObject
@@ -11,6 +16,7 @@ import org.json.JSONObject
  * "Contact of case (EPID number)" on the VHF case form a contact names the
  * case it was in contact with by that case's EPID number. The EPID number is assigned by the server,
  * so only cases already synced to this device can be offered; any other can be typed in.
+ * Only cases confirmed by the lab (latest final result Positive) are offered as sources.
  */
 object VhfSourceCases {
 
@@ -21,12 +27,16 @@ object VhfSourceCases {
         patient.identifier.firstOrNull { it.type.codingFirstRep.code == FhirSystems.EPID }
             ?.value?.trim()?.takeIf { it.isNotBlank() && !it.endsWith("-") }
 
-    /** VHF records on this device that have an EPID number, newest first. */
+    /**
+     * Lab-confirmed VHF cases on this device that have an EPID number, newest first. Starts from
+     * the final-result answers (one indexed search) instead of scanning every patient, then loads
+     * only the patients whose latest final result is Positive.
+     */
     suspend fun options(fhirEngine: FhirEngine, excludePatientId: String? = null): List<SourceOption> =
-        fhirEngine.search<Patient> {}
-            .map { it.resource }
+        confirmedPatientIds(fhirEngine)
+            .filter { it != excludePatientId }
+            .mapNotNull { id -> runCatching { fhirEngine.get<Patient>(id) }.getOrNull() }
             .filter { patient -> patient.identifier.any { it.system == CaseSlugs.VHF } }
-            .filter { it.logicalId != excludePatientId }
             .sortedByDescending { it.meta.lastUpdated?.time ?: 0L }
             .mapNotNull { patient ->
                 val epid = epidOf(patient) ?: return@mapNotNull null
@@ -34,6 +44,25 @@ object VhfSourceCases {
                 SourceOption(epid, patient.logicalId, if (name.isBlank()) epid else "$epid  $name")
             }
             .distinctBy { it.epid }
+
+    /**
+     * Ids of patients whose most recent VHF final lab result is Positive ("Confirmed by lab").
+     * A later Negative result (or one marked entered-in-error by an edit) removes the case.
+     */
+    private suspend fun confirmedPatientIds(fhirEngine: FhirEngine): Set<String> =
+        fhirEngine.search<Observation> {
+            filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.FINAL_RESULT }) })
+        }
+            .map { it.resource }
+            .filter { it.status != Observation.ObservationStatus.ENTEREDINERROR && it.hasValue() }
+            .groupBy { obs -> obs.subject.reference?.let { IdType(it).idPart } }
+            .mapNotNull { (patientId, results) ->
+                val latest = results.maxByOrNull { maxOf(it.issued?.time ?: 0L, it.meta.lastUpdated?.time ?: 0L) }
+                val positive = FormFields.Vhf.finalClassification(latest?.value?.asStringValue()) ==
+                    FormFields.Vhf.finalClassification("positive")
+                patientId?.takeIf { positive && it.isNotBlank() }
+            }
+            .toSet()
 
     /** Sets the choices of the source-case question in [questionnaireJson]. */
     fun withOptions(questionnaireJson: String, options: List<SourceOption>): String {
