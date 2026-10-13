@@ -11,9 +11,57 @@ object Constants {
     const val BASE_URL = "https://dsrfhir.intellisoftkenya.com/v2/fhir/"
     const val BASE_AUTH_URL = "https://dsrkeycloak.intellisoftkenya.com/auth/"
     const val ALERTS_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"
-    /*  const val BASE_URL = "https://auth.nphiis.health.go.ke/fhir/"
-      const val BASE_AUTH_URL = "https://auth.nphiis.health.go.ke/"
-      const val ALERTS_BASE_URL = BASE_AUTH_URL*/
+
+    // ---- Client lookup before a new case form (ClientLookupActivity). Two sources, picked on screen.
+
+    /**
+     * IPRS, via SHA Health ID: GET [IPRS_LOOKUP_URL]?id_number=<number>&type=citizen.
+     * Reply: { "data": { "first_name", "last_name", "other_names", "sex": "M", "date_of_birth", ... } }.
+     * Basic auth with [IPRS_LOOKUP_USERNAME] / [IPRS_LOOKUP_PASSWORD]; the app's own login token
+     * is not sent to this host.
+     */
+    const val IPRS_LOOKUP_BASE_URL = "https://healthid.sha.go.ke/api/"
+    const val IPRS_LOOKUP_URL = "${IPRS_LOOKUP_BASE_URL}v1/lookup/persons"
+    const val IPRS_LOOKUP_ID_PARAM = "id_number"
+    const val IPRS_LOOKUP_TYPE_PARAM = "type"
+
+    /** SHA Health ID Basic auth. TODO: move out of source before release. */
+    const val IPRS_LOOKUP_USERNAME = "IN2SKF4bspFkgtnxNNMRLXXY2XpiNiv6"
+    /**
+     * Ready-made Basic auth value for testing. When not blank it is sent as-is instead of building
+     * one from [IPRS_LOOKUP_USERNAME] / [IPRS_LOOKUP_PASSWORD]; clear it to use those again.
+     */
+    const val IPRS_LOOKUP_BASIC_AUTH =
+        "Basic SU4yU0tGNGJzcEZrZ3RueE5OTVJMWFhZMlhwaU5pdjY6MURHeU5oOTRGQUNDV0hwWGptUmlTZ0drV0xCWXpOdHA="
+
+    const val IPRS_LOOKUP_PASSWORD = "1DGyNh94FACCWHpXjmRiSgGkWLBYzNtp"
+
+    /** Case-form ID type code -> IPRS `type`. IPRS holds national IDs only. */
+    val IPRS_LOOKUP_ID_TYPES = mapOf("national-id" to "citizen")
+
+    /**
+     * Client Registry (CR) patient search, via the backend:
+     * GET [CLIENT_LOOKUP_URL]?identification_number=<number>&identification_type=<type>
+     * with the user's bearer token. Reply: ClientLookupResponse.
+     */
+    const val CLIENT_LOOKUP_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"
+    const val CLIENT_LOOKUP_URL = "${CLIENT_LOOKUP_BASE_URL}v1/patients"
+    const val CLIENT_LOOKUP_ID_PARAM = "identification_number"
+    const val CLIENT_LOOKUP_TYPE_PARAM = "identification_type"
+
+    /** true: answer CR lookups from MockClientRegistry test data until the CR API is ready. */
+    const val CLIENT_LOOKUP_USE_MOCK = true
+
+    /** Case-form ID type code -> identification_type value the CR expects. TODO: confirm values. */
+    val CLIENT_LOOKUP_ID_TYPES = mapOf(
+        "national-id" to "National ID",
+        "passport" to "Passport",
+        "birth-certificate" to "Birth Certificate",
+    )
+
+   /*    const val BASE_URL = "https://auth.nphiis.health.go.ke/fhir/"
+       const val BASE_AUTH_URL = "https://auth.nphiis.health.go.ke/"
+       const val ALERTS_BASE_URL = BASE_AUTH_URL*/
 
     //MOH 505
     const val COUNTY = "a4-county"

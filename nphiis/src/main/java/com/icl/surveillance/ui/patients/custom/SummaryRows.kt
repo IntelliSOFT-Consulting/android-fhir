@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import com.icl.surveillance.R
+import com.icl.surveillance.utils.DisplayFormat
 
 /** Label / value rows in the style of the case-summary tabs. */
 object SummaryRows {
@@ -42,7 +43,7 @@ object SummaryRows {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         line.addView(TextView(context).apply {
-            text = value
+            text = DisplayFormat.text(value)
             textSize = 13f
             textAlignment = TextView.TEXT_ALIGNMENT_TEXT_END
             typeface = Typeface.DEFAULT_BOLD

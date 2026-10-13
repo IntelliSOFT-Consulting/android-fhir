@@ -25,10 +25,12 @@ import com.icl.surveillance.adapters.CaseOptionsAdapter
 import com.icl.surveillance.cases.CaseListingActivity
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.clients.AddParentCaseActivity
+import com.icl.surveillance.clients.ClientLookupActivity
 import com.icl.surveillance.databinding.FragmentCaseSelectionBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.models.CaseOption
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
@@ -215,6 +217,7 @@ class CaseSelectionFragment : Fragment() {
                 "Visceral Leishmaniasis (Kala-azar) Case Management Form" -> "VL"
                 "Visceral Leishmaniasis Case Management Form" -> "VL"
                 getString(R.string.vhf_form) -> "VHF"
+                getString(R.string.trainings) -> "VHF Training"
                 "Social Listening and Rumor Tracking Tool" -> "SLR"
                 "RCCE Tools" -> "RCCE"
                 else -> titleName
@@ -237,6 +240,10 @@ class CaseSelectionFragment : Fragment() {
             }
         val caseOptions =
             mutableListOf(CaseOption(add), CaseOption(view, showCount = true, count = 0))
+
+        // VHF and VHF Training share the VHF workflow; the mode decides which records are listed
+        // and whether new ones are marked as training (test_xxxx).
+        if (title == "VHF" || title == "VHF Training") VhfTraining.setOn(requireContext(), title == "VHF Training")
 
         val recyclerView = requireView().findViewById<RecyclerView>(R.id.sdcLayoutsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -502,6 +509,7 @@ class CaseSelectionFragment : Fragment() {
                     }
 
                     "Add New VHF Case" -> {
+                        VhfTraining.setOn(requireContext(), false)
                         FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
                         FormatterClass().saveSharedPref(
                             "AddParentTitle",
@@ -514,13 +522,43 @@ class CaseSelectionFragment : Fragment() {
                             showPermissionErrorDialog(requireContext())
                             return@CaseOptionsAdapter
                         }
-                        val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
+                        // Look the client up (IPRS / Client Registry) before opening the form.
+                        val intent = Intent(requireContext(), ClientLookupActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
                         addParentCaseLauncher.launch(intent)
                     }
 
+                    "Add New VHF Training Case" -> {
+                        VhfTraining.setOn(requireContext(), true)
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
+                        FormatterClass().saveSharedPref(
+                            "AddParentTitle",
+                            getString(R.string.vhf_form) + " (Training)",
+                            requireContext(),
+                        )
+                        FormatterClass().saveSharedPref("questionnaire", VHF_QUESTIONNAIRE, requireContext())
+
+                        if (!checkIfUserIsAllowedToAction()) {
+                            showPermissionErrorDialog(requireContext())
+                            return@CaseOptionsAdapter
+                        }
+                        // Look the client up (IPRS / Client Registry) before opening the form.
+                        val intent = Intent(requireContext(), ClientLookupActivity::class.java)
+                        intent.putExtra("AddParentTitle", " $titleName")
+                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
+                        addParentCaseLauncher.launch(intent)
+                    }
+
+                    "VHF Training Case List" -> {
+                        VhfTraining.setOn(requireContext(), true)
+                        FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
+                        startActivity(Intent(requireContext(), CaseListingActivity::class.java))
+                    }
+
                     "VHF Case List" -> {
+                        VhfTraining.setOn(requireContext(), false)
                         FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
                         FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
                         startActivity(Intent(requireContext(), CaseListingActivity::class.java))
@@ -688,6 +726,7 @@ class CaseSelectionFragment : Fragment() {
                 "AFP" -> CaseSlugs.AFP
                 "VL" -> CaseSlugs.VL
                 "VHF" -> CaseSlugs.VHF
+                "VHF Training" -> CaseSlugs.VHF
                 "SLR" -> CaseSlugs.RUMOR
                 "Social Investigation Form" -> CaseSlugs.RCCE
                 "MOH 505" -> CaseSlugs.MOH_505

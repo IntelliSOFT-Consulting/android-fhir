@@ -1,6 +1,7 @@
 package com.icl.surveillance.ui.patients.custom
 
 import android.content.Context
+import com.icl.surveillance.utils.DisplayFormat
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -305,7 +306,7 @@ class VlFollowupFragment : Fragment() {
         // Second TextView (dynamic content)
         val tvEpiLink = TextView(requireContext()).apply {
             id = R.id.tv_epi_link // Set ID if needed for further reference
-            text = item.value // Assuming item.text is the dynamic text you want to show
+            text = DisplayFormat.value(item.value) // Assuming item.text is the dynamic text you want to show
             textSize = 13f
             textAlignment = TextView.TEXT_ALIGNMENT_TEXT_END
             setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_value_text))

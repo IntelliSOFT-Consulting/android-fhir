@@ -1136,7 +1136,7 @@
         },
         {
           "linkId": "vhf-source-case-epid",
-          "text": "Contact of case (EPID number)",
+          "text": "Contact Link to Case",
           "type": "choice",
           "enableWhen": [
             {
@@ -1572,7 +1572,18 @@
               }
             }
           ],
-          "enableBehavior": "any"
+          "enableBehavior": "any",
+          "maxLength": 10,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minLength",
+              "valueInteger": 6
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "6 to 10 characters"
+            }
+          ]
         },
         {
           "linkId": "vhf-pregnant",
@@ -5171,9 +5182,127 @@
           ]
         },
         {
+          "linkId": "vhf-sample-transport",
+          "text": "Mode of sample transportation",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-samples-collected",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "air",
+                "display": "Air"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "road",
+                "display": "Road"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sample-transport-other",
+          "text": "Other (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-sample-transport",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-sample-transport-road",
+          "text": "Means of road transport",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-sample-transport",
+              "operator": "=",
+              "answerCoding": {
+                "code": "road",
+                "display": "Road"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "private",
+                "display": "Private means"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "public",
+                "display": "Public means"
+              }
+            }
+          ]
+        },
+        {
           "linkId": "vhf-collection-date",
-          "text": "Date of collection",
-          "type": "date",
+          "text": "Date and time of collection",
+          "type": "dateTime",
           "required": true,
           "enableWhen": [
             {
@@ -5188,7 +5317,7 @@
           "extension": [
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Cannot be a date in the future"
+              "valueString": "Cannot be in the future"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
@@ -5196,13 +5325,13 @@
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
-              "valueDate": {
+              "valueDateTime": {
                 "extension": [
                   {
                     "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
                     "valueExpression": {
                       "language": "text/fhirpath",
-                      "expression": "today()"
+                      "expression": "now()"
                     }
                   }
                 ]
@@ -5212,8 +5341,8 @@
         },
         {
           "linkId": "vhf-sent-date",
-          "text": "Date sample sent to the laboratory",
-          "type": "date",
+          "text": "Date and time sample sent to the laboratory",
+          "type": "dateTime",
           "required": true,
           "enableWhen": [
             {
@@ -5228,7 +5357,7 @@
           "extension": [
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Cannot be a date in the future"
+              "valueString": "Cannot be in the future"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
@@ -5236,13 +5365,13 @@
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
-              "valueDate": {
+              "valueDateTime": {
                 "extension": [
                   {
                     "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
                     "valueExpression": {
                       "language": "text/fhirpath",
-                      "expression": "today()"
+                      "expression": "now()"
                     }
                   }
                 ]
@@ -5257,7 +5386,7 @@
                 },
                 {
                   "url": "requirements",
-                  "valueString": "Date sample sent to the laboratory cannot be before the date of collection"
+                  "valueString": "Date and time sample sent to the laboratory cannot be before the time of collection"
                 },
                 {
                   "url": "severity",
@@ -5269,7 +5398,7 @@
                 },
                 {
                   "url": "human",
-                  "valueString": "Date sample sent to the laboratory cannot be before the date of collection"
+                  "valueString": "Date and time sample sent to the laboratory cannot be before the time of collection"
                 },
                 {
                   "url": "location",

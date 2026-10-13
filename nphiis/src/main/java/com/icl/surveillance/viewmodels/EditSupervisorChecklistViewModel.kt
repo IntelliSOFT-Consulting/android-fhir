@@ -110,13 +110,17 @@ class EditSupervisorChecklistViewModel(
             }
         }
 
+        // Questions changed from a date to a date and time keep their saved date.
+        FormPrefill.upgradeDateAnswers(questionnaire, questionnaireResponse)
+
         // Convert the existing QuestionnaireResponse to JSON string
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
 
-        // VHF: offer the cases on this device as choices for "Contact of case (EPID number)".
+        // VHF: offer the cases on this device as choices for "Contact Link to Case".
         if (this.questionnaire == FormFields.Vhf.CASE_FORM) {
             val patientId = questionnaireResponse.subject?.referenceElement?.idPart
-            val options = runCatching { VhfSourceCases.options(fhirEngine, excludePatientId = patientId) }
+            val training = runCatching { com.icl.surveillance.fhir.forms.VhfTraining.isTraining(fhirEngine.get<Patient>(patientId!!)) }.getOrNull()
+            val options = runCatching { VhfSourceCases.options(fhirEngine, excludePatientId = patientId, training = training) }
                 .getOrDefault(emptyList())
             return VhfSourceCases.withOptions(questionnaireJson, options) to questionnaireResponseJson
         }

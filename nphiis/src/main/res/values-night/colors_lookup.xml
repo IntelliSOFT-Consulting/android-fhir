@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lookup_surface">#121417</color>
+    <color name="lookup_card">#1E2125</color>
+    <color name="lookup_stroke">#2E333A</color>
+    <color name="lookup_text_primary">#ECEFF3</color>
+    <color name="lookup_text_secondary">#A3ADB9</color>
+    <color name="lookup_accent">#4DA3FF</color>
+    <color name="lookup_on_accent">#0B1A2C</color>
+    <color name="lookup_accent_soft">#1A2B42</color>
+    <color name="lookup_success">#5BD07A</color>
+    <color name="lookup_success_soft">#17301F</color>
+    <color name="lookup_warning_text">#FFC966</color>
+    <color name="lookup_warning_soft">#3A2D12</color>
+</resources>
