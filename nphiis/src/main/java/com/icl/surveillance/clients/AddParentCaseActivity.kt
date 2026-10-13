@@ -598,14 +598,23 @@ class AddParentCaseActivity : AppCompatActivity() {
             }
 
             // Answers staged by the opening screen, e.g. a contact registered from its case.
-            val prefill = FormPrefill.take(
+            val staged = FormPrefill.takeStaged(
                 this@AddParentCaseActivity,
                 formatter.getSharedPref("questionnaire", this@AddParentCaseActivity)
             )
+            val prefill = staged.values
             if (prefill.isNotEmpty()) {
                 val questionnaire =
                     jsonParser.parseResource(Questionnaire::class.java, viewModel.questionnaireJson)
                 FormPrefill.applyTo(questionnaire, resource, prefill)
+                // Details verified in IPRS / the Client Registry are shown read-only. Only questions
+                // that actually received an answer are locked, so none is left empty and blocked.
+                val lock = staged.locked intersect FormPrefill.answeredLinkIds(resource)
+                if (lock.isNotEmpty()) {
+                    viewModel.useQuestionnaireJson(
+                        FormPrefill.withReadOnly(viewModel.questionnaireJson, lock)
+                    )
+                }
             }
 
             // 2. Serialize resource INTO JSON (expensive → done on background thread)

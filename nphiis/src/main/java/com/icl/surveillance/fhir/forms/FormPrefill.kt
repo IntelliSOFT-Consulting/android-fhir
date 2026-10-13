@@ -10,6 +10,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -23,28 +24,84 @@ import org.json.JSONObject
 object FormPrefill {
     private const val PREF_FORM = "formPrefillFor"
     private const val PREF_VALUES = "formPrefillValues"
+    private const val PREF_LOCKED = "formPrefillLocked"
 
-    fun stage(context: Context, questionnaireFile: String, values: Map<String, String>) {
+    /** Answers staged for a form, and which of them the user may not change. */
+    data class Staged(val values: Map<String, String>, val locked: Set<String>)
+
+    /**
+     * Stages [values] for [questionnaireFile]. linkIds in [locked] (e.g. details verified in IPRS)
+     * become read-only on the form once their answer is filled in.
+     */
+    fun stage(
+        context: Context,
+        questionnaireFile: String,
+        values: Map<String, String>,
+        locked: Set<String> = emptySet(),
+    ) {
         val formatter = FormatterClass()
         formatter.saveSharedPref(PREF_FORM, questionnaireFile, context)
         formatter.saveSharedPref(PREF_VALUES, JSONObject(values).toString(), context)
+        formatter.saveSharedPref(PREF_LOCKED, JSONArray(locked.toList()).toString(), context)
     }
 
     /** Returns (and clears) the values staged for [questionnaireFile]; empty when none. */
-    fun take(context: Context, questionnaireFile: String?): Map<String, String> {
+    fun take(context: Context, questionnaireFile: String?): Map<String, String> =
+        takeStaged(context, questionnaireFile).values
+
+    /** Returns (and clears) the values and locked linkIds staged for [questionnaireFile]. */
+    fun takeStaged(context: Context, questionnaireFile: String?): Staged {
         val formatter = FormatterClass()
         val stagedFor = formatter.getSharedPref(PREF_FORM, context)
         val json = formatter.getSharedPref(PREF_VALUES, context)
+        val lockedJson = formatter.getSharedPref(PREF_LOCKED, context)
         clear(context)
         if (questionnaireFile == null || stagedFor != questionnaireFile || json.isNullOrBlank()) {
-            return emptyMap()
+            return Staged(emptyMap(), emptySet())
         }
-        return try {
+        val values = try {
             val obj = JSONObject(json)
             obj.keys().asSequence().associateWith { obj.optString(it) }.filterValues { it.isNotBlank() }
         } catch (e: Exception) {
             emptyMap()
         }
+        val locked = try {
+            val array = JSONArray(lockedJson ?: "[]")
+            (0 until array.length()).map { array.getString(it) }.toSet()
+        } catch (e: Exception) {
+            emptySet()
+        }
+        return Staged(values, locked)
+    }
+
+    /** linkIds that hold an answer in [response], at any depth. */
+    fun answeredLinkIds(response: QuestionnaireResponse): Set<String> {
+        val ids = mutableSetOf<String>()
+        fun visit(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                if (item.hasAnswer()) ids.add(item.linkId)
+                item.answer.forEach { visit(it.item) }
+                visit(item.item)
+            }
+        }
+        visit(response.item)
+        return ids
+    }
+
+    /** Returns [questionnaireJson] with the items in [linkIds] marked read-only. */
+    fun withReadOnly(questionnaireJson: String, linkIds: Set<String>): String {
+        if (linkIds.isEmpty()) return questionnaireJson
+        val root = JSONObject(questionnaireJson)
+        fun visit(items: JSONArray?) {
+            if (items == null) return
+            for (i in 0 until items.length()) {
+                val item = items.optJSONObject(i) ?: continue
+                if (item.optString("linkId") in linkIds) item.put("readOnly", true)
+                visit(item.optJSONArray("item"))
+            }
+        }
+        visit(root.optJSONArray("item"))
+        return root.toString()
     }
 
     /** Staged value for a Location reference question; see [answerFor]. */
@@ -55,6 +112,7 @@ object FormPrefill {
         val formatter = FormatterClass()
         formatter.deleteSharedPref(PREF_FORM, context)
         formatter.deleteSharedPref(PREF_VALUES, context)
+        formatter.deleteSharedPref(PREF_LOCKED, context)
     }
 
     /**

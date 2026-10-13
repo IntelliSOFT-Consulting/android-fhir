@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One child in the Client Identification minor search results -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/childInitials"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_lookup_circle"
+        android:gravity="center"
+        android:textColor="@color/lookup_accent"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="BM" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/childName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/lookup_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Brian Mutua" />
+
+        <TextView
+            android:id="@+id/childDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/lookup_text_secondary"
+            android:textSize="13sp"
+            tools:text="Male · Born 2018-06-20" />
+
+        <TextView
+            android:id="@+id/childMatch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_lookup_pill"
+            android:paddingStart="8dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="1dp"
+            android:text="@string/client_lookup_child_dob_match"
+            android:textColor="@color/lookup_success"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/childChevron"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:contentDescription="@null"
+        android:src="@drawable/baseline_arrow_forward_ios_24"
+        app:tint="@color/lookup_text_secondary" />
+</LinearLayout>

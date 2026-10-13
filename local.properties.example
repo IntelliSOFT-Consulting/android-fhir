@@ -1,0 +1,23 @@
+# Copy these keys into local.properties (git-ignored) and fill in the values.
+# nphiis/build.gradle.kts reads them into BuildConfig; the build stops if a required one is missing.
+
+# ---- NPHIIS (nphiis module)
+# App backend (required). Live: https://auth.nphiis.health.go.ke/fhir/ , https://auth.nphiis.health.go.ke/
+nphiis.baseUrl=https://dsrfhir.intellisoftkenya.com/v2/fhir/
+nphiis.authBaseUrl=https://dsrkeycloak.intellisoftkenya.com/auth/
+nphiis.alertsBaseUrl=https://dsrfhir.intellisoftkenya.com/api/
+# Optional: bearer token used by debug builds when nobody is signed in.
+nphiis.debugToken=
+
+# IPRS lookup (SHA Health ID), Basic auth. basicAuth (optional, "Basic ...") is sent as-is instead
+# of username/password.
+nphiis.iprs.baseUrl=https://healthid.sha.go.ke/api/
+nphiis.iprs.username=
+nphiis.iprs.password=
+nphiis.iprs.basicAuth=
+
+# DHA middleware: token (POST client credentials) and Client Registry (CR) patient search.
+nphiis.dha.baseUrl=https://ilm-dev.dha.go.ke/uat-middleware/api/
+nphiis.dha.clientId=
+nphiis.dha.clientSecret=
+nphiis.cr.baseUrl=https://ilm-dev.dha.go.ke/uat-middleware/api/

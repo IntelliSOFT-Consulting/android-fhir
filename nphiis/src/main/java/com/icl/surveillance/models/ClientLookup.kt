@@ -5,21 +5,8 @@ import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
 
 /**
- * Reply of the client lookup API (Constants.CLIENT_LOOKUP_URL), e.g.
- * ```
- * { "found": true, "source": "CR", "client": { "surname": "Kamau", "givenNames": "Jane Wanjiku", ... } }
- * ```
- * A 404, `found: false` or a missing `client` means no match.
- */
-data class ClientLookupResponse(
-    @SerializedName("found") val found: Boolean = false,
-    /** Where the record came from: "CR" (Client Registry) or "IPRS". */
-    @SerializedName("source") val source: String? = null,
-    @SerializedName("client") val client: ClientDemographics? = null,
-)
-
-/**
- * A person as returned by the lookup, shaped like the Demographics section of the VHF case form
+ * A person found by a lookup (Client Registry: CrPatient.toDemographics; IPRS:
+ * IprsPerson.toDemographics), shaped like the Demographics section of the VHF case form
  * (vhf-case.json). Choice fields carry the form's answer codes; dates are yyyy-MM-dd; locations
  * carry the Location ids used by the app's location bundles. Any field may be null.
  */
@@ -70,6 +57,10 @@ data class ClientDemographics(
     val nextOfKin: String? = null,
     /** vhf-next-of-kin-phone */
     val nextOfKinPhone: String? = null,
+    /** For display only: every field the API returned, as (label, value), in the API's order. */
+    val recordDetails: List<Pair<String, String>> = emptyList(),
+    /** For a dependant: their relationship to the principal member, e.g. "Child". */
+    val relationship: String? = null,
 ) {
     val fullName: String
         get() = listOfNotNull(givenNames, surname).filter { it.isNotBlank() }.joinToString(" ")
@@ -131,6 +122,13 @@ sealed class ClientLookupOutcome {
                 else -> source
             }
     }
+    /** Minor search: the guardian and the children registered under them (may be empty). */
+    data class Dependents(
+        val guardian: ClientDemographics,
+        val children: List<ClientDemographics>,
+        val source: String?,
+    ) : ClientLookupOutcome()
+
     object NotFound : ClientLookupOutcome()
     object Offline : ClientLookupOutcome()
     data class Failed(val message: String) : ClientLookupOutcome()
@@ -138,8 +136,8 @@ sealed class ClientLookupOutcome {
 
 /** Where a lookup goes. */
 enum class LookupSource(val label: String) {
-    IPRS("IPRS"),
     CLIENT_REGISTRY("Client Registry"),
+    IPRS("IPRS"),
 }
 
 /** Reply of the IPRS lookup (Constants.IPRS_LOOKUP_URL). */
@@ -179,7 +177,16 @@ data class IprsPerson(
             .ifBlank { fullName?.substringBeforeLast(" ").orEmpty() }
         val home = listOfNotNull(homeSubLocation, homeLocation, homeDivision, homeDistrict, homeCounty)
             .filter { it.isNotBlank() }.joinToString(", ")
+        val received = listOf(
+            "Full name" to fullName, "ID number" to idNumber, "Serial number" to serialNumber,
+            "First name" to firstName, "Other names" to otherNames, "Last name" to lastName,
+            "Sex" to sex, "Date of birth" to dateOfBirth, "Nationality" to nationality,
+            "Place of birth" to placeOfBirth, "District of birth" to districtOfBirth,
+            "Village" to village, "Home sub-location" to homeSubLocation, "Home location" to homeLocation,
+            "Home division" to homeDivision, "Home district" to homeDistrict, "Home county" to homeCounty,
+        ).mapNotNull { (label, value) -> value?.trim()?.takeIf { it.isNotEmpty() }?.let { label to it } }
         return ClientDemographics(
+            recordDetails = received,
             surname = lastName?.titleCase()
                 ?: fullName?.substringAfterLast(" ")?.titleCase(),
             givenNames = given.titleCase().ifBlank { null },

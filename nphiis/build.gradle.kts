@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,6 +11,44 @@ plugins {
 
 configureRuler()
 
+/**
+ * Endpoints and secrets come from the root local.properties (git-ignored), never from source.
+ * The keys are listed in local.properties.example.
+ */
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+
+/** BuildConfig field name -> (local.properties key, required). */
+val nphiisConfig = linkedMapOf(
+    "BASE_URL" to ("nphiis.baseUrl" to true),
+    "BASE_AUTH_URL" to ("nphiis.authBaseUrl" to true),
+    "ALERTS_BASE_URL" to ("nphiis.alertsBaseUrl" to true),
+    "DEBUG_TOKEN" to ("nphiis.debugToken" to false),
+    "IPRS_BASE_URL" to ("nphiis.iprs.baseUrl" to true),
+    "IPRS_USERNAME" to ("nphiis.iprs.username" to false),
+    "IPRS_PASSWORD" to ("nphiis.iprs.password" to false),
+    "IPRS_BASIC_AUTH" to ("nphiis.iprs.basicAuth" to false),
+    "DHA_BASE_URL" to ("nphiis.dha.baseUrl" to true),
+    "DHA_CLIENT_ID" to ("nphiis.dha.clientId" to false),
+    "DHA_CLIENT_SECRET" to ("nphiis.dha.clientSecret" to false),
+    "CR_BASE_URL" to ("nphiis.cr.baseUrl" to true),
+)
+
+val missingNphiisKeys = nphiisConfig.values
+    .filter { (key, required) -> required && localProperties.getProperty(key).isNullOrBlank() }
+    .map { it.first }
+if (missingNphiisKeys.isNotEmpty()) {
+    throw GradleException(
+        "Missing in local.properties: ${missingNphiisKeys.joinToString()}. " +
+            "Copy them from local.properties.example."
+    )
+}
+
+/** A Java string literal for buildConfigField. */
+fun quoted(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
 android {
     namespace = "com.icl.surveillance"
     compileSdk = Sdk.COMPILE_SDK
@@ -19,6 +59,11 @@ android {
         versionCode = Releases.Surveillance.versionCode
         versionName = Releases.Surveillance.versionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Endpoints and secrets from local.properties (see above).
+        nphiisConfig.forEach { (field, keyAndRequired) ->
+            buildConfigField("String", field, quoted(localProperties.getProperty(keyAndRequired.first)?.trim() ?: ""))
+        }
     }
     buildTypes {
         release {
