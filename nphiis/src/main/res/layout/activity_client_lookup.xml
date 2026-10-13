@@ -120,17 +120,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            app:checkedButton="@+id/sourceIprs"
+                            app:checkedButton="@+id/sourceCr"
                             app:selectionRequired="true"
                             app:singleSelection="true">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/sourceIprs"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_weight="1"
-                                android:text="@string/client_lookup_source_iprs" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/sourceCr"
@@ -139,6 +131,14 @@
                                 android:layout_height="48dp"
                                 android:layout_weight="1"
                                 android:text="@string/client_lookup_source_cr" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/sourceIprs"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:text="@string/client_lookup_source_iprs" />
+
                         </com.google.android.material.button.MaterialButtonToggleGroup>
 
                         <TextView
@@ -148,6 +148,60 @@
                             android:layout_marginTop="6dp"
                             android:textColor="@color/lookup_text_secondary"
                             android:textSize="12sp" />
+
+                        <!-- Client Registry only: adult (own ID) or minor (parent's / guardian's ID) -->
+                        <LinearLayout
+                            android:id="@+id/ageGroupSection"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/client_lookup_age_group"
+                                android:textColor="@color/lookup_text_secondary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/ageToggle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:checkedButton="@+id/ageAdult"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.radiobutton.MaterialRadioButton
+                                    android:id="@+id/ageAdult"
+                                    android:layout_width="0dp"
+                                    android:layout_height="48dp"
+                                    android:layout_weight="1"
+                                    android:text="@string/client_lookup_adult"
+                                    android:textColor="@color/lookup_text_primary"
+                                    android:textSize="15sp"
+                                    app:buttonTint="@color/lookup_accent" />
+
+                                <com.google.android.material.radiobutton.MaterialRadioButton
+                                    android:id="@+id/ageMinor"
+                                    android:layout_width="0dp"
+                                    android:layout_height="48dp"
+                                    android:layout_weight="1"
+                                    android:text="@string/client_lookup_minor"
+                                    android:textColor="@color/lookup_text_primary"
+                                    android:textSize="15sp"
+                                    app:buttonTint="@color/lookup_accent" />
+                            </RadioGroup>
+
+                            <TextView
+                                android:id="@+id/ageNote"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/lookup_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/idTypeLayout"
@@ -344,6 +398,27 @@
                         android:textSize="15sp"
                         app:cornerRadius="12dp" />
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/client_lookup_locked_note"
+                        android:textColor="@color/lookup_text_secondary"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/enterManuallyButton"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/client_lookup_enter_manually"
+                        android:textAllCaps="false"
+                        android:textColor="@color/lookup_accent"
+                        app:cornerRadius="12dp"
+                        app:strokeColor="@color/lookup_accent" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/notThisPersonButton"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -353,6 +428,88 @@
                         android:text="@string/client_lookup_not_this_person"
                         android:textAllCaps="false"
                         android:textColor="@color/lookup_text_secondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Minor search: children registered under the guardian -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/childrenCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/lookup_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/lookup_success"
+                app:strokeWidth="1dp"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/childrenSource"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_lookup_pill"
+                        android:drawablePadding="4dp"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="2dp"
+                        android:textColor="@color/lookup_success"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        app:drawableStartCompat="@drawable/ic_check_circle"
+                        app:drawableTint="@color/lookup_success"
+                        tools:text="Verified in Client Registry" />
+
+                    <TextView
+                        android:id="@+id/childrenTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/lookup_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="Children of Grace Achieng Mutua" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/client_lookup_children_hint"
+                        android:textColor="@color/lookup_text_secondary"
+                        android:textSize="13sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/lookup_stroke" />
+
+                    <LinearLayout
+                        android:id="@+id/childrenList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/lookup_stroke"
+                        android:orientation="vertical" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/childNotListedButton"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/client_lookup_child_not_listed"
+                        android:textAllCaps="false"
+                        android:textColor="@color/lookup_accent"
+                        app:cornerRadius="12dp"
+                        app:strokeColor="@color/lookup_accent" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

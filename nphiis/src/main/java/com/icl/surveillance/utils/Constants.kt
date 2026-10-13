@@ -3,14 +3,19 @@ package com.icl.surveillance.utils
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
+import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.R
 
+/**
+ * Endpoints and secrets are not kept here: they come from local.properties via BuildConfig
+ * (see nphiis/build.gradle.kts and local.properties.example).
+ */
 object Constants {
     const val UPLOAD_BUNDLE_SIZE = 500
 
-    const val BASE_URL = "https://dsrfhir.intellisoftkenya.com/v2/fhir/"
-    const val BASE_AUTH_URL = "https://dsrkeycloak.intellisoftkenya.com/auth/"
-    const val ALERTS_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"
+    const val BASE_URL = BuildConfig.BASE_URL
+    const val BASE_AUTH_URL = BuildConfig.BASE_AUTH_URL
+    const val ALERTS_BASE_URL = BuildConfig.ALERTS_BASE_URL
 
     // ---- Client lookup before a new case form (ClientLookupActivity). Two sources, picked on screen.
 
@@ -20,48 +25,73 @@ object Constants {
      * Basic auth with [IPRS_LOOKUP_USERNAME] / [IPRS_LOOKUP_PASSWORD]; the app's own login token
      * is not sent to this host.
      */
-    const val IPRS_LOOKUP_BASE_URL = "https://healthid.sha.go.ke/api/"
+    const val IPRS_LOOKUP_BASE_URL = BuildConfig.IPRS_BASE_URL
     const val IPRS_LOOKUP_URL = "${IPRS_LOOKUP_BASE_URL}v1/lookup/persons"
     const val IPRS_LOOKUP_ID_PARAM = "id_number"
     const val IPRS_LOOKUP_TYPE_PARAM = "type"
 
-    /** SHA Health ID Basic auth. TODO: move out of source before release. */
-    const val IPRS_LOOKUP_USERNAME = "IN2SKF4bspFkgtnxNNMRLXXY2XpiNiv6"
+    /** SHA Health ID Basic auth (local.properties: nphiis.iprs.username / nphiis.iprs.password). */
+    const val IPRS_LOOKUP_USERNAME = BuildConfig.IPRS_USERNAME
     /**
      * Ready-made Basic auth value for testing. When not blank it is sent as-is instead of building
      * one from [IPRS_LOOKUP_USERNAME] / [IPRS_LOOKUP_PASSWORD]; clear it to use those again.
      */
-    const val IPRS_LOOKUP_BASIC_AUTH =
-        "Basic SU4yU0tGNGJzcEZrZ3RueE5OTVJMWFhZMlhwaU5pdjY6MURHeU5oOTRGQUNDV0hwWGptUmlTZ0drV0xCWXpOdHA="
+    const val IPRS_LOOKUP_BASIC_AUTH = BuildConfig.IPRS_BASIC_AUTH
 
-    const val IPRS_LOOKUP_PASSWORD = "1DGyNh94FACCWHpXjmRiSgGkWLBYzNtp"
+    const val IPRS_LOOKUP_PASSWORD = BuildConfig.IPRS_PASSWORD
 
     /** Case-form ID type code -> IPRS `type`. IPRS holds national IDs only. */
     val IPRS_LOOKUP_ID_TYPES = mapOf("national-id" to "citizen")
 
     /**
-     * Client Registry (CR) patient search, via the backend:
-     * GET [CLIENT_LOOKUP_URL]?identification_number=<number>&identification_type=<type>
-     * with the user's bearer token. Reply: ClientLookupResponse.
+     * DHA middleware (UAT). The Client Registry is called with a token from [DHA_TOKEN_URL]:
+     * POST form client_id + client_secret -> { "access_token": ..., "expires_in": ... }.
      */
-    const val CLIENT_LOOKUP_BASE_URL = "https://dsrfhir.intellisoftkenya.com/api/"
+    const val DHA_BASE_URL = BuildConfig.DHA_BASE_URL
+    const val DHA_TOKEN_URL = "${DHA_BASE_URL}v1/tenants/token"
+
+    /** DHA client credentials (local.properties: nphiis.dha.clientId / nphiis.dha.clientSecret). */
+    const val DHA_CLIENT_ID = BuildConfig.DHA_CLIENT_ID
+    const val DHA_CLIENT_SECRET = BuildConfig.DHA_CLIENT_SECRET
+
+    /**
+     * Client Registry (CR) patient search on the DHA middleware:
+     * GET [CLIENT_LOOKUP_URL]?identification_number=<number>&identification_type=<type>
+     * with "Authorization: Bearer <DHA token>". Reply: CrPatient (the person, with their
+     * "dependants" — used for the minor search by the parent's / guardian's ID).
+     */
+    const val CLIENT_LOOKUP_BASE_URL = BuildConfig.CR_BASE_URL
     const val CLIENT_LOOKUP_URL = "${CLIENT_LOOKUP_BASE_URL}v1/patients"
     const val CLIENT_LOOKUP_ID_PARAM = "identification_number"
     const val CLIENT_LOOKUP_TYPE_PARAM = "identification_type"
 
-    /** true: answer CR lookups from MockClientRegistry test data until the CR API is ready. */
-    const val CLIENT_LOOKUP_USE_MOCK = true
+    /**
+     * true: answer CR lookups from MockClientRegistry test data (offline, no DHA calls).
+     * false: real Client Registry on the DHA middleware.
+     */
+    const val CLIENT_LOOKUP_USE_MOCK = false
 
-    /** Case-form ID type code -> identification_type value the CR expects. TODO: confirm values. */
-    val CLIENT_LOOKUP_ID_TYPES = mapOf(
+    /**
+     * App ID type code -> the CR's identification_type value (exact spelling from the CR API:
+     * "National ID", "Alien ID", "Refugee ID", "Mandate Number", "Birth Certificate",
+     * "Birth Notification", "Temporary ID", "ClientRegistry ID"). The order is the order shown.
+     * Codes that also exist on the case form (national-id, birth-certificate) fill its
+     * "Type of identification"; for the others only the number is filled in.
+     */
+    val CLIENT_LOOKUP_ID_TYPES = linkedMapOf(
         "national-id" to "National ID",
-        "passport" to "Passport",
+        "alien-id" to "Alien ID",
+        "refugee-id" to "Refugee ID",
         "birth-certificate" to "Birth Certificate",
+        "birth-notification" to "Birth Notification",
+        "temporary-id" to "Temporary ID",
+        "mandate-number" to "Mandate Number",
+        "client-registry-id" to "ClientRegistry ID",
     )
 
-   /*    const val BASE_URL = "https://auth.nphiis.health.go.ke/fhir/"
-       const val BASE_AUTH_URL = "https://auth.nphiis.health.go.ke/"
-       const val ALERTS_BASE_URL = BASE_AUTH_URL*/
+    /** Child documents: not offered for an adult or a parent / guardian search. */
+    val CLIENT_LOOKUP_CHILD_ID_TYPES = setOf("birth-certificate", "birth-notification")
+
 
     //MOH 505
     const val COUNTY = "a4-county"
@@ -193,8 +223,7 @@ object Constants {
     private const val KEY_NEXT_URL = "next_url"
     private const val KEY_DOWNLOAD_COMPLETE = "download_complete"
 
-    const val TEST_TOKEN =
-        "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJxbTVfeFpQWFVHV1I0YTdwbkpLZ1VORVRNbERMMlpHeXhUSndNSEx5UkhjIn0.eyJleHAiOjE3ODU3Mzc3ODEsImlhdCI6MTc3MDE4NTc4MSwianRpIjoiZmFlOTU5ZTEtMGJiNy00ZjQ5LWJlZjUtMDg0YzUwYzcyZDc5IiwiaXNzIjoiaHR0cHM6Ly9hcGkubnBoaWlzLmhlYWx0aC5nby5rZS9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImI0NWYzMTIyLTBiZGQtNDdhNS1hMDM4LTg2ZGFmNDc3NmNlYSIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNoYW5qby1jbGllbnQtYXBpcyIsInNpZCI6IjdhZmFmYTQwLTgzY2UtNDE3Yy05MWQyLTkzYjdjMWY2MWYyZCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy1tYXN0ZXIiLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBvcmdhbml6YXRpb24gcHJvZmlsZSBvcGVuaWQiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJEZW5uaXMgTW9zb3RpIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiMjgwOTMyNjUiLCJnaXZlbl9uYW1lIjoiRGVubmlzIiwiZmFtaWx5X25hbWUiOiJNb3NvdGkiLCJlbWFpbCI6ImRvbnNvbmdvMjNAZ21haWwuY29tIn0.nLy64OoYxlRmwHCQD3Lk_TklkUnypxSmRN5j6_0weRp_KfFGT3dPfKuTn2qEj7GhCn1Ky75DfmC-K-AIiAPDYi9mwzNBPHVHvhmAlE29CM4-VAwN64ygt-KSumMelXK3lz76OHzm-YPXf5D_5uP3DN-aEgsl5ljMAm98xU8z5gnFYS377Oq2AlFfG0IU4oLP_8X3jUL_CuMiDM_WvXySxrSuE-scl4R4-kH5emcvT4mpYKT4eNRTw9VErSsT3zfaYtt2snc9S07UC086ARh4jfaNeOfQHYpmOWtrk-v6uBJviQB99tmt7UN4K-evdZk7nz4ZVyevzo5Dff2L48Syqg"
+    const val TEST_TOKEN = BuildConfig.DEBUG_TOKEN
 
     fun saveNextUrl(context: Context, url: String) {
         val prefs = context.getSharedPreferences(PREF_NAME, MODE_PRIVATE)

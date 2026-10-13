@@ -3,11 +3,13 @@ package com.icl.surveillance.network
 import android.content.Context
 import com.icl.surveillance.models.ClientLookupOutcome
 import com.google.gson.Gson
-import com.icl.surveillance.models.ClientLookupResponse
+import com.google.gson.JsonObject
+import com.icl.surveillance.utils.JsonDetails
+import com.icl.surveillance.models.CrPatient
 import com.icl.surveillance.models.IprsLookupResponse
 import com.icl.surveillance.models.LookupSource
 import com.icl.surveillance.utils.Constants
-import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.LocationResolver
 import com.icl.surveillance.utils.NetworkUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,22 +28,28 @@ object ClientLookupRepository {
     /** Logcat tag for the IPRS request and reply. */
     private const val IPRS_LOG = "IPRS"
 
+    /** Logcat tag for the Client Registry request and reply. */
+    private const val CR_LOG = "CR"
+
     suspend fun lookup(
         context: Context,
         source: LookupSource,
         identifier: String,
         /** Case-form code, e.g. national-id; sent as the API's own value. */
         identificationType: String,
+        /** Client Registry only: [identifier] is the parent's / guardian's ID; find their children. */
+        minor: Boolean = false,
     ): ClientLookupOutcome = withContext(Dispatchers.IO) {
         if (source == LookupSource.CLIENT_REGISTRY && Constants.CLIENT_LOOKUP_USE_MOCK) {
             delay(800) // feel of a network call
-            return@withContext fromCr(MockClientRegistry.search(identifier, identificationType))
+            val raw = MockClientRegistry.find(identifier, crType(identificationType))
+            return@withContext fromCr(context, raw)
         }
         if (!NetworkUtils.isInternetAvailable(context)) return@withContext ClientLookupOutcome.Offline
         try {
             when (source) {
                 LookupSource.IPRS -> lookupIprs(identifier, identificationType)
-                LookupSource.CLIENT_REGISTRY -> lookupCr(context, identifier, identificationType)
+                LookupSource.CLIENT_REGISTRY -> lookupCr(context, identifier, identificationType, minor)
             }
         } catch (e: NoNetworkException) {
             ClientLookupOutcome.Offline
@@ -67,7 +75,7 @@ object ClientLookupRepository {
             url,
             if (useFixedHeader) "IPRS_LOOKUP_BASIC_AUTH" else "username/password")
 
-        val api = RetrofitBuilder.getRetrofit(Constants.IPRS_LOOKUP_BASE_URL).create(Interface::class.java)
+        val api = RetrofitBuilder.getExternalRetrofit(Constants.IPRS_LOOKUP_BASE_URL).create(Interface::class.java)
         val response = try {
             api.lookupIprs(
                 url,
@@ -105,25 +113,47 @@ object ClientLookupRepository {
         else ClientLookupOutcome.Found(client, "IPRS")
     }
 
+    /**
+     * Client Registry search on the DHA middleware, with a DHA access token (DhaTokenProvider).
+     * A 401 gets one retry with a fresh token. Logcat tag: CR.
+     */
     private suspend fun lookupCr(
         context: Context,
         identifier: String,
         identificationType: String,
+        minor: Boolean,
     ): ClientLookupOutcome {
-        val token = FormatterClass().getSharedPref("access_token", context)
-            ?: return ClientLookupOutcome.Failed("You are not signed in. Sign in again and retry.")
-        val api = RetrofitBuilder.getRetrofit(Constants.CLIENT_LOOKUP_BASE_URL).create(Interface::class.java)
-        val response = api.lookupClient(
-            Constants.CLIENT_LOOKUP_URL,
-            mapOf(
-                Constants.CLIENT_LOOKUP_ID_PARAM to identifier,
-                Constants.CLIENT_LOOKUP_TYPE_PARAM to
-                    (Constants.CLIENT_LOOKUP_ID_TYPES[identificationType] ?: identificationType),
-            ),
-            "Bearer $token",
+        val params = mapOf(
+            Constants.CLIENT_LOOKUP_ID_PARAM to identifier,
+            Constants.CLIENT_LOOKUP_TYPE_PARAM to crType(identificationType),
         )
-        failure(response, LookupSource.CLIENT_REGISTRY)?.let { return it }
-        return fromCr(response.body())
+        val api = RetrofitBuilder.getExternalRetrofit(Constants.CLIENT_LOOKUP_BASE_URL).create(Interface::class.java)
+
+        var response: Response<okhttp3.ResponseBody>? = null
+        for (attempt in 1..2) {
+            val token = DhaTokenProvider.token(forceRefresh = attempt > 1)
+                ?: return ClientLookupOutcome.Failed("Could not sign in to the Client Registry (DHA token). Try again.")
+            Timber.tag(CR_LOG).d("GET %s %s", Constants.CLIENT_LOOKUP_URL, params)
+            response = api.lookupClient(Constants.CLIENT_LOOKUP_URL, params, "Bearer $token")
+            if (response.code() != 401) break
+            Timber.tag(CR_LOG).w("401 with the cached token; fetching a new one")
+        }
+        val reply = response!!
+        val raw = if (reply.isSuccessful) reply.body()?.string() else reply.errorBody()?.string()
+        Timber.tag(CR_LOG).d("Sent: %s %s", reply.raw().request.method, reply.raw().request.url)
+        Timber.tag(CR_LOG).d("HTTP %d %s", reply.code(), reply.message())
+        Timber.tag(CR_LOG).d("Body: %s", raw ?: "<empty>")
+        failure(reply, LookupSource.CLIENT_REGISTRY)?.let {
+            Timber.tag(CR_LOG).w("Outcome: %s", it)
+            return it
+        }
+        val record = try {
+            Gson().fromJson(raw, JsonObject::class.java)
+        } catch (e: Exception) {
+            Timber.tag(CR_LOG).e(e, "Could not read the response body")
+            return ClientLookupOutcome.Failed("The Client Registry sent a reply the app could not read.")
+        }
+        return fromCr(context, record).also { Timber.tag(CR_LOG).d("Outcome: %s", it) }
     }
 
     /**
@@ -148,9 +178,47 @@ object ClientLookupRepository {
         else -> null
     }
 
-    private fun fromCr(body: ClientLookupResponse?): ClientLookupOutcome {
-        val client = body?.client
-        return if (body?.found == true && client != null) ClientLookupOutcome.Found(client, body.source ?: "CR")
-        else ClientLookupOutcome.NotFound
+    /** App ID type code -> the CR's identification_type spelling (e.g. national-id -> "National ID"). */
+    private fun crType(code: String): String = Constants.CLIENT_LOOKUP_ID_TYPES[code] ?: code
+
+    /**
+     * The CR reply as a household: the principal member and every dependant, each mapped to the
+     * form's demographics and carrying every field received (JsonDetails) for display. The list is
+     * shown for both adult and minor searches; the healthcare worker selects who the case is for.
+     */
+    private fun fromCr(context: Context, record: JsonObject?): ClientLookupOutcome {
+        if (record == null) return ClientLookupOutcome.NotFound
+        val gson = Gson()
+        val principal = runCatching { gson.fromJson(record, CrPatient::class.java) }.getOrNull()
+        if (principal == null || !principal.isRecord) return ClientLookupOutcome.NotFound
+        val locations = LocationResolver.get(context)
+
+        val groups = record.get("dependants")?.takeIf { it.isJsonArray }?.asJsonArray
+        val children = groups?.flatMap { groupElement ->
+            val group = groupElement.takeIf { it.isJsonObject }?.asJsonObject ?: return@flatMap emptyList()
+            val relationship = group.get("relationship")?.takeIf { it.isJsonPrimitive }?.asString
+            // The group's own fields (relationship, date added, total) head each dependant's details.
+            val groupRows = JsonDetails.rows(group, skip = setOf("result"))
+            val results = group.get("result")?.takeIf { it.isJsonArray }?.asJsonArray ?: return@flatMap emptyList()
+            results.mapNotNull { element ->
+                val raw = element.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
+                val dependant = runCatching { gson.fromJson(raw, CrPatient::class.java) }.getOrNull()
+                    ?.takeIf { it.isRecord } ?: return@mapNotNull null
+                dependant.toDemographics(locations, guardian = principal, relationship = relationship)
+                    .copy(recordDetails = groupRows + JsonDetails.rows(raw))
+            }
+        }.orEmpty()
+
+        val dependantsSummary = groups?.mapNotNull { g ->
+            val o = g.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
+            val n = o.get("result")?.takeIf { it.isJsonArray }?.asJsonArray?.size() ?: 0
+            "$n ${o.get("relationship")?.takeIf { it.isJsonPrimitive }?.asString ?: "dependant"}"
+        }?.joinToString(", ")?.ifBlank { null }
+
+        val person = principal.toDemographics(locations).copy(
+            recordDetails = JsonDetails.rows(record, skip = setOf("dependants")) +
+                listOf("Dependants" to (dependantsSummary ?: "None")),
+        )
+        return ClientLookupOutcome.Dependents(guardian = person, children = children, source = "CR")
     }
 }

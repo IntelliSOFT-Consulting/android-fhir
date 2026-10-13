@@ -17,7 +17,15 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitBuilder {
 
-    fun getRetrofit(baseUrl: String): Retrofit {
+    fun getRetrofit(baseUrl: String): Retrofit = build(baseUrl, signOutOn401 = true)
+
+    /**
+     * For outside services (DHA Client Registry, SHA / IPRS). Same as [getRetrofit] but a 401 from
+     * them does not sign the user out of the app: their tokens are not the app's session.
+     */
+    fun getExternalRetrofit(baseUrl: String): Retrofit = build(baseUrl, signOutOn401 = false)
+
+    private fun build(baseUrl: String, signOutOn401: Boolean): Retrofit {
         val builder =
             OkHttpClient.Builder()
                 .readTimeout(5, TimeUnit.MINUTES)
@@ -42,7 +50,7 @@ object RetrofitBuilder {
                 redactHeader("Authorization")
             }
         builder.addInterceptor(interceptor)
-        builder.addInterceptor(UnauthorizedRedirectInterceptor(FhirApplication.appContext()))
+        if (signOutOn401) builder.addInterceptor(UnauthorizedRedirectInterceptor(FhirApplication.appContext()))
 
 
         val client = builder.build()

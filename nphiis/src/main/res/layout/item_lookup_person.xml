@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One person (principal member or dependant) in the Client Identification results: name, gender
+     and role; tapping the header expands every field received from the registry. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    app:cardBackgroundColor="@color/lookup_surface"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/lookup_stroke"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:id="@+id/personHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/personInitials"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_lookup_circle"
+                android:gravity="center"
+                android:textColor="@color/lookup_accent"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="RC" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/personName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/lookup_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="Rose D Chebet" />
+
+                <TextView
+                    android:id="@+id/personGender"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/lookup_text_secondary"
+                    android:textSize="13sp"
+                    tools:text="Male" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/personRole"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_lookup_pill"
+                        android:paddingStart="8dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="1dp"
+                        android:textColor="@color/lookup_success"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        tools:text="Principal member" />
+
+                    <TextView
+                        android:id="@+id/personDobMatch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_lookup_warning"
+                        android:paddingStart="8dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="1dp"
+                        android:text="@string/client_lookup_child_dob_match"
+                        android:textColor="@color/lookup_warning_text"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Expander: points right when closed, down when open -->
+            <ImageView
+                android:id="@+id/personExpand"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/client_lookup_show_details"
+                android:src="@drawable/baseline_arrow_forward_ios_24"
+                app:tint="@color/lookup_text_secondary" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/personToggleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="52dp"
+            android:layout_marginTop="2dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="@string/client_lookup_show_details"
+            android:textColor="@color/lookup_accent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <!-- Every field received (label / value rows); hidden until expanded -->
+        <LinearLayout
+            android:id="@+id/personDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/lookup_stroke" />
+
+            <LinearLayout
+                android:id="@+id/personRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/personSelect"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/lookup_accent"
+            android:textAllCaps="false"
+            android:textColor="@color/lookup_on_accent"
+            app:cornerRadius="10dp" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

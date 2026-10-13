@@ -11,11 +11,12 @@ import com.icl.surveillance.models.NotificationResponse
 import com.icl.surveillance.models.RefreshToken
 import com.icl.surveillance.models.SetNewPasswordReq
 import com.icl.surveillance.models.UserResponse
-import com.icl.surveillance.models.ClientLookupResponse
 import com.icl.surveillance.utils.Constants.BASE_URL
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
@@ -69,13 +70,24 @@ interface Interface {
     @POST("provider/reset-password")
     suspend fun setPassword(@Body dbSetPasswordReq: SetNewPasswordReq): Response<Any>
 
-    /** Client lookup (IPRS / Client Registry, resolved by the backend). See Constants.CLIENT_LOOKUP_URL. */
+    /** Client Registry patient search. See Constants.CLIENT_LOOKUP_URL. Raw body: logged, then parsed. */
     @GET
+    @Headers("Accept: application/json")
     suspend fun lookupClient(
         @Url url: String,
         @QueryMap params: Map<String, String>,
         @Header("Authorization") token: String
-    ): Response<ClientLookupResponse>
+    ): Response<okhttp3.ResponseBody>
+
+    /** DHA middleware access token (client credentials). See Constants.DHA_TOKEN_URL. */
+    @FormUrlEncoded
+    @POST
+    @Headers("Accept: application/json")
+    suspend fun dhaToken(
+        @Url url: String,
+        @Field("client_id") clientId: String,
+        @Field("client_secret") clientSecret: String
+    ): Response<okhttp3.ResponseBody>
 
     /**
      * IPRS person lookup (SHA Health ID): GET with Basic auth. See Constants.IPRS_LOOKUP_URL.
