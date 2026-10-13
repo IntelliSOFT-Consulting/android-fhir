@@ -1462,6 +1462,12 @@ class PatientListViewModel(
         val labEncounter = childEncounters
             .filter { it.reasonCode == FormFields.Vhf.LAB_TITLE }
             .maxByOrNull { it.lastUpdated }
+        // Logcat tag VHF_LIST: what each row is built from (to check lab status / classification).
+        Timber.tag("VHF_LIST").d(
+            "patient=%s case=%s children=%s lab=%s",
+            data.resourceId, caseEncounterId,
+            childEncounters.map { "${it.reasonCode}#${it.id}" }, labEncounter?.id ?: "none",
+        )
         if (labEncounter != null) {
             val obs = fhirEngine.search<Observation> {
                 filter(Observation.ENCOUNTER, { value = "Encounter/${labEncounter.id}" })
@@ -1478,15 +1484,21 @@ class PatientListViewModel(
                 labResults = labResults,
                 status = FormFields.Vhf.finalClassification(finalResult)
             )
+            Timber.tag("VHF_LIST").d(
+                "  lab obs=%d final='%s' preliminary='%s' -> lab='%s' status='%s'",
+                obs.size, finalResult, preliminary, result.labResults, result.status,
+            )
         }
 
         val caseType = fhirEngine.search<Observation> {
             filter(Observation.ENCOUNTER, { value = "Encounter/$caseEncounterId" })
             filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.CASE_TYPE }) })
         }.valueOf(FormFields.Vhf.CASE_TYPE)
+        Timber.tag("VHF_LIST").d("  caseType='%s' -> status='%s'", caseType, result.status)
         if (!caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return result
         val contact = VhfContactTracker.load(fhirEngine, data.resourceId, caseEncounterId)
             ?: return result
+        Timber.tag("VHF_LIST").d("  contact summary='%s'", contact.summary)
         return result.copy(status = contact.summary)
     }
 
@@ -2216,59 +2228,76 @@ class PatientListViewModel(
         }
 
     /**
-     * Number of records of a case type, counted in the database (no records loaded).
-     * Null when the case type is unknown and the caller must count the loaded list instead.
+     * Number of records of a case type (patients, as in the case list). Null when the case type is
+     * unknown and the caller must count the loaded list instead.
      */
     suspend fun countCaseRecords(nameQuery: String): Int? {
         // VHF and Trainings share the case name: count the (mode-filtered) list instead.
         if (nameQuery == CaseSlugs.VHF) return null
+        return casePatients(nameQuery)?.patients?.size
+    }
+
+    /**
+     * The patients of a case type, with their case Encounter ids, plus answers loaded in batches.
+     * Returns null for unknown case types, so the caller keeps the full scan.
+     */
+    private suspend fun caseBatchLoader(nameQuery: String): CaseBatchLoader? {
+        val found = casePatients(nameQuery) ?: return null
+        return CaseBatchLoader(found.patients, found.encountersByPatient)
+    }
+
+    private class CasePatients(
+        val patients: List<SearchResult<Patient>>,
+        val encountersByPatient: Map<String, List<String>>,
+    )
+
+    /**
+     * A case patient is recognised in either of two ways, and both must be checked: records can
+     * carry one without the other (e.g. older or server-created records have no case name on the
+     * Encounter).
+     * 1. the case Encounter's reasonCode holds the case name (e.g. "VHF Case Information");
+     * 2. the Patient has a case identifier: system = the case slug (e.g. "vhf-case-information"),
+     *    value = the case Encounter id.
+     * The engine cannot search an identifier by its system alone, so (2) reads the active patients.
+     */
+    private suspend fun casePatients(nameQuery: String): CasePatients? {
         val names = caseNamesFor(nameQuery).ifEmpty { return null }
+        // The identifier systems the list itself accepts for this module (see matchingIdentifier).
+        val caseSystems = if (nameQuery == CaseSlugs.RCCE) {
+            setOf(CaseSlugs.RCCE_COMMUNITY, CaseSlugs.RCCE_COUNTY)
+        } else {
+            setOf(nameQuery)
+        }
         return withContext(Dispatchers.IO) {
-            fhirEngine.count<Encounter> {
+            val encountersByPatient = mutableMapOf<String, MutableList<String>>()
+            fhirEngine.search<Encounter> {
                 filter(
                     Encounter.REASON_CODE,
                     *names.map<String, TokenParamFilterCriterion.() -> Unit> { name ->
                         { value = of(name) }
                     }.toTypedArray()
                 )
-            }.toInt()
-        }.takeIf { it > 0 } // 0 may mean older records without the case name: count the list
-    }
-
-    /**
-     * Finds the patients of a case type through their case Encounters (reasonCode = case name)
-     * instead of reading every patient on the device. Returns null for unknown case types or when
-     * no encounter carries the case name (older data), so the caller keeps the full scan.
-     */
-    private suspend fun caseBatchLoader(nameQuery: String): CaseBatchLoader? {
-        val names = caseNamesFor(nameQuery).ifEmpty { return null }
-        val encounters = fhirEngine.search<Encounter> {
-            filter(
-                Encounter.REASON_CODE,
-                *names.map<String, TokenParamFilterCriterion.() -> Unit> { name ->
-                    { value = of(name) }
-                }.toTypedArray()
-            )
-        }.map { it.resource }.filter { !it.hasPartOf() }
-        if (encounters.isEmpty()) return null
-
-        val encountersByPatient = encounters
-            .groupBy({ it.subject.referenceElement.idPart ?: "" }, { it.logicalId })
-        val patients = encountersByPatient.keys.filter { it.isNotEmpty() }
-            .chunked(CASE_BATCH_SIZE)
-            .flatMap { ids ->
-                fhirEngine.search<Patient> {
-                    filter(
-                        Resource.RES_ID,
-                        *ids.map<String, TokenParamFilterCriterion.() -> Unit> { id ->
-                            { value = of(id) }
-                        }.toTypedArray()
-                    )
-                    filter(Patient.ACTIVE, { value = of(true) })
-                }
+            }.map { it.resource }.filter { !it.hasPartOf() }.forEach { encounter ->
+                val patientId = encounter.subject.referenceElement.idPart ?: return@forEach
+                encountersByPatient.getOrPut(patientId) { mutableListOf() }.add(encounter.logicalId)
             }
-            .sortedBy { it.resource.nameFirstRep.givenAsSingleString.orEmpty() }
-        return CaseBatchLoader(patients, encountersByPatient)
+
+            val patients = fhirEngine.search<Patient> {
+                filter(Patient.ACTIVE, { value = of(true) })
+                sort(Patient.GIVEN, Order.ASCENDING)
+            }.filter { result ->
+                val id = result.resource.logicalId
+                val caseEncounterIds = result.resource.identifier
+                    .filter { it.system in caseSystems && it.hasValue() }
+                    .map { it.value }
+                if (caseEncounterIds.isNotEmpty()) {
+                    val known = encountersByPatient.getOrPut(id) { mutableListOf() }
+                    caseEncounterIds.filterNot { it in known }.forEach { known.add(it) }
+                }
+                id in encountersByPatient
+            }
+            CasePatients(patients, encountersByPatient)
+        }
     }
 
     /**
