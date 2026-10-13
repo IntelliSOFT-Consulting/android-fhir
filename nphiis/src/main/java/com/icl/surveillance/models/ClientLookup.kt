@@ -3,6 +3,7 @@ package com.icl.surveillance.models
 import com.google.gson.annotations.SerializedName
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.utils.PhoneNumbers
 
 /**
  * A person found by a lookup (Client Registry: CrPatient.toDemographics; IPRS:
@@ -83,7 +84,8 @@ data class ClientDemographics(
         add(FormFields.Vhf.ID_TYPE, identificationType)
         add(FormFields.Vhf.ID_TYPE_MINOR, identificationType)
         add(FormFields.Vhf.NATIONAL_ID, identificationNumber)
-        add(FormFields.Vhf.PHONE, phone)
+        // Phone numbers go into the form as 10 digits (07… / 01…), see PhoneNumbers.
+        add(FormFields.Vhf.PHONE, PhoneNumbers.toLocal(phone))
         add("vhf-marital-status", maritalStatus)
         add("vhf-occupation", occupation)
         add("vhf-occupation-specify", occupationSpecify)
@@ -98,7 +100,7 @@ data class ClientDemographics(
         add(FormFields.Vhf.VILLAGE, village)
         add("vhf-landmark", landmark)
         add(FormFields.Vhf.NEXT_OF_KIN, nextOfKin)
-        add(FormFields.Vhf.NEXT_OF_KIN_PHONE, nextOfKinPhone)
+        add(FormFields.Vhf.NEXT_OF_KIN_PHONE, PhoneNumbers.toLocal(nextOfKinPhone))
     }
 
     companion object {

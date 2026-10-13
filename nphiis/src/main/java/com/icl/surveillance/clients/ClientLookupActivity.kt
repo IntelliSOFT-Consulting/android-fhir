@@ -29,6 +29,7 @@ import com.icl.surveillance.network.ClientLookupRepository
 import com.icl.surveillance.utils.Constants
 import com.icl.surveillance.utils.InternetRequiredDialog
 import com.icl.surveillance.utils.NetworkUtils
+import com.icl.surveillance.utils.PhoneNumbers
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import java.text.SimpleDateFormat
@@ -551,7 +552,7 @@ class ClientLookupActivity : AppCompatActivity() {
         if (isMinorSearch) {
             lastGuardian?.let { guardian ->
                 guardian.fullName.takeIf { it.isNotBlank() }?.let { put(FormFields.Vhf.NEXT_OF_KIN, it) }
-                guardian.phone?.takeIf { it.isNotBlank() }?.let { put(FormFields.Vhf.NEXT_OF_KIN_PHONE, it) }
+                PhoneNumbers.toLocal(guardian.phone)?.let { put(FormFields.Vhf.NEXT_OF_KIN_PHONE, it) }
             }
         } else if (id.isNotEmpty()) {
             // Adults and minors have separate "Type of identification" questions; only the one
