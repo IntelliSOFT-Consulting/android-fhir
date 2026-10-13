@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Client Identification screen (ClientLookupActivity) -->
+<resources>
+    <color name="lookup_surface">#F4F6FA</color>
+    <color name="lookup_card">#FFFFFF</color>
+    <color name="lookup_stroke">#E3E7EE</color>
+    <color name="lookup_text_primary">#1B1F24</color>
+    <color name="lookup_text_secondary">#5F6B7A</color>
+    <color name="lookup_accent">#007AFF</color>
+    <color name="lookup_on_accent">#FFFFFF</color>
+    <color name="lookup_accent_soft">#E6F0FF</color>
+    <color name="lookup_success">#1E8E3E</color>
+    <color name="lookup_success_soft">#E7F5EC</color>
+    <color name="lookup_warning_text">#8A5300</color>
+    <color name="lookup_warning_soft">#FFF4E0</color>
+</resources>

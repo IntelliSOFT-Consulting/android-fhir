@@ -26,6 +26,11 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
         <activity
+            android:name=".clients.ClientLookupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Surveillance.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".auth.InitialSyncActivity"
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar" />

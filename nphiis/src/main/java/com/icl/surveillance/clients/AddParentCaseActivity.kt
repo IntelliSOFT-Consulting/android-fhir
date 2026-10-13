@@ -582,13 +582,14 @@ class AddParentCaseActivity : AppCompatActivity() {
                 }
             }
 
-            // VHF: offer the cases on this device as choices for "Contact of case (EPID number)".
+            // VHF: offer the cases on this device as choices for "Contact Link to Case".
             if (formatter.getSharedPref("questionnaire", this@AddParentCaseActivity) ==
                 FormFields.Vhf.CASE_FORM
             ) {
                 runCatching {
                     val options = VhfSourceCases.options(
-                        FhirApplication.fhirEngine(this@AddParentCaseActivity)
+                        FhirApplication.fhirEngine(this@AddParentCaseActivity),
+                        training = com.icl.surveillance.fhir.forms.VhfTraining.isOn(this@AddParentCaseActivity),
                     )
                     viewModel.useQuestionnaireJson(
                         VhfSourceCases.withOptions(viewModel.questionnaireJson, options)

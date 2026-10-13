@@ -11,6 +11,7 @@ import com.icl.surveillance.models.NotificationResponse
 import com.icl.surveillance.models.RefreshToken
 import com.icl.surveillance.models.SetNewPasswordReq
 import com.icl.surveillance.models.UserResponse
+import com.icl.surveillance.models.ClientLookupResponse
 import com.icl.surveillance.utils.Constants.BASE_URL
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -22,6 +23,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 import retrofit2.http.Url
 
 interface Interface {
@@ -66,4 +68,26 @@ interface Interface {
 
     @POST("provider/reset-password")
     suspend fun setPassword(@Body dbSetPasswordReq: SetNewPasswordReq): Response<Any>
+
+    /** Client lookup (IPRS / Client Registry, resolved by the backend). See Constants.CLIENT_LOOKUP_URL. */
+    @GET
+    suspend fun lookupClient(
+        @Url url: String,
+        @QueryMap params: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<ClientLookupResponse>
+
+    /**
+     * IPRS person lookup (SHA Health ID): GET with Basic auth. See Constants.IPRS_LOOKUP_URL.
+     * e.g. GET https://healthid.sha.go.ke/api/v1/lookup/persons?id_number=32645167&type=citizen
+     *      Authorization: Basic base64(username:password)
+     */
+    @GET
+    @Headers("Accept: application/json")
+    suspend fun lookupIprs(
+        /** Full URL including the query, see ClientLookupRepository.iprsUrl. */
+        @Url url: String,
+        /** Basic auth (Constants.IPRS_LOOKUP_USERNAME / PASSWORD), not the app's bearer token. */
+        @Header("Authorization") basicAuth: String
+    ): Response<okhttp3.ResponseBody>
 }

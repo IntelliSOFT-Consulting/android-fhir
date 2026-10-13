@@ -13,7 +13,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * "Contact of case (EPID number)" on the VHF case form a contact names the
+ * "Contact Link to Case" on the VHF case form a contact names the
  * case it was in contact with by that case's EPID number. The EPID number is assigned by the server,
  * so only cases already synced to this device can be offered; any other can be typed in.
  * Only cases confirmed by the lab (latest final result Positive) are offered as sources.
@@ -32,11 +32,16 @@ object VhfSourceCases {
      * the final-result answers (one indexed search) instead of scanning every patient, then loads
      * only the patients whose latest final result is Positive.
      */
-    suspend fun options(fhirEngine: FhirEngine, excludePatientId: String? = null): List<SourceOption> =
+    suspend fun options(
+        fhirEngine: FhirEngine,
+        excludePatientId: String? = null,
+        training: Boolean? = null, // Trainings lists only training cases; VHF only real ones
+    ): List<SourceOption> =
         confirmedPatientIds(fhirEngine)
             .filter { it != excludePatientId }
             .mapNotNull { id -> runCatching { fhirEngine.get<Patient>(id) }.getOrNull() }
             .filter { patient -> patient.identifier.any { it.system == CaseSlugs.VHF } }
+            .filter { patient -> training == null || VhfTraining.isTraining(patient) == training }
             .sortedByDescending { it.meta.lastUpdated?.time ?: 0L }
             .mapNotNull { patient ->
                 val epid = epidOf(patient) ?: return@mapNotNull null

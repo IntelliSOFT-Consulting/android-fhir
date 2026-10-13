@@ -29,6 +29,7 @@ import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.fhir.forms.answerOf
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
@@ -856,7 +857,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         phone = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN_PHONE),
                     )
                     // Link a contact to its source case: the case it was registered from (Contacts
-                    // tab), else the case named by "Contact of case (EPID number)" if it is on the device.
+                    // tab), else the case named by "Contact Link to Case" if it is on the device.
                     (FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
                         ?.takeIf { it.isNotBlank() }
                         ?: VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID))
@@ -866,6 +867,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                                 .setOther(Reference("Patient/$sourcePatientId"))
                                 .setType(Patient.LinkType.SEEALSO)
                         }
+                    // Trainings: identifier test_xxxx so practice records stay separate.
+                    if (VhfTraining.isOn(context)) VhfTraining.mark(patient)
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VHF))
                 }

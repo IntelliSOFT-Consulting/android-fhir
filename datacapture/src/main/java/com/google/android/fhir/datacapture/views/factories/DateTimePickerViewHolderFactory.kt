@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SelectableDates
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,12 +55,15 @@ import com.google.android.fhir.datacapture.views.compose.TimePickerItem
 import com.google.android.material.datepicker.MaterialDatePicker
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.BaseDateTimeType
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.hl7.fhir.r4.model.Type
 
 internal object DateTimePickerViewHolderFactory : QuestionnaireItemComposeViewHolderFactory {
 
@@ -150,7 +152,15 @@ internal object DateTimePickerViewHolderFactory : QuestionnaireItemComposeViewHo
             mutableStateOf(!itemReadOnly && questionnaireItemViewItemDate != null)
           }
 
-        val selectableDates = remember { object : SelectableDates {} }
+        // Restrict the calendar to the item's minValue/maxValue (e.g. maxValue = now() keeps
+        // future dates out), matching the behaviour of the date-only picker.
+        val selectableDates =
+          remember(questionnaireViewItem) {
+            selectableDates(
+              questionnaireViewItem.minAnswerValue.toUtcStartOfDayMillis(),
+              questionnaireViewItem.maxAnswerValue.toUtcStartOfDayMillis(),
+            )
+          }
         val dateValidationMessage =
           remember(draftAnswer, questionnaireItemViewItemDateTimeAnswer) {
             // If the draft answer is set, this means the user has yet to type a parseable answer,
@@ -256,3 +266,17 @@ internal object DateTimePickerViewHolderFactory : QuestionnaireItemComposeViewHo
         )
     }
 }
+
+/**
+ * The calendar day of this date/dateTime bound (in the device time zone) as UTC midnight millis,
+ * the unit the Material date picker uses for [androidx.compose.material3.SelectableDates].
+ */
+private fun Type?.toUtcStartOfDayMillis(): Long? =
+  (this as? BaseDateTimeType)
+    ?.value
+    ?.toInstant()
+    ?.atZone(ZoneId.systemDefault())
+    ?.toLocalDate()
+    ?.atStartOfDay(ZONE_ID_UTC)
+    ?.toInstant()
+    ?.toEpochMilli()

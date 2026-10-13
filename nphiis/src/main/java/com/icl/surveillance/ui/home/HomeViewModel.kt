@@ -76,6 +76,12 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
             R.string.vhf_form, HomeViewModel.ADAM_STAGE, 50
         ),
 
+        // Same VHF workflow for practice; records are marked test_xxxx (VhfTraining).
+        TRAININGS(
+            R.drawable.searching,
+            R.string.trainings, HomeViewModel.ADAM_STAGE, 51
+        ),
+
         // Mass
 
         MPOX(

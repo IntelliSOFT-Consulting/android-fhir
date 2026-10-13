@@ -36,7 +36,11 @@ object RetrofitBuilder {
         val interceptor =
             HttpLoggingInterceptor { message ->
                 Log.e("API_RELEASE", message)
-            }.apply { level = HttpLoggingInterceptor.Level.BODY }
+            }.apply {
+                level = HttpLoggingInterceptor.Level.BODY
+                // Never print credentials (bearer tokens, IPRS Basic auth) to logcat.
+                redactHeader("Authorization")
+            }
         builder.addInterceptor(interceptor)
         builder.addInterceptor(UnauthorizedRedirectInterceptor(FhirApplication.appContext()))
 

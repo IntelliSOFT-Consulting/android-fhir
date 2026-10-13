@@ -25,6 +25,7 @@ import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfContactTracker
@@ -130,7 +131,7 @@ class PatientListViewModel(
                     val p = wrapper.resource
                     val matchingIdentifier = p.identifier.find {
                         it.system == nameQuery
-                    }
+                    }?.takeIf { nameQuery != CaseSlugs.VHF || VhfTraining.matches(getApplication<Application>(), p) }
 
                     val tag =
                         wrapper.resource.meta.tag.find { it.system.endsWith("/patient" + FhirSystems.MANAGING_LOCATION_SUFFIX) }?.code
@@ -839,6 +840,10 @@ class PatientListViewModel(
 
                         else -> fhirPatient.resource.identifier.find {
                             it.system == nameQuery
+                        }?.takeIf {
+                            // VHF and Trainings share a slug: keep only the current mode's records.
+                            nameQuery != CaseSlugs.VHF ||
+                                VhfTraining.matches(getApplication<Application>(), fhirPatient.resource)
                         }
                     }
                     val epidIdenfifier =
@@ -2215,6 +2220,8 @@ class PatientListViewModel(
      * Null when the case type is unknown and the caller must count the loaded list instead.
      */
     suspend fun countCaseRecords(nameQuery: String): Int? {
+        // VHF and Trainings share the case name: count the (mode-filtered) list instead.
+        if (nameQuery == CaseSlugs.VHF) return null
         val names = caseNamesFor(nameQuery).ifEmpty { return null }
         return withContext(Dispatchers.IO) {
             fhirEngine.count<Encounter> {

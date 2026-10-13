@@ -2,10 +2,12 @@ package com.icl.surveillance.fhir.forms
 
 import android.content.Context
 import com.icl.surveillance.utils.FormatterClass
+import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 import org.json.JSONObject
@@ -44,6 +46,10 @@ object FormPrefill {
             emptyMap()
         }
     }
+
+    /** Staged value for a Location reference question; see [answerFor]. */
+    fun locationReference(id: String, display: String?): String =
+        "Location/$id" + (display?.takeIf { it.isNotBlank() }?.let { "|$it" } ?: "")
 
     fun clear(context: Context) {
         val formatter = FormatterClass()
@@ -112,6 +118,32 @@ object FormPrefill {
             text = question.text
         }
 
+    /**
+     * Saved answers whose question has since become a date-and-time question (e.g. VHF sample
+     * collection and sending, 12 Oct 2026) still hold a plain date. The form screen rejects an
+     * answer of the wrong type, so such a date is carried over as a date-time with day precision.
+     */
+    fun upgradeDateAnswers(q: Questionnaire, r: QuestionnaireResponse) {
+        val types = mutableMapOf<String, Questionnaire.QuestionnaireItemType>()
+        fun index(items: List<Questionnaire.QuestionnaireItemComponent>) {
+            items.forEach { types[it.linkId] = it.type; index(it.item) }
+        }
+        index(q.item)
+        fun visit(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                if (types[item.linkId] == Questionnaire.QuestionnaireItemType.DATETIME) {
+                    item.answer.forEach { answer ->
+                        val v = answer.value
+                        if (v is DateType && v.valueAsString != null) answer.value = DateTimeType(v.valueAsString)
+                    }
+                }
+                item.answer.forEach { visit(it.item) }
+                visit(item.item)
+            }
+        }
+        visit(r.item)
+    }
+
     private fun answerFor(question: Questionnaire.QuestionnaireItemComponent, raw: String): Type? =
         when (question.type) {
             Questionnaire.QuestionnaireItemType.CHOICE -> question.answerOption
@@ -123,9 +155,15 @@ object FormPrefill {
                 ?: StringType(raw).takeIf { isOpenChoice(question) }
 
             Questionnaire.QuestionnaireItemType.DATE -> runCatching { DateType(raw) }.getOrNull()
+            Questionnaire.QuestionnaireItemType.DATETIME -> runCatching { DateTimeType(raw) }.getOrNull()
             Questionnaire.QuestionnaireItemType.INTEGER -> raw.toIntOrNull()?.let { IntegerType(it) }
             Questionnaire.QuestionnaireItemType.STRING,
             Questionnaire.QuestionnaireItemType.TEXT -> StringType(raw)
+
+            // "Location/<id>|<display>", as built by locationReference.
+            Questionnaire.QuestionnaireItemType.REFERENCE -> raw.split("|", limit = 2).let { parts ->
+                Reference(parts[0]).apply { if (parts.size > 1) display = parts[1] }
+            }
 
             else -> null
         }
