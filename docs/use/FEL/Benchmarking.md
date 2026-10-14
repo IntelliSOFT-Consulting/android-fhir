@@ -154,10 +154,11 @@ The _FHIR Engine Library_ macrobenchmark tests are located in the module `:engin
 6. Update `local.properties` file, located in the root folder, with the server url
 
     ```properties
-    FHIR_SERVER_BASE_URL=http://192.168.0.24:8080/fhir/
+    FHIR_SERVER_BASE_URL=https://192.168.0.24:8443/fhir/
     ```
 
-   replacing `192.168.0.24` with your domain/address
+   replacing `192.168.0.24` with your domain/address. The benchmark app requires an HTTPS-enabled
+   FHIR endpoint so benchmark traffic and any FHIR data are protected in transit.
 7. Run Gradle sync
 8. [Run the Macrobenchmark](https://developer.android.com/topic/performance/benchmarking/macrobenchmark-overview#run-benchmark) tests in the `engine:benchmarks:macrobenchmark` module
 

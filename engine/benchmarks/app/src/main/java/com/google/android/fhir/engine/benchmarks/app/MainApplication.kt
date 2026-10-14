@@ -18,7 +18,6 @@ package com.google.android.fhir.engine.benchmarks.app
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.tracing.Trace
 import com.google.android.fhir.DatabaseErrorStrategy.RECREATE_AT_OPEN
 import com.google.android.fhir.FhirEngine
@@ -42,15 +41,9 @@ class MainApplication : Application() {
         ServerConfiguration(
           //          "https://hapi.fhir.org/baseR4/"
           BuildConfig.FHIR_SERVER_BASE_URL,
-          httpLogger =
-            HttpLogger(
-              HttpLogger.Configuration(
-                HttpLogger.Level.BODY,
-              ),
-            ) {
-              Log.i(TAG, "App-HttpLog")
-              Log.i(TAG, it)
-            },
+          // Benchmark targets can contain real FHIR data. Do not write request or response payloads
+          // (or authorization headers) to logcat.
+          httpLogger = HttpLogger.NONE,
           networkConfiguration = NetworkConfiguration(uploadWithGzip = false),
         ),
         customSearchParameters = listOf(patientIndexNumberCustomSearchParameter),
@@ -66,8 +59,6 @@ class MainApplication : Application() {
   private val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
 
   companion object {
-    private val TAG = MainApplication::class.java.simpleName
-
     fun fhirEngine(context: Context) = (context.applicationContext as MainApplication).fhirEngine
   }
 }
