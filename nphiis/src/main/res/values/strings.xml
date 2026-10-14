@@ -253,7 +253,7 @@
     <string name="client_lookup_title">Client Identification</string>
     <string name="client_lookup_heading">Validate Client</string>
     <string name="client_lookup_hint">Search by ID number and date of birth to fill in their details.</string>
-    <string name="client_lookup_id_type">Type of identification</string>
+    <string name="client_lookup_id_type">Document type</string>
     <string name="client_lookup_id_number">ID number</string>
     <string name="client_lookup_dob">Date of birth</string>
     <string name="client_lookup_search">Search</string>
@@ -278,10 +278,10 @@
     <string name="client_lookup_adult">Adult</string>
     <string name="client_lookup_minor">Minor (under 18)</string>
     <string name="client_lookup_adult_note">Search with the client\'s own ID.</string>
-    <string name="client_lookup_minor_note">Search with the parent\'s or guardian\'s ID, then pick the child.</string>
-    <string name="client_lookup_guardian_id_type">Parent / guardian ID type</string>
+    <string name="client_lookup_minor_note">Search with the parent\'s or guardian\'s ID and date of birth, then pick the child.</string>
+    <string name="client_lookup_guardian_id_type">Parent / guardian document type</string>
     <string name="client_lookup_guardian_id_number">Parent / guardian ID number</string>
-    <string name="client_lookup_child_dob">Child\'s date of birth</string>
+    <string name="client_lookup_guardian_dob">Parent / guardian date of birth</string>
     <string name="client_lookup_children_title">%1$s\'s household</string>
     <string name="client_lookup_children_hint">Select the person this case is for.</string>
     <string name="client_lookup_child_dob_match">Matches date of birth</string>
