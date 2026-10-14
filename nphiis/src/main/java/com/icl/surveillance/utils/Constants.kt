@@ -61,7 +61,7 @@ object Constants {
      * "dependants" — used for the minor search by the parent's / guardian's ID).
      */
     const val CLIENT_LOOKUP_BASE_URL = BuildConfig.CR_BASE_URL
-    const val CLIENT_LOOKUP_URL = "${CLIENT_LOOKUP_BASE_URL}v1/patients"
+    const val CLIENT_LOOKUP_URL = "${CLIENT_LOOKUP_BASE_URL}provider/patients/registry"
     const val CLIENT_LOOKUP_ID_PARAM = "identification_number"
     const val CLIENT_LOOKUP_TYPE_PARAM = "identification_type"
 

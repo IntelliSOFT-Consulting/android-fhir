@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One person (principal member or dependant) in the Client Identification results: name, gender
-     and role; tapping the header expands every field received from the registry. -->
+
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -23,7 +22,6 @@
             android:id="@+id/personHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:minHeight="48dp"
             android:orientation="horizontal">
@@ -54,15 +52,6 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="Rose D Chebet" />
-
-                <TextView
-                    android:id="@+id/personGender"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:textColor="@color/lookup_text_secondary"
-                    android:textSize="13sp"
-                    tools:text="Male" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -102,39 +91,14 @@
                         tools:visibility="visible" />
                 </LinearLayout>
             </LinearLayout>
-
-            <!-- Expander: points right when closed, down when open -->
-            <ImageView
-                android:id="@+id/personExpand"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/client_lookup_show_details"
-                android:src="@drawable/baseline_arrow_forward_ios_24"
-                app:tint="@color/lookup_text_secondary" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/personToggleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="52dp"
-            android:layout_marginTop="2dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:text="@string/client_lookup_show_details"
-            android:textColor="@color/lookup_accent"
-            android:textSize="13sp"
-            android:textStyle="bold" />
 
-        <!-- Every field received (label / value rows); hidden until expanded -->
         <LinearLayout
             android:id="@+id/personDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"

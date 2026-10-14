@@ -107,49 +107,6 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/client_lookup_source_hint"
-                            android:textColor="@color/lookup_text_secondary"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.button.MaterialButtonToggleGroup
-                            android:id="@+id/sourceToggle"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            app:checkedButton="@+id/sourceCr"
-                            app:selectionRequired="true"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/sourceCr"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_weight="1"
-                                android:text="@string/client_lookup_source_cr" />
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/sourceIprs"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_weight="1"
-                                android:text="@string/client_lookup_source_iprs" />
-
-                        </com.google.android.material.button.MaterialButtonToggleGroup>
-
-                        <TextView
-                            android:id="@+id/sourceNote"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:textColor="@color/lookup_text_secondary"
-                            android:textSize="12sp" />
-
-                        <!-- Client Registry only: adult (own ID) or minor (parent's / guardian's ID) -->
                         <LinearLayout
                             android:id="@+id/ageGroupSection"
                             android:layout_width="match_parent"
@@ -339,24 +296,6 @@
                                 android:textSize="17sp"
                                 android:textStyle="bold"
                                 tools:text="Japheth Kiprotich" />
-
-                            <TextView
-                                android:id="@+id/resultSource"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:background="@drawable/bg_lookup_pill"
-                                android:drawablePadding="4dp"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="10dp"
-                                android:paddingBottom="2dp"
-                                android:textColor="@color/lookup_success"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                app:drawableStartCompat="@drawable/ic_check_circle"
-                                app:drawableTint="@color/lookup_success"
-                                tools:text="Verified in IPRS" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -397,15 +336,6 @@
                         android:textColor="@color/lookup_card"
                         android:textSize="15sp"
                         app:cornerRadius="12dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="@string/client_lookup_locked_note"
-                        android:textColor="@color/lookup_text_secondary"
-                        android:textSize="12sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/enterManuallyButton"
@@ -450,23 +380,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/childrenSource"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_lookup_pill"
-                        android:drawablePadding="4dp"
-                        android:paddingStart="8dp"
-                        android:paddingTop="2dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="2dp"
-                        android:textColor="@color/lookup_success"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        app:drawableStartCompat="@drawable/ic_check_circle"
-                        app:drawableTint="@color/lookup_success"
-                        tools:text="Verified in Client Registry" />
 
                     <TextView
                         android:id="@+id/childrenTitle"
@@ -554,7 +467,7 @@
                             android:layout_weight="1"
                             android:textColor="@color/lookup_text_primary"
                             android:textSize="14sp"
-                            tools:text="No record was found for 12345678 in IPRS." />
+                            tools:text="No client was found for this ID number." />
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
