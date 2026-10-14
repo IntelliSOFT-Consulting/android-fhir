@@ -49,7 +49,11 @@ object ClientLookupRepository {
         try {
             when (source) {
                 LookupSource.IPRS -> lookupIprs(identifier, identificationType)
-                LookupSource.CLIENT_REGISTRY -> lookupCr(context, identifier, identificationType, minor)
+                LookupSource.CLIENT_REGISTRY -> lookupCrThenIprs(
+                    identificationType, minor,
+                    crLookup = { lookupCr(context, identifier, identificationType, minor) },
+                    iprsLookup = { lookupIprs(identifier, identificationType) },
+                )
             }
         } catch (e: NoNetworkException) {
             ClientLookupOutcome.Offline
@@ -57,6 +61,22 @@ object ClientLookupRepository {
             Timber.w(e, "Client lookup (%s) failed", source)
             ClientLookupOutcome.Failed("Could not reach ${source.label}. Try again.")
         }
+    }
+
+    internal suspend fun lookupCrThenIprs(
+        identificationType: String,
+        minor: Boolean,
+        crLookup: suspend () -> ClientLookupOutcome,
+        iprsLookup: suspend () -> ClientLookupOutcome,
+    ): ClientLookupOutcome {
+        val result = crLookup()
+        if (result != ClientLookupOutcome.NotFound ||
+            identificationType !in Constants.IPRS_LOOKUP_ID_TYPES
+        ) return result
+        val fallback = iprsLookup()
+        return if (minor && fallback is ClientLookupOutcome.Found)
+            ClientLookupOutcome.Dependents(fallback.client, emptyList(), fallback.source)
+        else fallback
     }
 
     private suspend fun lookupIprs(identifier: String, identificationType: String): ClientLookupOutcome {
@@ -143,6 +163,7 @@ object ClientLookupRepository {
         Timber.tag(CR_LOG).d("Sent: %s %s", reply.raw().request.method, reply.raw().request.url)
         Timber.tag(CR_LOG).d("HTTP %d %s", reply.code(), reply.message())
         Timber.tag(CR_LOG).d("Body: %s", raw ?: "<empty>")
+        if (isCrNoMatch(reply.code(), raw)) return ClientLookupOutcome.NotFound
         failure(reply, LookupSource.CLIENT_REGISTRY)?.let {
             Timber.tag(CR_LOG).w("Outcome: %s", it)
             return it
@@ -168,6 +189,13 @@ object ClientLookupRepository {
     private fun basicAuth(username: String, password: String): String =
         "Basic " + Base64.encodeToString("$username:$password".toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
 
+    internal fun isCrNoMatch(status: Int, raw: String?): Boolean {
+        if (status != 400) return false
+        val message = runCatching {
+            Gson().fromJson(raw, JsonObject::class.java)?.get("message")?.asString
+        }.getOrNull()
+        return message == "failed to get patient record: zero results found in client registry fetch patient search response"
+    }
     /** NotFound for 404, Failed for other errors, null when the reply can be read. */
     private fun failure(response: Response<*>, source: LookupSource): ClientLookupOutcome? = when {
         response.code() == 404 -> ClientLookupOutcome.NotFound
