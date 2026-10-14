@@ -89,6 +89,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
     val isPatientSaved = MutableLiveData<Boolean>()
 
+    /** Patient and encounter ids of the case last saved by [persistPatientData]. */
+    var lastSavedCase: Pair<String, String>? = null
+        private set
+
     // Parsed once: re-parsing the form JSON on every save was a large source of allocations.
     private val questionnaire: Questionnaire by lazy {
         FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
@@ -1116,6 +1120,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                             patient.addressFirstRep.city, patient.active,
                         )
                     }
+                    lastSavedCase = patientId to encounterId
                     PersistResult.SAVED
                 } catch (e: Exception) {
                     Timber.tag("TAG").e(e, "Error experienced ${e.message}")

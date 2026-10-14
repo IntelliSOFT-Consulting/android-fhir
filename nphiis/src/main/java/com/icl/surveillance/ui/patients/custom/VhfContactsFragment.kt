@@ -11,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.get
 import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
-import com.icl.surveillance.clients.AddParentCaseActivity
+import com.icl.surveillance.clients.ClientLookupActivity
 import com.icl.surveillance.databinding.FragmentVlLabBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
@@ -151,6 +151,12 @@ class VhfContactsFragment : Fragment() {
         }
 
     private fun render(rows: List<ContactRow>, source: SourceCase) {
+        // Opened from "Add contacts" after the case was saved: start registering one right away.
+        val activity = activity
+        if (activity?.intent?.getBooleanExtra(SummarizedActivity.EXTRA_REGISTER_CONTACT, false) == true) {
+            activity.intent.removeExtra(SummarizedActivity.EXTRA_REGISTER_CONTACT)
+            registerContact(source)
+        }
         binding.lnEmpty.visibility = View.GONE
         val parent = binding.lnParent
         parent.removeAllViews()
@@ -277,8 +283,9 @@ class VhfContactsFragment : Fragment() {
                 source.epid?.let { put(FormFields.Vhf.SOURCE_CASE_EPID, it) }
             }
         )
+        // Verify the contact's identity (IPRS / Client Registry) first; it opens the form.
         returnToCase.launch(
-            Intent(context, AddParentCaseActivity::class.java)
+            Intent(context, ClientLookupActivity::class.java)
                 .putExtra("AddParentTitle", title)
                 .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CASE_FORM)
         )
