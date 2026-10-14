@@ -112,6 +112,8 @@ class EditSupervisorChecklistViewModel(
 
         // Questions changed from a date to a date and time keep their saved date.
         FormPrefill.upgradeDateAnswers(questionnaire, questionnaireResponse)
+        // Questions changed from typed text to a list (e.g. travel origin country).
+        FormPrefill.upgradeTextToChoiceAnswers(questionnaire, questionnaireResponse)
 
         // Convert the existing QuestionnaireResponse to JSON string
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
