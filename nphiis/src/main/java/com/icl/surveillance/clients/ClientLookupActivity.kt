@@ -22,6 +22,8 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.databinding.ActivityClientLookupBinding
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.models.ClientDemographics
 import com.icl.surveillance.models.ClientLookupOutcome
 import com.icl.surveillance.models.LookupSource
@@ -580,8 +582,13 @@ class ClientLookupActivity : AppCompatActivity() {
      */
     private fun openForm(prefill: Map<String, String>, locked: Set<String> = emptySet()) {
         internetDialog?.dismiss()
-        if (prefill.isEmpty()) FormPrefill.clear(this)
-        else FormPrefill.stage(this, questionnaireFile, prefill, locked)
+        // Registering a contact of a case: keep the contact details its Contacts tab staged
+        // (Type of case, exposure, disease, source EPID) and add what was found here.
+        val contact = if (isContactRegistration()) FormPrefill.peek(this, questionnaireFile) else null
+        val values = contact?.values.orEmpty() + prefill
+        val lockedIds = contact?.locked.orEmpty() + locked
+        if (values.isEmpty()) FormPrefill.clear(this)
+        else FormPrefill.stage(this, questionnaireFile, values, lockedIds)
         val formIntent = Intent(this, AddParentCaseActivity::class.java).apply {
             putExtras(intent)
             addFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT)
@@ -591,6 +598,9 @@ class ClientLookupActivity : AppCompatActivity() {
     }
 
     // ---- Helpers
+
+    private fun isContactRegistration(): Boolean =
+        !FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this).isNullOrBlank()
 
     private fun initials(name: String): String =
         name.split(Regex("\\s+")).filter { it.isNotEmpty() }
