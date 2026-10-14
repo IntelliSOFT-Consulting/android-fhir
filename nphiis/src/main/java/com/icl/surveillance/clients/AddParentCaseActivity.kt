@@ -361,6 +361,8 @@ class AddParentCaseActivity : AppCompatActivity() {
         FormatterClass().deleteSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this)
         FormatterClass().deleteSharedPref(com.icl.surveillance.fhir.forms.VhfScreened.PREF_SOURCE, this)
         FormPrefill.clear(this)
+        // A residence picked for this form applies to it only.
+        com.icl.surveillance.fhir.forms.ResidenceLocation.clear(this)
     }
 
     /** Set when this form opened the saved case's Contacts tab; see [onDestroy]. */

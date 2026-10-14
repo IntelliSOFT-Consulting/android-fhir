@@ -33,6 +33,8 @@ val nphiisConfig = linkedMapOf(
     "DHA_CLIENT_ID" to ("nphiis.dha.clientId" to false),
     "DHA_CLIENT_SECRET" to ("nphiis.dha.clientSecret" to false),
     "CR_BASE_URL" to ("nphiis.cr.baseUrl" to true),
+    // Google Maps + Places (residence picker). Optional: without it the map shows no tiles.
+    "MAPS_API_KEY" to ("nphiis.mapsApiKey" to false),
 )
 
 val missingNphiisKeys = nphiisConfig.values
@@ -64,6 +66,8 @@ android {
         nphiisConfig.forEach { (field, keyAndRequired) ->
             buildConfigField("String", field, quoted(localProperties.getProperty(keyAndRequired.first)?.trim() ?: ""))
         }
+        // Maps SDK reads its key from the manifest (com.google.android.geo.API_KEY).
+        manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("nphiis.mapsApiKey")?.trim() ?: ""
     }
     buildTypes {
         release {
@@ -127,6 +131,9 @@ dependencies {
     implementation("com.google.android.play:app-update:2.1.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    // Residence picker map. Place search uses the Places API (New) over HTTP (PlacesSearch):
+    // the Places SDK needs Guava 33, but :engine / :datacapture pin Guava 32.1.3.
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

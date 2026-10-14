@@ -20,6 +20,10 @@
         android:theme="@style/Theme.Surveillance"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <!-- Google Maps / Places key from local.properties (nphiis.mapsApiKey). -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
         <activity
             android:name=".auth.PinLockActivity"
             android:exported="false"
@@ -33,6 +37,11 @@
             android:name=".clients.ScreenedCaseDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
+        <activity
+            android:name=".clients.ResidencePickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Surveillance.NoActionBar"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".clients.ClientLookupActivity"
             android:exported="false"

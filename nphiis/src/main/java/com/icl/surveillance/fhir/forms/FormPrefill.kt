@@ -59,6 +59,21 @@ object FormPrefill {
     fun takeStaged(context: Context, questionnaireFile: String?): Staged =
         peek(context, questionnaireFile).also { clear(context) }
 
+    /**
+     * Adds [values] to what is already staged for [questionnaireFile] (staged values win unless
+     * [overwrite]); locked linkIds are kept.
+     */
+    fun add(
+        context: Context,
+        questionnaireFile: String,
+        values: Map<String, String>,
+        overwrite: Boolean = false,
+    ) {
+        val current = peek(context, questionnaireFile)
+        val merged = if (overwrite) current.values + values else values + current.values
+        stage(context, questionnaireFile, merged, current.locked)
+    }
+
     /** The values and locked linkIds staged for [questionnaireFile], left staged. */
     fun peek(context: Context, questionnaireFile: String?): Staged {
         val formatter = FormatterClass()
@@ -268,6 +283,8 @@ object FormPrefill {
             Questionnaire.QuestionnaireItemType.DATE -> runCatching { DateType(raw) }.getOrNull()
             Questionnaire.QuestionnaireItemType.DATETIME -> runCatching { DateTimeType(raw) }.getOrNull()
             Questionnaire.QuestionnaireItemType.INTEGER -> raw.toIntOrNull()?.let { IntegerType(it) }
+            Questionnaire.QuestionnaireItemType.DECIMAL ->
+                raw.toBigDecimalOrNull()?.let { org.hl7.fhir.r4.model.DecimalType(it) }
             Questionnaire.QuestionnaireItemType.STRING,
             Questionnaire.QuestionnaireItemType.TEXT -> StringType(raw)
 

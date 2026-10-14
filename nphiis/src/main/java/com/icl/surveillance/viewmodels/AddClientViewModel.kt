@@ -28,6 +28,7 @@ import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.PatientMapper
+import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.StandardSpecimen
@@ -657,6 +658,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             val facility = formatter.getSharedPref("facility", context)
 
+            // Residence picked on the map before the form (contacts). Its name / lat / long are
+            // already answers of the form (hidden residence-map-* questions); here it is also
+            // added to the Patient's address (geolocation) and the response (extension).
+            val residence = if (caseOverride == null) ResidenceLocation.take(context) else null
             val extractedAnswers = extractStructuredAnswers(questionnaireResponse, "")
 
 
@@ -990,6 +995,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.MPOX))
                 }
+            }
+            residence?.let {
+                // After the module mapping, so the county address stays the first address.
+                it.appendTo(questionnaireResponse, patient)
+                Timber.tag("RESIDENCE_PICKER").d("Appended residence to the submission: %s", it.label)
             }
             withMetaTags(patient)
             withMetaTags(enc)

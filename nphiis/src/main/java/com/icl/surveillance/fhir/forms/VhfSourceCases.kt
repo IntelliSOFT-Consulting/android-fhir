@@ -16,7 +16,8 @@ import org.json.JSONObject
  * "Contact Link to Case" on the VHF case form a contact names the
  * case it was in contact with by that case's EPID number. The EPID number is assigned by the server,
  * so only cases already synced to this device can be offered; any other can be typed in.
- * Only cases confirmed by the lab (latest final result Positive) are offered as sources.
+ * Suspected, probable and confirmed cases are offered (latest "Type of case"), plus any record
+ * confirmed by the lab (latest final result Positive); contacts are not.
  */
 object VhfSourceCases {
 
@@ -27,17 +28,24 @@ object VhfSourceCases {
         patient.identifier.firstOrNull { it.type.codingFirstRep.code == FhirSystems.EPID }
             ?.value?.trim()?.takeIf { it.isNotBlank() && !it.endsWith("-") }
 
+    /** "Type of case" answers that make a record a possible source of contacts. */
+    private val SOURCE_CASE_TYPES = setOf("suspected", "probable", "confirmed")
+
     /**
-     * Lab-confirmed VHF cases on this device that have an EPID number, newest first. Starts from
-     * the final-result answers (one indexed search) instead of scanning every patient, then loads
-     * only the patients whose latest final result is Positive.
+     * Suspected, probable and confirmed VHF cases on this device that have an EPID number,
+     * newest first, labelled "EPID  Name (Type)". Starts from the case-type and final-result
+     * answers (indexed searches) instead of scanning every patient.
      */
     suspend fun options(
         fhirEngine: FhirEngine,
         excludePatientId: String? = null,
         training: Boolean? = null, // Trainings lists only training cases; VHF only real ones
-    ): List<SourceOption> =
-        confirmedPatientIds(fhirEngine)
+    ): List<SourceOption> {
+        val byCaseType = caseTypePatientIds(fhirEngine)
+        val labConfirmed = confirmedPatientIds(fhirEngine)
+        val types: Map<String, String> =
+            byCaseType + labConfirmed.associateWith { "Confirmed" } // the lab result wins
+        return types.keys
             .filter { it != excludePatientId }
             .mapNotNull { id -> runCatching { fhirEngine.get<Patient>(id) }.getOrNull() }
             .filter { patient -> patient.identifier.any { it.system == CaseSlugs.VHF } }
@@ -46,9 +54,33 @@ object VhfSourceCases {
             .mapNotNull { patient ->
                 val epid = epidOf(patient) ?: return@mapNotNull null
                 val name = patient.nameFirstRep.nameAsSingleString.trim()
-                SourceOption(epid, patient.logicalId, if (name.isBlank()) epid else "$epid  $name")
+                val type = types[patient.logicalId]?.let { " ($it)" }.orEmpty()
+                SourceOption(
+                    epid, patient.logicalId,
+                    (if (name.isBlank()) epid else "$epid  $name") + type,
+                )
             }
             .distinctBy { it.epid }
+    }
+
+    /**
+     * Patient id -> type ("Suspected" / "Probable" / "Confirmed") for records whose latest
+     * "Type of case" answer is one of those (contacts are left out).
+     */
+    private suspend fun caseTypePatientIds(fhirEngine: FhirEngine): Map<String, String> =
+        fhirEngine.search<Observation> {
+            filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.CASE_TYPE }) })
+        }
+            .map { it.resource }
+            .filter { it.status != Observation.ObservationStatus.ENTEREDINERROR && it.hasValue() }
+            .groupBy { obs -> obs.subject.reference?.let { IdType(it).idPart } }
+            .mapNotNull { (patientId, answers) ->
+                val latest = answers.maxByOrNull { maxOf(it.issued?.time ?: 0L, it.meta.lastUpdated?.time ?: 0L) }
+                val type = latest?.value?.asStringValue()?.trim().orEmpty()
+                if (patientId.isNullOrBlank() || type.lowercase() !in SOURCE_CASE_TYPES) null
+                else patientId to type.replaceFirstChar { it.uppercase() }
+            }
+            .toMap()
 
     /**
      * Ids of patients whose most recent VHF final lab result is Positive ("Confirmed by lab").

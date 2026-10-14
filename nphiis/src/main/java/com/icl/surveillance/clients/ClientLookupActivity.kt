@@ -20,6 +20,7 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.databinding.ActivityClientLookupBinding
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.models.ClientDemographics
@@ -510,7 +511,14 @@ class ClientLookupActivity : AppCompatActivity() {
         val lockedIds = contact?.locked.orEmpty() + locked
         if (values.isEmpty()) FormPrefill.clear(this)
         else FormPrefill.stage(this, questionnaireFile, values, lockedIds)
-        val formIntent = Intent(this, AddParentCaseActivity::class.java).apply {
+        // Contacts: pick where the person lives on the map, then the form opens.
+        val formIntent = if (isContactRegistration()) {
+            ResidenceLocation.clear(this)
+            Intent(this, ResidencePickerActivity::class.java)
+                .putExtra(ResidencePickerActivity.EXTRA_OPEN_FORM, true)
+        } else {
+            Intent(this, AddParentCaseActivity::class.java)
+        }.apply {
             putExtras(intent)
             addFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT)
         }

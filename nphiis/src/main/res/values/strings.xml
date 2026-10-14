@@ -309,4 +309,17 @@
         <item quantity="one">%d screened person waiting for a case investigation</item>
         <item quantity="other">%d screened people waiting for a case investigation</item>
     </plurals>
+    <string name="residence_screen_title">Residence location</string>
+    <string name="residence_title">Where does this person live?</string>
+    <string name="residence_search_hint">Search a place, estate or landmark</string>
+    <string name="residence_move_map">Move the map to place the pin on the home</string>
+    <string name="residence_pin">Selected location</string>
+    <string name="residence_my_location">Use my current location</string>
+    <string name="residence_confirm">Confirm location</string>
+    <string name="residence_skip">Skip for now</string>
+    <string name="residence_dropped_pin">Dropped pin</string>
+    <string name="residence_no_results">No places found</string>
+    <string name="residence_search_failed">Search is not available right now. Move the map to the home instead.</string>
+    <string name="residence_no_key">Map key missing: set nphiis.mapsApiKey in local.properties.</string>
+    <string name="residence_location_off">Could not get your current location. Turn on location and try again.</string>
 </resources>
