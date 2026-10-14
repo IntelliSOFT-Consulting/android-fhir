@@ -26,10 +26,13 @@ import com.icl.surveillance.cases.CaseListingActivity
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.clients.AddParentCaseActivity
 import com.icl.surveillance.clients.ClientLookupActivity
+import com.icl.surveillance.clients.ScreenedCasesActivity
 import com.icl.surveillance.databinding.FragmentCaseSelectionBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.models.CaseOption
 import com.icl.surveillance.models.LocationLevel
@@ -218,6 +221,7 @@ class CaseSelectionFragment : Fragment() {
                 "Visceral Leishmaniasis Case Management Form" -> "VL"
                 getString(R.string.vhf_form) -> "VHF"
                 getString(R.string.trainings) -> "VHF Training"
+                getString(R.string.alert_log) -> ALERT_LOG_TITLE
                 "Social Listening and Rumor Tracking Tool" -> "SLR"
                 "RCCE Tools" -> "RCCE"
                 else -> titleName
@@ -229,6 +233,7 @@ class CaseSelectionFragment : Fragment() {
                 "Social Investigation Form" -> "Add New Social Investigation Form"
                 "Summary Sheet" -> "Add New Team Record"
                 "Mpox Register" -> "Add New Mpox Register"
+                ALERT_LOG_TITLE -> ADD_ALERT
                 else -> "Add New $title Case"
             }
         val view =
@@ -236,10 +241,16 @@ class CaseSelectionFragment : Fragment() {
                 "SLR" -> "View Reported Cases"
                 "Social Investigation Form" -> "Social Investigation Reports"
                 "Mpox Register" -> "Mpox Register List"
+                ALERT_LOG_TITLE -> ALERT_LOG_LIST
                 else -> "$title Case List"
             }
         val caseOptions =
             mutableListOf(CaseOption(add), CaseOption(view, showCount = true, count = 0))
+        // VHF only: people screened at points of entry etc., waiting for a case investigation.
+        val screenedIndex = if (title == "VHF") {
+            caseOptions.add(CaseOption(SCREENED_CASES, showCount = true, count = 0))
+            caseOptions.lastIndex
+        } else -1
 
         // VHF and VHF Training share the VHF workflow; the mode decides which records are listed
         // and whether new ones are marked as training (test_xxxx).
@@ -557,6 +568,41 @@ class CaseSelectionFragment : Fragment() {
                         startActivity(Intent(requireContext(), CaseListingActivity::class.java))
                     }
 
+                    ADD_ALERT -> {
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.ALERT_LOG, requireContext())
+                        FormatterClass().saveSharedPref(
+                            "AddParentTitle",
+                            getString(R.string.alert_log),
+                            requireContext(),
+                        )
+                        FormatterClass().saveSharedPref(
+                            "questionnaire",
+                            FormFields.AlertLog.FORM,
+                            requireContext()
+                        )
+                        if (!checkIfUserIsAllowedToAction()) {
+                            showPermissionErrorDialog(requireContext())
+                            return@CaseOptionsAdapter
+                        }
+                        val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
+                        intent.putExtra("AddParentTitle", " $titleName")
+                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.AlertLog.FORM)
+                        addParentCaseLauncher.launch(intent)
+                    }
+
+                    ALERT_LOG_LIST -> {
+                        FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.ALERT_LOG, requireContext())
+                        startActivity(Intent(requireContext(), CaseListingActivity::class.java))
+                    }
+
+                    SCREENED_CASES -> {
+                        VhfTraining.setOn(requireContext(), false)
+                        addParentCaseLauncher.launch(
+                            Intent(requireContext(), ScreenedCasesActivity::class.java)
+                        )
+                    }
+
                     "VHF Case List" -> {
                         VhfTraining.setOn(requireContext(), false)
                         FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
@@ -727,6 +773,7 @@ class CaseSelectionFragment : Fragment() {
                 "VL" -> CaseSlugs.VL
                 "VHF" -> CaseSlugs.VHF
                 "VHF Training" -> CaseSlugs.VHF
+                ALERT_LOG_TITLE -> CaseSlugs.ALERT_LOG
                 "SLR" -> CaseSlugs.RUMOR
                 "Social Investigation Form" -> CaseSlugs.RCCE
                 "MOH 505" -> CaseSlugs.MOH_505
@@ -743,6 +790,15 @@ class CaseSelectionFragment : Fragment() {
         val storedSubCounty = formatter.getSharedPref("subCountyName", requireContext())
         val userRole = UserRole.fromAny(storedRole ?: "")
         val roleScope = userRole?.scope
+        if (screenedIndex >= 0) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val screened = runCatching { VhfScreened.count(fhirEngine) }.getOrDefault(0)
+                if (screenedIndex < caseOptions.size) {
+                    caseOptions[screenedIndex] = caseOptions[screenedIndex].copy(count = screened)
+                    recyclerView.adapter?.notifyDataSetChanged()
+                }
+            }
+        }
         caseType?.let {
             try {
                 when (it) {
@@ -918,6 +974,10 @@ class CaseSelectionFragment : Fragment() {
 
     companion object {
         private const val VHF_QUESTIONNAIRE = "vhf-case.json"
+        private const val ALERT_LOG_TITLE = "Alert Log"
+        private const val ADD_ALERT = "Add New Alert"
+        private const val ALERT_LOG_LIST = "Alert Log List"
+        private const val SCREENED_CASES = "Screened Cases"
 
         /**
          * Use this factory method to create a new instance of this fragment using the provided

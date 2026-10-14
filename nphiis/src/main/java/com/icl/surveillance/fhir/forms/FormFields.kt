@@ -24,9 +24,12 @@ object CaseTypes {
     const val RCCE_COMMUNITY = "RCCE - Community Questionnaire"
     const val RCCE_COUNTY = "RCCE - County/Subcounty Interface"
 
+    /** Outbreak Response: alert / rumour log (client's Alert_log_rumour_log form). */
+    const val ALERT_LOG = "Alert Rumor Log"
+
     /** Modules whose submissions create a case (Patient + Encounter) and appear in case lists. */
     val CASE_LISTED = listOf(
-        MEASLES, AFP, VL, VHF, MOH_505, MPOX_INFORMATION, RCCE_COMMUNITY, RCCE_COUNTY,
+        MEASLES, AFP, VL, VHF, MOH_505, MPOX_INFORMATION, RCCE_COMMUNITY, RCCE_COUNTY, ALERT_LOG,
     )
 }
 
@@ -59,6 +62,7 @@ object CaseSlugs {
     const val MPOX_SUPERVISOR_CHECKLIST = "mpox-supervisor-checklist"
     const val RCCE_COMMUNITY = "rcce-community-questionnaire"
     const val RCCE_COUNTY = "rcce-countysubcounty-interface"
+    const val ALERT_LOG = "alert-rumor-log"
 
     /** List-screen key covering both RCCE forms. */
     const val RCCE = "rcce"
@@ -279,6 +283,23 @@ object FormFields {
         const val OUTCOME = "vhf-outcome"
         const val CASE_STATUS = "vhf-case-status"
         const val SAMPLES_COLLECTED = "vhf-samples-collected"
+        const val SAMPLE_TYPE = "vhf-sample-type"
+        const val SAMPLE_TYPE_OTHER = "vhf-sample-type-other"
+        const val SAMPLE_TISSUE_TYPE = "vhf-sample-tissue-type"
+        const val SAMPLE_TRANSPORT = "vhf-sample-transport"
+        const val SAMPLE_TRANSPORT_OTHER = "vhf-sample-transport-other"
+        const val SAMPLE_TRANSPORT_ROAD = "vhf-sample-transport-road"
+        const val COLLECTION_DATE = "vhf-collection-date"
+        const val SENT_DATE = "vhf-sent-date"
+
+        /**
+         * Screened people (points of entry, community screening): a Patient + its screening
+         * QuestionnaireResponse, marked with this identifier system until a case investigation is
+         * done. On investigation the identifier is renamed to [SCREENING_NUMBER_SYSTEM].
+         */
+        const val SCREENED_SYSTEM = "vhf-screened"
+        val SCREENED_SYSTEMS = setOf(SCREENED_SYSTEM, "screened")
+        const val SCREENING_NUMBER_SYSTEM = "vhf-screening-number"
         const val PRELIMINARY_RESULT = "vhf-preliminary-result"
         const val FINAL_RESULT = "vhf-final-result"
 
@@ -325,6 +346,26 @@ object FormFields {
         /** Answers shown on (and searched in) the rumor list. */
         val LIST_FIELDS = listOf(VILLAGE, REPORTING_CADRE, REPORTING_CADRE_OTHER, AGENCY, AGENCY_OTHER) +
                 ReportingSite.COUNTY_VARIANTS + ReportingSite.SUB_COUNTY_VARIANTS
+    }
+
+    /** Alert / rumour log (alert-rumor-log.json). No illness dates, lab results or classification. */
+    object AlertLog {
+        const val FORM = "alert-rumor-log.json"
+        const val DATE = "alert-date"
+        const val MOBILE = "alert-mobile"
+        const val HOME_COUNTRY = "alert-home-country"
+        const val AGE = "492731638700"
+        const val LOCATION = "alert-location"
+        const val VILLAGE = "alert-village"
+        const val SOURCE_TYPE = "alert-source-type"
+        const val REPORTER_NAME = "alert-reporter-name"
+        const val REPORTER_MOBILE = "alert-reporter-mobile"
+        const val REPORTER_DESIGNATION = "alert-reporter-designation"
+        const val SUSPECTED = "alert-suspected"
+        const val SUSPECTED_OTHER = "alert-suspected-other"
+        const val SIGNS = "alert-signs"
+        const val FACILITY = "alert-facility"
+        const val DESCRIPTION = "alert-description"
     }
 
     object Geo {

@@ -22,6 +22,7 @@ import com.ibm.icu.text.SimpleDateFormat
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.EpidNumber
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
@@ -29,7 +30,10 @@ import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.StandardSpecimen
+import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.fhir.forms.VhfTraining
+import com.icl.surveillance.ui.patients.CaseIdentifierIndex
 import com.icl.surveillance.fhir.forms.answerOf
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
@@ -566,6 +570,42 @@ class AddClientViewModel(application: Application, private val state: SavedState
     /** Outcome of a persist call, used by the UI and by the synthetic data generator. */
     enum class PersistResult { SAVED, INVALID, FAILED }
 
+    /** Logcat tag of the screened -> VHF case transition. */
+    private val SCREENED_LOG = "SCREENED_SAVE"
+
+    /**
+     * The screened person a VHF case investigation was started from (Screened Cases), or null.
+     * Only for the interactive VHF form: synthetic data passes [caseOverride].
+     */
+    private suspend fun screenedSource(context: Context, caseOverride: String?): Patient? {
+        if (caseOverride != null) return null
+        val formatter = FormatterClass()
+        if (formatter.getSharedPref("currentCase", context) != CaseTypes.VHF) return null
+        val id = formatter.getSharedPref(VhfScreened.PREF_SOURCE, context)
+            ?.takeIf { it.isNotBlank() } ?: return null
+        val patient = runCatching { fhirEngine.get(ResourceType.Patient, id) as Patient }
+            .onFailure { Timber.tag(SCREENED_LOG).w(it, "Screened patient %s not found", id) }
+            .getOrNull()
+        Timber.tag(SCREENED_LOG).d(
+            "Investigating screened %s: found=%s screened=%s", id, patient != null,
+            patient?.let { VhfScreened.isScreened(it) },
+        )
+        return patient?.takeIf { VhfScreened.isScreened(it) }
+    }
+
+    /**
+     * The screened person's identifiers plus the new case's. The screened marker is renamed to
+     * the screening number, so the person leaves the screened list; duplicates are dropped.
+     */
+    private fun mergeIdentifiers(old: List<Identifier>, new: List<Identifier>): MutableList<Identifier> =
+        (old.map { identifier ->
+            if (identifier.system in FormFields.Vhf.SCREENED_SYSTEMS) {
+                identifier.copy().setSystem(FormFields.Vhf.SCREENING_NUMBER_SYSTEM)
+            } else identifier
+        }.filterNot { it.system == FhirSystems.SYSTEM_CREATION } + new)
+            .distinctBy { "${it.system}|${it.value}" }
+            .toMutableList()
+
     /**
      * Validates [questionnaireResponse] and runs the full case-extraction workflow
      * (Patient, Encounter, QuestionnaireResponse, EPID + per-answer Observations, Specimens,
@@ -602,7 +642,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
             identifierSystem0.system = FhirSystems.SYSTEM_CREATION
             identifierSystem0.type = typeCodeableConcept0
 
-            val patientId = generateUuid()
+            // A case investigation started from a screened person (Screened Cases) continues that
+            // person's Patient and screening response instead of creating new ones.
+            val screened: Patient? = screenedSource(context, caseOverride)
+            val screeningResponse: QuestionnaireResponse? =
+                screened?.let { VhfScreened.screeningResponse(fhirEngine, it.logicalId) }
+            val patientId = screened?.logicalId ?: generateUuid()
             val subjectReference = Reference("Patient/$patientId")
             val formatter = FormatterClass()
 
@@ -703,8 +748,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 subjectReference, encounterReference, context, answers
             )
 
-            suspend fun saveSpecimen(linkId: String, date: String, type: String) =
-                createSpecimenResource(linkId, date, type, subjectReference, context, answers)
+            suspend fun saveSpecimen(
+                linkId: String,
+                date: String?,
+                type: String,
+                notes: List<String> = emptyList(),
+            ) = createSpecimenResource(
+                linkId, date, type, subjectReference, encounterReference, notes, context, answers
+            )
 
             fun startSummaryMeasure(label: String) {
                 patient.nameFirstRep.family = label
@@ -871,6 +922,57 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     if (VhfTraining.isOn(context)) VhfTraining.mark(patient)
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VHF))
+
+                    // Laboratory (specimen collection): one standard Specimen per collection.
+                    if (answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED).equals("yes", ignoreCase = true)) {
+                        val answeredType = answers.answerOf(FormFields.Vhf.SAMPLE_TYPE)
+                        val type = when {
+                            answeredType == null -> "Unspecified"
+                            answeredType.startsWith("Other", ignoreCase = true) ->
+                                answers.answerOf(FormFields.Vhf.SAMPLE_TYPE_OTHER) ?: answeredType
+                            else -> answeredType
+                        }
+                        val transport = answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT)?.let { mode ->
+                            when {
+                                mode.startsWith("Other", ignoreCase = true) ->
+                                    answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT_OTHER) ?: mode
+                                mode.equals("Road", ignoreCase = true) ->
+                                    answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT_ROAD)
+                                        ?.let { "Road ($it)" } ?: mode
+                                else -> mode
+                            }
+                        }
+                        saveSpecimen(
+                            FormFields.Vhf.SAMPLE_TYPE,
+                            answers.answerOf(FormFields.Vhf.COLLECTION_DATE),
+                            type,
+                            listOfNotNull(
+                                answers.answerOf(FormFields.Vhf.SAMPLE_TISSUE_TYPE)
+                                    ?.takeIf { type == "Tissue" }?.let { "Tissue type: $it" },
+                                transport?.let { "Transport: $it" },
+                                answers.answerOf(FormFields.Vhf.SENT_DATE)?.let { "Sent to the laboratory: $it" },
+                            ),
+                        )
+                    }
+                }
+
+                CaseSlugs.ALERT_LOG -> {
+                    // The person affected, when known (name is optional on an alert).
+                    PatientMapper.applyName(
+                        patient,
+                        first = answers.answerOf(FormFields.Person.FIRST_NAME),
+                        middle = null,
+                        surname = answers.answerOf(FormFields.Person.SURNAME),
+                        order = PatientMapper.NameOrder.SURNAME_AS_FAMILY
+                    )
+                    if (!patient.nameFirstRep.hasFamily() && !patient.nameFirstRep.hasGiven()) {
+                        patient.nameFirstRep.family = "Alert"
+                    }
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+                    answers.answerOf(FormFields.AlertLog.MOBILE)
+                        ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.ALERT_LOG))
                 }
 
                 CaseSlugs.MOH_505 -> {
@@ -910,13 +1012,28 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     patient.identifier.add(identifierSystem0)
                     patient.identifier.add(identifierSystem)
                     patient.active = true
-                    fhirEngine.create(patient)
+                    if (screened != null) {
+                        // Keep the screened person's identity: same id, earlier identifiers kept
+                        // (the screened marker becomes the screening number) and links merged.
+                        // The Patient is updated last, once the case itself is saved.
+                        patient.identifier = mergeIdentifiers(screened.identifier, patient.identifier)
+                        patient.link = (screened.link + patient.link)
+                            .distinctBy { it.other?.reference }.toMutableList()
+                    } else {
+                        fhirEngine.create(patient)
+                        CaseIdentifierIndex.put(patient)
+                    }
                     fhirEngine.create(FhirConformance.ensureRequired(enc))
-                    questionnaireResponse.id = generateUuid()
                     questionnaireResponse.subject = subjectReference
                     questionnaireResponse.encounter = encounterReference
-
-                    fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
+                    if (screeningResponse != null) {
+                        // The screening response becomes the case's response.
+                        questionnaireResponse.id = screeningResponse.logicalId
+                        fhirEngine.update(FhirConformance.ensureRequired(questionnaireResponse))
+                    } else {
+                        questionnaireResponse.id = generateUuid()
+                        fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
+                    }
 
                     extractedAnswers.forEach {
 
@@ -987,9 +1104,24 @@ class AddClientViewModel(application: Application, private val state: SavedState
                             fhirEngine.create(measure)
                         }
                     }
+                    if (screened != null) {
+                        // Screened person -> VHF case: switch identity now that the case is saved.
+                        fhirEngine.update(patient)
+                        CaseIdentifierIndex.put(patient)
+                        FormatterClass().deleteSharedPref(VhfScreened.PREF_SOURCE, context)
+                        Timber.tag(SCREENED_LOG).d(
+                            "Patient %s is now a VHF case: encounter=%s identifiers=%s county=%s active=%s",
+                            patient.logicalId, encounterId,
+                            patient.identifier.map { "${it.system}=${it.value}" },
+                            patient.addressFirstRep.city, patient.active,
+                        )
+                    }
                     PersistResult.SAVED
                 } catch (e: Exception) {
                     Timber.tag("TAG").e(e, "Error experienced ${e.message}")
+                    if (screened != null) {
+                        Timber.tag(SCREENED_LOG).e(e, "Saving the case of screened %s failed", screened.logicalId)
+                    }
                     PersistResult.FAILED
                 }
             }
@@ -1115,69 +1247,38 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }
     }
 
+    /** A standard FHIR R4 Specimen (see [StandardSpecimen]) linked to the case Encounter. */
     private suspend fun createSpecimenResource(
         linkId: String,
-        dateAnswer: String,
-        string: String,
+        dateAnswer: String?,
+        type: String,
         subjectReference: Reference,
+        encounterReference: Reference,
+        notes: List<String>,
         context: Context,
         extractedAnswers: List<QuestionnaireAnswer>
     ) {
-        val specimenCoding = Coding()
-        specimenCoding.code = linkId
-        specimenCoding.system = "specimen-details"
-        specimenCoding.display = string
-
-        val specimenType = CodeableConcept()
-        specimenType.text = string
-        specimenType.addCoding(specimenCoding)
-
         try {
-            val dateOnly = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(
-                dateAnswer
+            val specimen = StandardSpecimen.build(
+                sourceLinkId = linkId,
+                specimenType = type,
+                collected = dateAnswer,
+                subjectRef = subjectReference,
+                encounterRef = encounterReference,
+                notes = notes,
             )
-
-            val calendar = Calendar.getInstance()
-            calendar.time = dateOnly!!
-            val now = Calendar.getInstance()
-            calendar.set(
-                Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY)
-            )
-            calendar.set(Calendar.MINUTE, now.get(Calendar.MINUTE))
-            calendar.set(Calendar.SECOND, now.get(Calendar.SECOND))
-            calendar.set(
-                Calendar.MILLISECOND, now.get(Calendar.MILLISECOND)
-            )
-
-
-            val dateTime = DateTimeType()
-            dateTime.value = calendar.time
-
-            val collection = Specimen.SpecimenCollectionComponent()
-            collection.setCollected(dateTime)
-
-            val specimen = Specimen()
-            specimen.subject = subjectReference
-            specimen.type = specimenType
-            specimen.collection = collection
+            specimen.id = generateUuid()
             val facility = FormatterClass().getSharedPref("facility", context)
             specimen.meta = Meta().apply {
                 tag = listOf(
-                    sourceMetaTag("measure", facility, context, extractedAnswers)
+                    sourceMetaTag("specimen", facility, context, extractedAnswers)
                 )
             }
-            specimen.addExtension(
-                sourceExtension(
-                    "specimen",
-                    context,
-                    extractedAnswers
-                )
-            )
+            specimen.addExtension(sourceExtension("specimen", context, extractedAnswers))
             withMetaTags(specimen)
             fhirEngine.create(specimen)
-
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.tag("SPECIMEN").e(e, "Could not save the %s specimen", type)
         }
     }
 
@@ -1296,28 +1397,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
     private fun extractStructuredAnswersFromItems(
         items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
-    ): List<QuestionnaireAnswer> {
-        val results = mutableListOf<QuestionnaireAnswer>()
-
-        fun processItem(item: QuestionnaireResponse.QuestionnaireResponseItemComponent) {
-            val linkId = item.linkId ?: ""
-            val text = item.text ?: ""
-
-            if (item.answer.isNotEmpty()) {
-                val values = item.answer.mapNotNull { extractAnswerValue(it) }
-                if (values.isNotEmpty()) {
-                    results.add(QuestionnaireAnswer(linkId, text, values.joinToString(", ")))
-                }
-            }
-
-            if (item.item.isNotEmpty()) {
-                item.item.forEach { child -> processItem(child) }
-            }
+    ): List<QuestionnaireAnswer> =
+        items.flatMap { item ->
+            val values = item.answer.mapNotNull { extractAnswerValue(it) }
+            val own = if (values.isNotEmpty()) {
+                listOf(QuestionnaireAnswer(item.linkId ?: "", item.text ?: "", values.joinToString(", ")))
+            } else emptyList()
+            own + extractStructuredAnswersFromItems(item.item)
         }
-
-        items.forEach { processItem(it) }
-        return results
-    }
 
     private fun extractAnswerValue(
         answer: QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent

@@ -18,6 +18,7 @@ import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.viewmodels.AddClientViewModel
 import com.icl.surveillance.viewmodels.AddClientViewModel.PersistResult
 import java.util.Calendar
@@ -73,7 +74,11 @@ object SyntheticDataGenerator {
     private const val LEGACY_TAG_SYSTEM = "http://nphiis.health.go.ke/fhir/CodeSystem/test-data"
     private const val LOG_TAG = "SyntheticData"
 
-    enum class SaveMode { CASE, STANDALONE }
+    /**
+     * CASE: the full case workflow; STANDALONE: response only (supervisor checklist);
+     * SCREENED: a screened person, Patient + screening response only (VHF Screened Cases).
+     */
+    enum class SaveMode { CASE, STANDALONE, SCREENED }
 
     data class Module(
         /** Value stored in the `currentCase` preference / Encounter.reasonCode. */
@@ -91,6 +96,14 @@ object SyntheticDataGenerator {
         Module(CaseTypes.AFP, "AFP case", "afp-case.json", diseases = listOf("polio")),
         Module(CaseTypes.VL, "VL case", "vl-case.json", diseases = listOf("kala-azar")),
         Module(CaseTypes.VHF, "VHF case", "vhf-case.json", diseases = listOf("Ebola", "Marburg")),
+        Module(
+            CaseTypes.VHF,
+            "VHF screened (Patient + response only)",
+            "vhf-case.json",
+            SaveMode.SCREENED,
+            diseases = listOf("Ebola", "Marburg"),
+        ),
+        Module(CaseTypes.ALERT_LOG, "Alert / rumour log", FormFields.AlertLog.FORM),
         Module(CaseTypes.MOH_505, "MOH 505 report", "moh505.json"),
         Module(CaseTypes.MPOX_REGISTER, "Mpox register", "mpox-register.json", diseases = listOf("mpox")),
         Module(CaseTypes.MPOX_TALLY_SHEET, "Mpox tally sheet", "mpox-tally-sheet.json", diseases = listOf("mpox")),
@@ -315,6 +328,16 @@ object SyntheticDataGenerator {
                     SaveMode.STANDALONE -> viewModel.persistUserResponse(
                         clone, module.caseName, app
                     )
+
+                    SaveMode.SCREENED -> {
+                        // Screening captures demographics, travel and clinical details only.
+                        clone.item = clone.item
+                            .filter { it.linkId in VhfScreened.SCREENING_SECTIONS.keys }
+                            .toMutableList()
+                        runCatching { VhfScreened.createScreened(engine, clone) }
+                            .onFailure { Timber.tag(LOG_TAG).e(it, "Could not save a screened person") }
+                            .fold({ PersistResult.SAVED }, { PersistResult.FAILED })
+                    }
                 }
                 if (result == PersistResult.SAVED) logGenerated(app, module, clone)
                 if (result != PersistResult.INVALID) break

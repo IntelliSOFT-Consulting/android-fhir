@@ -26,6 +26,14 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
         <activity
+            android:name=".clients.ScreenedCasesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Surveillance.NoActionBar" />
+        <activity
+            android:name=".clients.ScreenedCaseDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Surveillance.NoActionBar" />
+        <activity
             android:name=".clients.ClientLookupActivity"
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar"

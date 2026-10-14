@@ -287,9 +287,9 @@ class PatientListViewModel(
                         )
                     }
                 }.map { it.resource }.groupBy { it.encounter.referenceElement.idPart }
-                visible.forEach { encounter ->
-                    all.add(encounter.toRumorItem(observations[encounter.logicalId].orEmpty()))
-                }
+                all.addAll(visible.map { encounter ->
+                    encounter.toRumorItem(observations[encounter.logicalId].orEmpty())
+                })
             }
             onProgress(all.sortedByDescending { it.lastUpdated })
             if (page.size < RUMOR_PAGE_SIZE) break
@@ -838,9 +838,12 @@ class PatientListViewModel(
                             it.system == CaseSlugs.RCCE_COMMUNITY || it.system == CaseSlugs.RCCE_COUNTY
                         }
 
-                        else -> fhirPatient.resource.identifier.find {
+                        else -> (fhirPatient.resource.identifier.find {
                             it.system == nameQuery
-                        }?.takeIf {
+                        } ?: batches?.caseEncounterFor(fhirPatient.resource.logicalId)?.let { encounterId ->
+                            // Found by the case Encounter only (no case identifier on the Patient).
+                            Identifier().setSystem(nameQuery).setValue(encounterId)
+                        })?.takeIf {
                             // VHF and Trainings share a slug: keep only the current mode's records.
                             nameQuery != CaseSlugs.VHF ||
                                 VhfTraining.matches(getApplication<Application>(), fhirPatient.resource)
@@ -1059,6 +1062,17 @@ class PatientListViewModel(
                                 data = processVhfCase(fhirEngine, childEncounter, data, logicalId)
                             }
 
+                            CaseSlugs.ALERT_LOG -> {
+                                // The row shows what the alert is suspected of; no lab or classification.
+                                val suspected = obs.valueOf(FormFields.AlertLog.SUSPECTED)
+                                val other = obs.valueOf(FormFields.AlertLog.SUSPECTED_OTHER)
+                                data = data.copy(
+                                    labResults = if (suspected.startsWith("Other") && other.isNotBlank()) other
+                                    else suspected,
+                                    status = "",
+                                )
+                            }
+
                             else -> {
                                 var measlesIgm: String
                                 var finalClassification: String
@@ -1110,7 +1124,10 @@ class PatientListViewModel(
                             epid = epid,
                             county = " $county",
                             subCounty = " $subCounty",
-                            caseOnsetDate = onset,
+                            caseOnsetDate = onset.ifBlank {
+                                // Alerts have no onset date: the date of the alert instead.
+                                if (nameQuery == CaseSlugs.ALERT_LOG) obs.valueOf(FormFields.AlertLog.DATE) else onset
+                            },
                             encounterQuestionnaire = encounterQuestionnaire,
                             isSummary = isSummary,
                             campaignDate = campaignDay,
@@ -1877,6 +1894,7 @@ class PatientListViewModel(
 
     companion object {
         private const val CASE_BATCH_SIZE = 100
+        private const val PATIENT_LOAD_CHUNK = 200
         private const val RUMOR_PAGE_SIZE = 200
 
     }
@@ -2258,7 +2276,8 @@ class PatientListViewModel(
      * 1. the case Encounter's reasonCode holds the case name (e.g. "VHF Case Information");
      * 2. the Patient has a case identifier: system = the case slug (e.g. "vhf-case-information"),
      *    value = the case Encounter id.
-     * The engine cannot search an identifier by its system alone, so (2) reads the active patients.
+     * The engine cannot search an identifier by its system alone, so (2) comes from
+     * [CaseIdentifierIndex] (read once, kept current on save) instead of a scan on every open.
      */
     private suspend fun casePatients(nameQuery: String): CasePatients? {
         val names = caseNamesFor(nameQuery).ifEmpty { return null }
@@ -2269,33 +2288,45 @@ class PatientListViewModel(
             setOf(nameQuery)
         }
         return withContext(Dispatchers.IO) {
-            val encountersByPatient = mutableMapOf<String, MutableList<String>>()
-            fhirEngine.search<Encounter> {
+            val started = System.currentTimeMillis()
+            val byCaseName: Map<String, List<String>> = fhirEngine.search<Encounter> {
                 filter(
                     Encounter.REASON_CODE,
                     *names.map<String, TokenParamFilterCriterion.() -> Unit> { name ->
                         { value = of(name) }
                     }.toTypedArray()
                 )
-            }.map { it.resource }.filter { !it.hasPartOf() }.forEach { encounter ->
-                val patientId = encounter.subject.referenceElement.idPart ?: return@forEach
-                encountersByPatient.getOrPut(patientId) { mutableListOf() }.add(encounter.logicalId)
-            }
-
-            val patients = fhirEngine.search<Patient> {
-                filter(Patient.ACTIVE, { value = of(true) })
-                sort(Patient.GIVEN, Order.ASCENDING)
-            }.filter { result ->
-                val id = result.resource.logicalId
-                val caseEncounterIds = result.resource.identifier
-                    .filter { it.system in caseSystems && it.hasValue() }
-                    .map { it.value }
-                if (caseEncounterIds.isNotEmpty()) {
-                    val known = encountersByPatient.getOrPut(id) { mutableListOf() }
-                    caseEncounterIds.filterNot { it in known }.forEach { known.add(it) }
+            }.map { it.resource }
+                .filter { !it.hasPartOf() }
+                .mapNotNull { encounter ->
+                    encounter.subject.referenceElement.idPart?.let { it to encounter.logicalId }
                 }
-                id in encountersByPatient
-            }
+                .groupBy({ it.first }, { it.second })
+
+            val byIdentifier = CaseIdentifierIndex.patientsWith(fhirEngine, caseSystems)
+
+            val encountersByPatient: Map<String, List<String>> =
+                (byCaseName.keys + byIdentifier.keys).associateWith { id ->
+                    (byIdentifier[id].orEmpty() + byCaseName[id].orEmpty()).distinct()
+                }
+
+            val patients = encountersByPatient.keys
+                .chunked(PATIENT_LOAD_CHUNK)
+                .flatMap { chunk ->
+                    chunk.mapNotNull { id ->
+                        runCatching { fhirEngine.get(ResourceType.Patient, id) as Patient }
+                            .getOrNull()
+                            ?.takeIf { it.active }
+                            ?.let { SearchResult(it, null, null) }
+                    }
+                }
+                .sortedBy { it.resource.nameFirstRep.givenAsSingleString.orEmpty().lowercase() }
+
+            Timber.tag("CASE_INDEX").d(
+                "%s: %d by case name, %d by identifier -> %d patients in %d ms",
+                nameQuery, byCaseName.size, byIdentifier.size, patients.size,
+                System.currentTimeMillis() - started
+            )
             CasePatients(patients, encountersByPatient)
         }
     }
@@ -2354,6 +2385,10 @@ class PatientListViewModel(
             }.groupBy { it.resource.subject.referenceElement.idPart ?: "" }
         }
 
+        /** The patient's case Encounter id, for patients without a case identifier. */
+        fun caseEncounterFor(patientId: String): String? =
+            encountersByPatient[patientId]?.firstOrNull()
+
         fun observationsFor(encounterId: String) = observations[encounterId].orEmpty()
         fun childEncountersFor(encounterId: String) = children[encounterId].orEmpty()
         fun responsesFor(patientId: String) = responses[patientId].orEmpty()
@@ -2367,41 +2402,17 @@ class PatientListViewModel(
         patientId: String, encounterId: String
     ): List<EncounterItem> {
 
-        val patients: MutableList<EncounterItem> = mutableListOf()
-        fhirEngine.search<Encounter> {
+        return fhirEngine.search<Encounter> {
             filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
             filter(Encounter.PART_OF, { value = "Encounter/$encounterId" })
-
-        }.map {
-            var data = EncounterItem(
-                id = it.resource.logicalId,
-                reasonCode = it.resource.reasonCodeFirstRep.codingFirstRep.code
+        }.map { result ->
+            EncounterItem(
+                id = result.resource.logicalId,
+                reasonCode = result.resource.reasonCodeFirstRep.codingFirstRep.code,
+                lastUpdated = result.resource.identifier
+                    .find { it.system == FhirSystems.SYSTEM_CREATION }?.value ?: "",
             )
-            var lastUpdated = ""
-            try {
-                if (it.resource.hasIdentifier()) {
-                    val id = it.resource.identifier.find { it.system == FhirSystems.SYSTEM_CREATION }
-                    if (id != null) {
-                        lastUpdated = id.value
-                    }
-                } else {
-                    lastUpdated = ""
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            data = data.copy(
-                lastUpdated = lastUpdated
-            )
-            data
-
-        }.let {
-            val sortedCases = it.sortedByDescending { q -> q.lastUpdated }
-
-            patients.addAll(sortedCases)
-        }
-
-        return patients
+        }.sortedByDescending { it.lastUpdated }
 
     }
 
@@ -2427,30 +2438,16 @@ class PatientListViewModel(
 
     private fun extractStructuredAnswersFromItems(
         items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>
-    ): List<QuestionnaireAnswer> {
-        val results = mutableListOf<QuestionnaireAnswer>()
-
-        fun processItem(item: QuestionnaireResponse.QuestionnaireResponseItemComponent) {
-            val linkId = item.linkId ?: ""
-            val text = item.text ?: ""
-
-            if (item.answer.isNotEmpty()) {
-                val values = item.answer.mapNotNull { answer ->
-                    extractAnswerValue(answer).takeIf { it.isNotBlank() }
-                }
-                if (values.isNotEmpty()) {
-                    results.add(QuestionnaireAnswer(linkId, text, values.joinToString(", ")))
-                }
+    ): List<QuestionnaireAnswer> =
+        items.flatMap { item ->
+            val values = item.answer.mapNotNull { answer ->
+                extractAnswerValue(answer).takeIf { it.isNotBlank() }
             }
-
-            if (item.item.isNotEmpty()) {
-                item.item.forEach { child -> processItem(child) }
-            }
+            val own = if (values.isNotEmpty()) {
+                listOf(QuestionnaireAnswer(item.linkId ?: "", item.text ?: "", values.joinToString(", ")))
+            } else emptyList()
+            own + extractStructuredAnswersFromItems(item.item)
         }
-
-        items.forEach { processItem(it) }
-        return results
-    }
 
     private suspend fun searchedPatientCount(): Long {
         return fhirEngine.count<Patient> {

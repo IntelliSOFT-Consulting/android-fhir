@@ -60,7 +60,7 @@ captures/
 # Google Services (e.g. APIs or Firebase)
 # (Because this file contains secret credentials, like passwords;
 #  please carefully consider the security implications of doing so! ASK, if unclear.)
-# google-services.json
+google-services.json
 
 # Freeline
 freeline.py

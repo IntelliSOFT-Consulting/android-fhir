@@ -195,7 +195,7 @@ class ChildFragment : Fragment() {
                 )
             }
 
-            20, 50, 51 -> { // VL, VHF, Trainings (VHF): case form with "Add new" + "Case list"
+            20, 50, 51, 52 -> { // VL, VHF, Trainings (VHF), Alert log: "Add new" + "Case list"
                 val bundle =
                     Bundle().apply { putString(QUESTIONNAIRE_FILE_PATH_KEY, "add-case.json") }
 

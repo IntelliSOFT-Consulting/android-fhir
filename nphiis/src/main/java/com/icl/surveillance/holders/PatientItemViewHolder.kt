@@ -112,6 +112,15 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
 
                 }
 
+                // Alerts have no illness dates, lab results or classification.
+                "alert-rumor-log" -> {
+                    this.lnFinalClassification.visibility = View.GONE
+                    this.tvEpidLabel.text = "Alert No"
+                    this.tvDateLabel.text = "Date of Alert"
+                    this.tvLabLabel.text = "Suspected of"
+                    this.labResults.text = patientItem.labResults
+                }
+
                 "moh-505-reporting-form" -> {
                     this.lnFinalClassification.visibility = View.GONE
                     this.lnNameAndEpid.visibility = View.GONE

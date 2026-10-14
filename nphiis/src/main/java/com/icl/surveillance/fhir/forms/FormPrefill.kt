@@ -26,6 +26,12 @@ object FormPrefill {
     private const val PREF_VALUES = "formPrefillValues"
     private const val PREF_LOCKED = "formPrefillLocked"
 
+    /** Separates the answers of a repeating question in one staged value, e.g. several symptoms. */
+    const val MULTI = "\u001F"
+
+    /** One staged value holding several answers (see [MULTI]). */
+    fun multi(values: List<String>): String = values.filter { it.isNotBlank() }.joinToString(MULTI)
+
     /** Answers staged for a form, and which of them the user may not change. */
     data class Staged(val values: Map<String, String>, val locked: Set<String>)
 
@@ -75,18 +81,13 @@ object FormPrefill {
     }
 
     /** linkIds that hold an answer in [response], at any depth. */
-    fun answeredLinkIds(response: QuestionnaireResponse): Set<String> {
-        val ids = mutableSetOf<String>()
-        fun visit(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
-            items.forEach { item ->
-                if (item.hasAnswer()) ids.add(item.linkId)
-                item.answer.forEach { visit(it.item) }
-                visit(item.item)
-            }
+    fun answeredLinkIds(response: QuestionnaireResponse): Set<String> = answered(response.item).toSet()
+
+    private fun answered(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>): List<String> =
+        items.flatMap { item ->
+            listOfNotNull(item.linkId.takeIf { item.hasAnswer() }) +
+                answered(item.answer.flatMap { it.item }) + answered(item.item)
         }
-        visit(response.item)
-        return ids
-    }
 
     /** Returns [questionnaireJson] with the items in [linkIds] marked read-only. */
     fun withReadOnly(questionnaireJson: String, linkIds: Set<String>): String {
@@ -147,14 +148,17 @@ object FormPrefill {
                 }
                 continue
             }
-            val answer = values[question.linkId]?.let { answerFor(question, it) }
+            val answers = values[question.linkId]?.let { answersFor(question, it) }.orEmpty()
             when {
-                current != null && answer != null && overwrite -> result.add(
-                    current.apply { this.answer = mutableListOf(); addAnswer().value = answer }
+                current != null && answers.isNotEmpty() && overwrite -> result.add(
+                    current.apply {
+                        this.answer = mutableListOf()
+                        answers.forEach { addAnswer().value = it }
+                    }
                 )
-                current != null && (current.hasAnswer() || answer == null) -> result.add(current)
-                answer != null -> result.add(
-                    (current ?: newItem(question)).apply { addAnswer().value = answer }
+                current != null && (current.hasAnswer() || answers.isEmpty()) -> result.add(current)
+                answers.isNotEmpty() -> result.add(
+                    (current ?: newItem(question)).apply { answers.forEach { addAnswer().value = it } }
                 )
             }
         }
@@ -200,6 +204,12 @@ object FormPrefill {
             }
         }
         visit(r.item)
+    }
+
+    /** Answers for a staged value: several for a repeating question ([MULTI]), else one. */
+    private fun answersFor(question: Questionnaire.QuestionnaireItemComponent, raw: String): List<Type> {
+        val parts = if (question.repeats) raw.split(MULTI) else listOf(raw.substringBefore(MULTI))
+        return parts.filter { it.isNotBlank() }.mapNotNull { answerFor(question, it) }
     }
 
     private fun answerFor(question: Questionnaire.QuestionnaireItemComponent, raw: String): Type? =

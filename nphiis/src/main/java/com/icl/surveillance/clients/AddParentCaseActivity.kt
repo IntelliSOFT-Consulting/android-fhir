@@ -346,6 +346,8 @@ class AddParentCaseActivity : AppCompatActivity() {
         if (isFinishing) {
             // A contact registration applies to this form only.
             FormatterClass().deleteSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this)
+            // Likewise a case investigation started from a screened person.
+            FormatterClass().deleteSharedPref(com.icl.surveillance.fhir.forms.VhfScreened.PREF_SOURCE, this)
             FormPrefill.clear(this)
         }
         super.onDestroy()

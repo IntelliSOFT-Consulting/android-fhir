@@ -354,8 +354,10 @@ class SummarizedActivity : AppCompatActivity() {
         }
 
         val epid = data.epidNo.trim()
+        // An alert is not a case: its number is the Alert No.
+        val numberLabel = if (latestEncounter == CaseSlugs.ALERT_LOG) "Alert No" else "EPID"
         binding.summaryChip.text = if (epid.isNotBlank()) {
-            "EPID: $epid"
+            "$numberLabel: $epid"
         } else {
             "Auto-generated"
         }
@@ -610,6 +612,7 @@ class SummarizedActivity : AppCompatActivity() {
             CaseSlugs.AFP -> "afp-case.json"
             CaseSlugs.VL -> "vl-case.json"
             CaseSlugs.VHF -> "vhf-case.json"
+            CaseSlugs.ALERT_LOG -> FormFields.AlertLog.FORM
             CaseSlugs.MOH_505 -> "moh505.json"
             CaseSlugs.MPOX_INFORMATION -> "mpox-tally-sheet.json"
             CaseSlugs.MPOX_TALLY_SHEET -> "mpox-tally-sheet.json"
