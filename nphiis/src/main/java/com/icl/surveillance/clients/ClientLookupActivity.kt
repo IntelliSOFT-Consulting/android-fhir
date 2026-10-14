@@ -183,7 +183,7 @@ class ClientLookupActivity : AppCompatActivity() {
         binding.ageNote.setText(if (selectedMinor) R.string.client_lookup_minor_note else R.string.client_lookup_adult_note)
         binding.idTypeLayout.hint = getString(if (minor) R.string.client_lookup_guardian_id_type else R.string.client_lookup_id_type)
         binding.idNumberLayout.hint = getString(if (minor) R.string.client_lookup_guardian_id_number else R.string.client_lookup_id_number)
-        binding.dobLayout.hint = getString(if (minor) R.string.client_lookup_child_dob else R.string.client_lookup_dob)
+        binding.dobLayout.hint = getString(if (minor) R.string.client_lookup_guardian_dob else R.string.client_lookup_dob)
     }
 
     /** Fills the ID type list for the current source; hidden when there is only one choice. */
@@ -265,7 +265,7 @@ class ClientLookupActivity : AppCompatActivity() {
         val minor = isMinorSearch
         lookupJob = lifecycleScope.launch {
             val outcome =
-                ClientLookupRepository.lookup(this@ClientLookupActivity, source, id, selectedIdType, minor)
+                ClientLookupRepository.lookup(this@ClientLookupActivity, source, id, selectedIdType, minor, dateOfBirth = dob)
             showLoading(false)
             showOutcome(outcome, minor, id)
         }
@@ -325,9 +325,7 @@ class ClientLookupActivity : AppCompatActivity() {
     /** Minor search result: the guardian's children to pick from (or a note that there are none). */
     private fun showChildren(result: ClientLookupOutcome.Dependents) {
         lastGuardian = result.guardian
-        // Minor search: the child born on the date entered first.
-        lastChildren = if (isMinorSearch) result.children.sortedByDescending { it.dateOfBirth == selectedDob }
-        else result.children
+        lastChildren = result.children
         // The parent / guardian is always offered, so the list is shown even without children.
         showChildrenList()
     }
@@ -344,11 +342,11 @@ class ClientLookupActivity : AppCompatActivity() {
             getString(R.string.client_lookup_children_title, guardian.fullName.ifBlank { enteredId() })
         binding.childrenList.removeAllViews()
 
-        // Adult search: the date entered is the principal's own. Minor search: it is the child's.
+        // The entered date belongs to the principal in both search modes.
         addPersonCard(
             guardian,
             role = getString(R.string.client_lookup_guardian_badge),
-            dobMatch = !isMinorSearch && guardian.dateOfBirth != null && guardian.dateOfBirth == selectedDob,
+            dobMatch = guardian.dateOfBirth != null && guardian.dateOfBirth == selectedDob,
         ) { showMatch(guardian, isGuardian = isMinorSearch) }
         if (lastChildren.isEmpty()) {
             binding.childrenList.addView(TextView(this).apply {
@@ -362,7 +360,7 @@ class ClientLookupActivity : AppCompatActivity() {
             addPersonCard(
                 child,
                 role = child.relationship ?: getString(R.string.client_lookup_dependant_badge),
-                dobMatch = isMinorSearch && child.dateOfBirth != null && child.dateOfBirth == selectedDob,
+                dobMatch = false,
             ) { showMatch(withGuardian(child, guardian)) }
         }
         scrollTo(binding.childrenCard)
@@ -484,7 +482,7 @@ class ClientLookupActivity : AppCompatActivity() {
             put(FormFields.Vhf.ID_TYPE_MINOR, selectedIdType)
             put(FormFields.Vhf.NATIONAL_ID, id)
         }
-        selectedDob?.let {
+        selectedDob?.takeIf { !isMinorSearch }?.let {
             put(ClientDemographics.DOB_KNOWN, "known")
             put(FormFields.Person.DATE_OF_BIRTH, it)
         }
@@ -495,7 +493,7 @@ class ClientLookupActivity : AppCompatActivity() {
         idOnlyPrefill() + client.toPrefill()
 
     private fun dobMismatch(client: ClientDemographics): Boolean =
-        !client.dateOfBirth.isNullOrBlank() && selectedDob != null && client.dateOfBirth != selectedDob
+        !isMinorSearch && !client.dateOfBirth.isNullOrBlank() && selectedDob != null && client.dateOfBirth != selectedDob
 
     /**
      * Opens the case form with [prefill]; [locked] linkIds are read-only there. The form's result

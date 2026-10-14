@@ -20,4 +20,4 @@ nphiis.iprs.basicAuth=
 nphiis.dha.baseUrl=https://ilm-dev.dha.go.ke/uat-middleware/api/
 nphiis.dha.clientId=
 nphiis.dha.clientSecret=
-nphiis.cr.baseUrl=https://ilm-dev.dha.go.ke/uat-middleware/api/
+nphiis.cr.baseUrl=https://dsrfhir.intellisoftkenya.com/api/

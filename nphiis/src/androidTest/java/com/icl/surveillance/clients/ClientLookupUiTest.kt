@@ -122,6 +122,26 @@ class ClientLookupUiTest {
             }
         }
     }
+    @Test fun guardianDobNeverPrefillsOrFlagsAChild() {
+        ActivityScenario.launch(ClientLookupActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                show(activity, ClientLookupOutcome.Dependents(adult, listOf(child), "Registry"), true)
+                ClientLookupActivity::class.java.getDeclaredMethod("setDob", String::class.java)
+                    .apply { isAccessible = true }.invoke(activity, adult.dateOfBirth)
+                assertEquals("Parent / guardian date of birth",
+                    activity.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.dobLayout).hint.toString())
+                val prefillMethod = ClientLookupActivity::class.java.getDeclaredMethod("prefillFor", ClientDemographics::class.java)
+                    .apply { isAccessible = true }
+                val missingDob = prefillMethod.invoke(activity, child.copy(dateOfBirth = null)) as Map<*, *>
+                assertFalse(missingDob.containsKey(com.icl.surveillance.fhir.forms.FormFields.Person.DATE_OF_BIRTH))
+                val childPrefill = prefillMethod.invoke(activity, child) as Map<*, *>
+                assertEquals(child.dateOfBirth, childPrefill[com.icl.surveillance.fhir.forms.FormFields.Person.DATE_OF_BIRTH])
+                val mismatch = ClientLookupActivity::class.java.getDeclaredMethod("dobMismatch", ClientDemographics::class.java)
+                    .apply { isAccessible = true }.invoke(activity, child)
+                assertEquals(false, mismatch)
+            }
+        }
+    }
     @Test fun missingValuesDoNotCreatePlaceholderDetails() {
         ActivityScenario.launch(ClientLookupActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->

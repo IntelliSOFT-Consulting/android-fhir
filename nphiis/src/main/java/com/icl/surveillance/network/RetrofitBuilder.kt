@@ -23,9 +23,10 @@ object RetrofitBuilder {
      * For outside services (DHA Client Registry, SHA / IPRS). Same as [getRetrofit] but a 401 from
      * them does not sign the user out of the app: their tokens are not the app's session.
      */
-    fun getExternalRetrofit(baseUrl: String): Retrofit = build(baseUrl, signOutOn401 = false)
+    fun getExternalRetrofit(baseUrl: String, logRequests: Boolean = true): Retrofit =
+        build(baseUrl, signOutOn401 = false, logRequests = logRequests)
 
-    private fun build(baseUrl: String, signOutOn401: Boolean): Retrofit {
+    private fun build(baseUrl: String, signOutOn401: Boolean, logRequests: Boolean = true): Retrofit {
         val builder =
             OkHttpClient.Builder()
                 .readTimeout(5, TimeUnit.MINUTES)
@@ -45,7 +46,7 @@ object RetrofitBuilder {
             HttpLoggingInterceptor { message ->
                 Log.e("API_RELEASE", message)
             }.apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (logRequests) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
                 // Never print credentials (bearer tokens, IPRS Basic auth) to logcat.
                 redactHeader("Authorization")
             }
