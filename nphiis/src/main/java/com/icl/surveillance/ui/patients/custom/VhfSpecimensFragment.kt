@@ -142,13 +142,17 @@ class VhfSpecimensFragment : Fragment() {
                         add(
                             "Results: " + when {
                                 row.resultDate != null -> dateFormat.format(row.resultDate)
-                                row.result == VhfSpecimens.Result.PENDING -> "Awaiting results"
+                                row.tests.isEmpty() -> "Awaiting results"
                                 else -> "Date not recorded"
                             }
                         )
+                        // Each test (Observation in a DiagnosticReport for this specimen).
+                        row.tests.forEach { test ->
+                            add("${test.name}: ${test.value}" + if (test.isFinal) "" else " (preliminary)")
+                        }
                         addAll(row.notes)
                     },
-                    status = row.result.label,
+                    status = row.statusLabel,
                     tone = rowTone,
                 )
             )
