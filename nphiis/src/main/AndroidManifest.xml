@@ -34,6 +34,10 @@
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
         <activity
+            android:name=".ui.patients.custom.ContactTreeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Surveillance.NoActionBar" />
+        <activity
             android:name=".clients.ScreenedCaseDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
@@ -106,7 +110,6 @@
             android:name=".ui.patients.SummarizedActivity"
             android:exported="false"
             android:label="Case Summary "
-            android:launchMode="singleTop"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
         <activity
             android:name=".cases.CaseListingActivity"

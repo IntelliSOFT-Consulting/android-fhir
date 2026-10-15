@@ -94,7 +94,12 @@ class SummarizedActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val patientId = FormatterClass().getSharedPref("resourceId", this@SummarizedActivity)
+        // This screen's record, put back whenever it returns to the front (see onResume).
+        recordPrefs = savedInstanceState?.getBundle(STATE_RECORD_PREFS)
+            ?.let { bundle -> RECORD_PREFS.associateWith { bundle.getString(it) } }
+            ?: RECORD_PREFS.associateWith { FormatterClass().getSharedPref(it, this) }
+        val patientId = recordPrefs["resourceId"]
+            ?: FormatterClass().getSharedPref("resourceId", this@SummarizedActivity)
         casePatientId = patientId
         if (savedInstanceState == null) openTab = intent.getStringExtra(EXTRA_OPEN_TAB)
         val currentCase = FormatterClass().getSharedPref("currentCase", this@SummarizedActivity)
@@ -116,8 +121,30 @@ class SummarizedActivity : AppCompatActivity() {
         }
     }
 
+    /** The prefs that identify this screen's record, as they were when it opened. */
+    private var recordPrefs: Map<String, String?> = emptyMap()
+
+    private fun restoreRecordPrefs() {
+        val formatter = FormatterClass()
+        recordPrefs.forEach { (key, value) ->
+            if (value == null) formatter.deleteSharedPref(key, this)
+            else formatter.saveSharedPref(key, value, this)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBundle(
+            STATE_RECORD_PREFS,
+            Bundle().apply { recordPrefs.forEach { (key, value) -> putString(key, value) } }
+        )
+    }
+
     override fun onResume() {
         super.onResume()
+        // Another case summary opened on top (e.g. a contact) changes the shared "current
+        // record" prefs that the tabs and forms read; restore this screen's own record.
+        restoreRecordPrefs()
         try {
             loadData()
         } catch (e: Exception) {
@@ -735,6 +762,14 @@ class SummarizedActivity : AppCompatActivity() {
 
         /** True to start registering a contact of this VHF case as soon as its Contacts tab loads. */
         const val EXTRA_REGISTER_CONTACT = "registerContact"
+
+        private const val STATE_RECORD_PREFS = "summaryRecordPrefs"
+
+        /** Shared prefs that say which record is open; read by the tabs and the forms they open. */
+        private val RECORD_PREFS = listOf(
+            "patientId", "resourceId", "patientIdParent", "encounterId", "currentCase",
+            "latestEncounter", "isCase", "encounterQuestionnaire",
+        )
     }
 }
 

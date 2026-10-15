@@ -190,7 +190,19 @@ class VhfContactsFragment : Fragment() {
             return
         }
 
-        binding.fab.visibility = View.GONE
+        // Eye button: the contact tree (this case, its contacts and their contacts).
+        binding.fab.apply {
+            setImageResource(R.drawable.ic_vhf_visibility)
+            imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
+            backgroundTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.content.ContextCompat.getColor(requireContext(), R.color.home_icon_tint)
+            )
+            contentDescription = "View contact tree"
+            setOnClickListener { openContactTree(source.patientId) }
+            visibility = View.VISIBLE
+        }
+        // Room below the last contact so the button does not cover it.
+        parent.setPadding(parent.paddingLeft, parent.paddingTop, parent.paddingRight, (88 * resources.displayMetrics.density).toInt())
 
         val states = rows.mapNotNull { it.state }.filter { it.isContact }
         val symptomatic = states.count { !it.isClosed && it.firstSymptomaticVisit != null }
@@ -261,6 +273,13 @@ class VhfContactsFragment : Fragment() {
         formatter.saveSharedPref("latestEncounter", CaseSlugs.VHF, context)
         formatter.deleteSharedPref("isCase", context)
         returnToCase.launch(Intent(context, SummarizedActivity::class.java))
+    }
+
+    private fun openContactTree(patientId: String) {
+        startActivity(
+            Intent(requireContext(), ContactTreeActivity::class.java)
+                .putExtra(ContactTreeActivity.EXTRA_PATIENT_ID, patientId)
+        )
     }
 
     private fun registerContact(source: SourceCase) {

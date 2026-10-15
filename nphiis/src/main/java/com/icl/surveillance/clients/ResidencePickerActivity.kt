@@ -408,6 +408,12 @@ class ResidencePickerActivity : AppCompatActivity() {
         /** true: open the case form after picking (the result goes to the original caller). */
         const val EXTRA_OPEN_FORM = "residenceOpenForm"
 
+        /**
+         * The map step before the VHF case form (contacts, screened people). Off until the
+         * residence requirements are clarified: the form opens directly. Set true to bring it back.
+         */
+        const val ENABLED = false
+
         /** The picked location as JSON, when not opening the form. */
         const val EXTRA_RESULT = "residenceLocation"
 

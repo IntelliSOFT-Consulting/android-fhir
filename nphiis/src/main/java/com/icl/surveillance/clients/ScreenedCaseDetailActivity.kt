@@ -170,10 +170,14 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
             "Investigating screened %s with %d pre-filled answers", patientId, loaded.prefill.size
         )
         ResidenceLocation.clear(this)
-        formLauncher.launch(
+        val next = if (ResidencePickerActivity.ENABLED) {
             Intent(this, ResidencePickerActivity::class.java)
                 .putExtra(ResidencePickerActivity.EXTRA_OPEN_FORM, true)
-                .putExtra("AddParentTitle", " ${getString(R.string.vhf_form)}")
+        } else {
+            Intent(this, AddParentCaseActivity::class.java)
+        }
+        formLauncher.launch(
+            next.putExtra("AddParentTitle", " ${getString(R.string.vhf_form)}")
                 .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, form)
         )
     }

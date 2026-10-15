@@ -514,8 +514,9 @@ class ClientLookupActivity : AppCompatActivity() {
         if (values.isEmpty()) FormPrefill.clear(this)
         else FormPrefill.stage(this, questionnaireFile, values, lockedIds)
         // Contacts: pick where the person lives on the map, then the form opens.
-        val formIntent = if (isContactRegistration()) {
-            ResidenceLocation.clear(this)
+        // No map location left over from an earlier record.
+        ResidenceLocation.clear(this)
+        val formIntent = if (isContactRegistration() && ResidencePickerActivity.ENABLED) {
             Intent(this, ResidencePickerActivity::class.java)
                 .putExtra(ResidencePickerActivity.EXTRA_OPEN_FORM, true)
         } else {
