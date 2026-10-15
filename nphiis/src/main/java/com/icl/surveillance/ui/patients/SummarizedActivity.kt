@@ -37,6 +37,7 @@ import com.icl.surveillance.ui.patients.custom.VlFollowupFragment
 import com.icl.surveillance.ui.patients.custom.VlLabFragment
 import com.icl.surveillance.ui.patients.custom.VlTreatmentFragment
 import com.icl.surveillance.ui.patients.custom.VhfContactsFragment
+import com.icl.surveillance.ui.patients.custom.VhfSpecimensFragment
 import com.icl.surveillance.ui.patients.custom.VhfDailyFollowUpFragment
 import com.icl.surveillance.ui.patients.custom.afp.AFPFollowUpFragment
 import com.icl.surveillance.ui.patients.data.LabResultsFragment
@@ -309,10 +310,8 @@ class SummarizedActivity : AppCompatActivity() {
     private fun vhfTabs(
         observations: List<PatientListViewModel.ObservationItem>
     ): List<Pair<String, Fragment>> {
-        val lab = "Laboratory" to FollowUpFormFragment.newInstance(
-            FormFields.Vhf.LAB_TITLE,
-            FormFields.Vhf.LAB_FORM
-        )
+        // Lab results come from the case's specimens (no lab results form).
+        val lab = "Laboratory" to VhfSpecimensFragment()
         val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
         return if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) {
             listOf(

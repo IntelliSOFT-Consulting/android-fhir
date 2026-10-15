@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
+import com.icl.surveillance.fhir.forms.SpecimenId
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.FacilityInfo
 import com.icl.surveillance.models.QuestionnaireAnswer
@@ -186,6 +187,7 @@ class SdcQuestionnaireResponseSaver(
                     if (!resource.hasSubject()) {
                         resource.subject = subjectReference
                     }
+                    SpecimenId.ensure(resource, context)
                     applyManagedLocation(resource, "specimen", facility, extractedAnswers)
                     fhirEngine.create(resource)
                 }

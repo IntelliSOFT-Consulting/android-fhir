@@ -222,10 +222,6 @@ object FormFields {
     /** Viral Hemorrhagic Fever case investigation (vhf-case.json). Name, sex, date of birth,
      *  residence and onset reuse [Person], [Residence] and [EVENT_DATE]. */
     object Vhf {
-        /** Laboratory results follow-up form (title = its Encounter.reasonCode). */
-        const val LAB_FORM = "vhf-lab-results.json"
-        const val LAB_TITLE = "VHF Laboratory Results"
-
         /** The VHF case investigation form; contacts are registered with the same form. */
         const val CASE_FORM = "vhf-case.json"
 
@@ -274,8 +270,6 @@ object FormFields {
         /** A contact's source case, by EPID number (see VhfSourceCases). */
         const val SOURCE_CASE_EPID = "vhf-source-case-epid"
 
-        /** Assigned at the laboratory; asked on the lab results form. */
-        const val SPECIMEN_ID = "vhf-specimen-id"
         const val PHONE = "vhf-phone"
         const val VILLAGE = "vhf-village"
         const val NEXT_OF_KIN = "vhf-next-of-kin"
@@ -300,15 +294,14 @@ object FormFields {
         const val SCREENED_SYSTEM = "vhf-screened"
         val SCREENED_SYSTEMS = setOf(SCREENED_SYSTEM, "screened")
         const val SCREENING_NUMBER_SYSTEM = "vhf-screening-number"
-        const val PRELIMINARY_RESULT = "vhf-preliminary-result"
-        const val FINAL_RESULT = "vhf-final-result"
 
         /** Label shown for the derived classification on the lab tab. */
         const val FINAL_CLASSIFICATION_LABEL = "Final Classification"
 
         /**
-         * Final classification is not captured on the lab form; like Measles it is derived from
-         * the laboratory's final result, using the same status labels as the other modules.
+         * Final classification, derived from the case's lab result (see VhfSpecimens: positive if
+         * any specimen is positive, negative only when all are), with the same status labels as
+         * the other modules.
          */
         fun finalClassification(finalResult: String?): String =
             when (finalResult?.trim()?.lowercase()) {

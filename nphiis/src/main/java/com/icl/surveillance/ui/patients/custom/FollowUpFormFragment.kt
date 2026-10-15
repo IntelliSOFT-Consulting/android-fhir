@@ -289,23 +289,9 @@ class FollowUpFormFragment : Fragment() {
                 }
             }
         }
-        addDerivedFields(record.observations)
 
         binding.lnEmpty.visibility = View.GONE
         binding.fab.visibility = if (allowUpdates) View.VISIBLE else View.GONE
-    }
-
-    /** Values computed from the answers rather than captured, e.g. the VHF final classification. */
-    private fun addDerivedFields(observations: List<PatientListViewModel.ObservationItem>) {
-        if (questionnaireFile != FormFields.Vhf.LAB_FORM) return
-        val finalResult = observations.find { it.code == FormFields.Vhf.FINAL_RESULT }?.value
-        val classification = OutputItem(
-            linkId = "vhf-derived-final-classification",
-            text = FormFields.Vhf.FINAL_CLASSIFICATION_LABEL,
-            type = "string",
-            value = FormFields.Vhf.finalClassification(finalResult)
-        )
-        parentLayout.addView(createCustomField(classification))
     }
 
     private fun checkIfParentAnswerMatches(

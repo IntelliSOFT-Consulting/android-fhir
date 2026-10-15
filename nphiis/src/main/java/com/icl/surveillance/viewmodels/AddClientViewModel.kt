@@ -31,6 +31,7 @@ import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.SpecimenId
 import com.icl.surveillance.fhir.forms.StandardSpecimen
 import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.fhir.forms.VhfTraining
@@ -762,8 +763,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 date: String?,
                 type: String,
                 notes: List<String> = emptyList(),
+                sent: String? = null,
             ) = createSpecimenResource(
-                linkId, date, type, subjectReference, encounterReference, notes, context, answers
+                linkId, date, type, subjectReference, encounterReference, notes, context, answers, sent
             )
 
             fun startSummaryMeasure(label: String) {
@@ -959,8 +961,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                                 answers.answerOf(FormFields.Vhf.SAMPLE_TISSUE_TYPE)
                                     ?.takeIf { type == "Tissue" }?.let { "Tissue type: $it" },
                                 transport?.let { "Transport: $it" },
-                                answers.answerOf(FormFields.Vhf.SENT_DATE)?.let { "Sent to the laboratory: $it" },
                             ),
+                            sent = answers.answerOf(FormFields.Vhf.SENT_DATE),
                         )
                     }
                 }
@@ -1271,7 +1273,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
         encounterReference: Reference,
         notes: List<String>,
         context: Context,
-        extractedAnswers: List<QuestionnaireAnswer>
+        extractedAnswers: List<QuestionnaireAnswer>,
+        sent: String? = null,
     ) {
         try {
             val specimen = StandardSpecimen.build(
@@ -1281,8 +1284,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 subjectRef = subjectReference,
                 encounterRef = encounterReference,
                 notes = notes,
+                sent = sent,
             )
             specimen.id = generateUuid()
+            // Specimen ID for the tube label (8 alphanumeric characters, unique, time based).
+            SpecimenId.ensure(specimen, context)
             val facility = FormatterClass().getSharedPref("facility", context)
             specimen.meta = Meta().apply {
                 tag = listOf(

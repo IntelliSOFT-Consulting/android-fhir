@@ -1094,8 +1094,6 @@ object SyntheticDataGenerator {
                 return pick(code)
             }
             val vhf = FormFields.Vhf
-            val caseType = answered(vhf.CASE_TYPE)
-            val preliminary = answered(vhf.PRELIMINARY_RESULT)
             return when (linkId) {
                 vhf.CASE_TYPE -> weighted("suspected" to 40, "contact" to 30, "probable" to 15, "confirmed" to 15)
                 vhf.OUTCOME -> weighted("alive" to 80, "dead" to 20)
@@ -1104,17 +1102,6 @@ object SyntheticDataGenerator {
                     else weighted("active" to 60, "recovered" to 40)
 
                 vhf.SAMPLES_COLLECTED -> weighted("yes" to 75, "no" to 25)
-                vhf.PRELIMINARY_RESULT ->
-                    if (caseType == "confirmed") pick("positive")
-                    else weighted("positive" to 25, "negative" to 55, "pending" to 20)
-
-                vhf.FINAL_RESULT -> when (preliminary) {
-                    "positive" -> pick("positive")
-                    "negative" -> pick("negative")
-                    else -> weighted("positive" to 30, "negative" to 70)
-                }
-
-
                 else -> null
             }
         }

@@ -82,24 +82,9 @@ object VhfSourceCases {
             }
             .toMap()
 
-    /**
-     * Ids of patients whose most recent VHF final lab result is Positive ("Confirmed by lab").
-     * A later Negative result (or one marked entered-in-error by an edit) removes the case.
-     */
+    /** Ids of patients with a positive specimen ("Confirmed by lab"), see [VhfSpecimens]. */
     private suspend fun confirmedPatientIds(fhirEngine: FhirEngine): Set<String> =
-        fhirEngine.search<Observation> {
-            filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.FINAL_RESULT }) })
-        }
-            .map { it.resource }
-            .filter { it.status != Observation.ObservationStatus.ENTEREDINERROR && it.hasValue() }
-            .groupBy { obs -> obs.subject.reference?.let { IdType(it).idPart } }
-            .mapNotNull { (patientId, results) ->
-                val latest = results.maxByOrNull { maxOf(it.issued?.time ?: 0L, it.meta.lastUpdated?.time ?: 0L) }
-                val positive = FormFields.Vhf.finalClassification(latest?.value?.asStringValue()) ==
-                    FormFields.Vhf.finalClassification("positive")
-                patientId?.takeIf { positive && it.isNotBlank() }
-            }
-            .toSet()
+        VhfSpecimens.patientsWithPositiveSpecimen(fhirEngine)
 
     /** Sets the choices of the source-case question in [questionnaireJson]. */
     fun withOptions(questionnaireJson: String, options: List<SourceOption>): String {

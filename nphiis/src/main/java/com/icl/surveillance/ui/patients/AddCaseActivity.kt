@@ -81,8 +81,6 @@ class AddCaseActivity : AppCompatActivity() {
                     SaveCaseConfig(SaveCaseType.LAB, "AFP 60 Day Follow Up"),
             "afp-itd-lab.json" to
                     SaveCaseConfig(SaveCaseType.LAB, "AFP ITD Lab Information"),
-            FormFields.Vhf.LAB_FORM to
-                    SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.LAB_TITLE),
             FormFields.Vhf.CONTACT_FOLLOW_UP_FORM to
                     SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE),
             FormFields.Vhf.CONTACT_MONITORING_FORM to
@@ -535,8 +533,7 @@ class AddCaseActivity : AppCompatActivity() {
             "afp-case-stool-lab-results.json",
             "afp-itd-lab.json",
             "afp-final-lab-results.json",
-            "vl-case-lab-information.json",
-            FormFields.Vhf.LAB_FORM -> true
+            "vl-case-lab-information.json" -> true
 
             else -> false
         }
