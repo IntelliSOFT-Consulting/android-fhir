@@ -128,8 +128,8 @@ class ProfileFragment : Fragment() {
                 )
             }
             if (BuildConfig.DEBUG) {
-                btnUpdateData.visibility = View.GONE
-                btnGenerateSyntheticData.visibility = View.GONE
+                btnUpdateData.visibility = View.VISIBLE
+                btnGenerateSyntheticData.visibility = View.VISIBLE
                 btnGenerateSyntheticData.setOnClickListener {
                     SyntheticDataDialogs.open(this@ProfileFragment)
                 }

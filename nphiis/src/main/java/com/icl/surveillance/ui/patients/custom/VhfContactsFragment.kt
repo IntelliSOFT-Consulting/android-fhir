@@ -281,7 +281,9 @@ class VhfContactsFragment : Fragment() {
                 if (source.disease.isNotBlank()) put(FormFields.Vhf.DISEASE, source.disease)
                 if (source.diseaseOther.isNotBlank()) put(FormFields.Vhf.DISEASE_OTHER, source.diseaseOther)
                 source.epid?.let { put(FormFields.Vhf.SOURCE_CASE_EPID, it) }
-            }
+            },
+            // A contact is always registered as a Contact: Type of case is shown read-only.
+            locked = setOf(FormFields.Vhf.CASE_TYPE),
         )
         // Verify the contact's identity (IPRS / Client Registry) first; it opens the form.
         returnToCase.launch(

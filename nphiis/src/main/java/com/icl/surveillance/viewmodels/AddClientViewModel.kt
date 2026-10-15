@@ -935,6 +935,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VHF))
 
                     // Laboratory (specimen collection): one standard Specimen per collection.
+                    Timber.tag("SPECIMEN").d(
+                        "VHF samples collected = '%s', type = '%s'",
+                        answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED), answers.answerOf(FormFields.Vhf.SAMPLE_TYPE),
+                    )
                     if (answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED).equals("yes", ignoreCase = true)) {
                         val answeredType = answers.answerOf(FormFields.Vhf.SAMPLE_TYPE)
                         val type = when {
@@ -1298,6 +1302,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
             specimen.addExtension(sourceExtension("specimen", context, extractedAnswers))
             withMetaTags(specimen)
             fhirEngine.create(specimen)
+            Timber.tag("SPECIMEN").d(
+                "Saved %s specimen %s (ID %s) for %s, %s",
+                type, specimen.id, SpecimenId.of(specimen), subjectReference.reference, encounterReference.reference,
+            )
         } catch (e: Exception) {
             Timber.tag("SPECIMEN").e(e, "Could not save the %s specimen", type)
         }

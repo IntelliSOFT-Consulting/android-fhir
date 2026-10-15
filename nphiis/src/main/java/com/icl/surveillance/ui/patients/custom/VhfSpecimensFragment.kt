@@ -62,6 +62,7 @@ class VhfSpecimensFragment : Fragment() {
             }
             if (_binding == null) return@launch
             loaded.onSuccess { render(it) }.onFailure {
+                timber.log.Timber.tag("SPECIMEN").e(it, "Could not load specimens for Patient/%s", patientId)
                 binding.lnParent.removeAllViews()
                 binding.tvEmptyMessage.text = "Unable to load specimens. Please try again."
                 binding.lnEmpty.visibility = View.VISIBLE

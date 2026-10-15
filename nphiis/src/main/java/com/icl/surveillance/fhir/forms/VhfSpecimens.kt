@@ -17,6 +17,7 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Specimen
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
+import timber.log.Timber
 
 /**
  * VHF laboratory results come only from the case's Specimens (no lab results form).
@@ -82,15 +83,21 @@ object VhfSpecimens {
     )
 
     /** The specimens collected for a case (Specimen.subject = the patient, linked to the case). */
-    suspend fun forCase(fhirEngine: FhirEngine, patientId: String, caseEncounterId: String?): List<Row> =
-        fhirEngine.search<Specimen> {
+    suspend fun forCase(fhirEngine: FhirEngine, patientId: String, caseEncounterId: String?): List<Row> {
+        val all = fhirEngine.search<Specimen> {
             filter(Specimen.SUBJECT, { value = "Patient/$patientId" })
-        }
-            .map { it.resource }
+        }.map { it.resource }
+        val forCase = all
             .filter { it.status != Specimen.SpecimenStatus.ENTEREDINERROR }
             .filter { belongsTo(it, caseEncounterId) }
-            .map { toRow(fhirEngine, it) }
+        Timber.tag("SPECIMEN").d(
+            "Patient/%s case %s: %d specimens, %d for this case %s",
+            patientId, caseEncounterId, all.size, forCase.size,
+            all.map { s -> "${s.idElement.idPart}->${(s.getExtensionByUrl(StandardSpecimen.ENCOUNTER_EXTENSION)?.value as? Reference)?.reference}" },
+        )
+        return forCase.map { toRow(fhirEngine, it) }
             .sortedWith(compareByDescending<Row> { it.collected?.time ?: 0L }.thenBy { it.type })
+    }
 
     /** Case lab result and classification from its specimens; null when none were collected. */
     fun summarize(rows: List<Row>): Summary? {
