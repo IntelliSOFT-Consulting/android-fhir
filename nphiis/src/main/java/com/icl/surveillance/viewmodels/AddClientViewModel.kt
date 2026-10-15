@@ -28,8 +28,10 @@ import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.PatientMapper
+import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.SpecimenId
 import com.icl.surveillance.fhir.forms.StandardSpecimen
 import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.fhir.forms.VhfTraining
@@ -88,6 +90,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
         get() = fetchQuestionnaireJson()
 
     val isPatientSaved = MutableLiveData<Boolean>()
+
+    /** Patient and encounter ids of the case last saved by [persistPatientData]. */
+    var lastSavedCase: Pair<String, String>? = null
+        private set
 
     // Parsed once: re-parsing the form JSON on every save was a large source of allocations.
     private val questionnaire: Questionnaire by lazy {
@@ -653,6 +659,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             val facility = formatter.getSharedPref("facility", context)
 
+            // Residence picked on the map before the form (contacts). Its name / lat / long are
+            // already answers of the form (hidden residence-map-* questions); here it is also
+            // added to the Patient's address (geolocation) and the response (extension).
+            val residence = if (caseOverride == null) ResidenceLocation.take(context) else null
             val extractedAnswers = extractStructuredAnswers(questionnaireResponse, "")
 
 
@@ -753,8 +763,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 date: String?,
                 type: String,
                 notes: List<String> = emptyList(),
+                sent: String? = null,
             ) = createSpecimenResource(
-                linkId, date, type, subjectReference, encounterReference, notes, context, answers
+                linkId, date, type, subjectReference, encounterReference, notes, context, answers, sent
             )
 
             fun startSummaryMeasure(label: String) {
@@ -924,6 +935,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.VHF))
 
                     // Laboratory (specimen collection): one standard Specimen per collection.
+                    Timber.tag("SPECIMEN").d(
+                        "VHF samples collected = '%s', type = '%s'",
+                        answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED), answers.answerOf(FormFields.Vhf.SAMPLE_TYPE),
+                    )
                     if (answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED).equals("yes", ignoreCase = true)) {
                         val answeredType = answers.answerOf(FormFields.Vhf.SAMPLE_TYPE)
                         val type = when {
@@ -950,8 +965,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                                 answers.answerOf(FormFields.Vhf.SAMPLE_TISSUE_TYPE)
                                     ?.takeIf { type == "Tissue" }?.let { "Tissue type: $it" },
                                 transport?.let { "Transport: $it" },
-                                answers.answerOf(FormFields.Vhf.SENT_DATE)?.let { "Sent to the laboratory: $it" },
                             ),
+                            sent = answers.answerOf(FormFields.Vhf.SENT_DATE),
                         )
                     }
                 }
@@ -986,6 +1001,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.MPOX))
                 }
+            }
+            residence?.let {
+                // After the module mapping, so the county address stays the first address.
+                it.appendTo(questionnaireResponse, patient)
+                Timber.tag("RESIDENCE_PICKER").d("Appended residence to the submission: %s", it.label)
             }
             withMetaTags(patient)
             withMetaTags(enc)
@@ -1116,6 +1136,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                             patient.addressFirstRep.city, patient.active,
                         )
                     }
+                    lastSavedCase = patientId to encounterId
                     PersistResult.SAVED
                 } catch (e: Exception) {
                     Timber.tag("TAG").e(e, "Error experienced ${e.message}")
@@ -1256,7 +1277,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
         encounterReference: Reference,
         notes: List<String>,
         context: Context,
-        extractedAnswers: List<QuestionnaireAnswer>
+        extractedAnswers: List<QuestionnaireAnswer>,
+        sent: String? = null,
     ) {
         try {
             val specimen = StandardSpecimen.build(
@@ -1266,8 +1288,11 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 subjectRef = subjectReference,
                 encounterRef = encounterReference,
                 notes = notes,
+                sent = sent,
             )
             specimen.id = generateUuid()
+            // Specimen ID for the tube label (8 alphanumeric characters, unique, time based).
+            SpecimenId.ensure(specimen, context)
             val facility = FormatterClass().getSharedPref("facility", context)
             specimen.meta = Meta().apply {
                 tag = listOf(
@@ -1277,6 +1302,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
             specimen.addExtension(sourceExtension("specimen", context, extractedAnswers))
             withMetaTags(specimen)
             fhirEngine.create(specimen)
+            Timber.tag("SPECIMEN").d(
+                "Saved %s specimen %s (ID %s) for %s, %s",
+                type, specimen.id, SpecimenId.of(specimen), subjectReference.reference, encounterReference.reference,
+            )
         } catch (e: Exception) {
             Timber.tag("SPECIMEN").e(e, "Could not save the %s specimen", type)
         }

@@ -21,6 +21,7 @@ import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.utils.FormatterClass
@@ -147,7 +148,10 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
-    /** Opens the VHF case investigation form pre-filled with the screening answers. */
+    /**
+     * Starts the case investigation: first the map, to pick where the person lives, then the VHF
+     * case form pre-filled with the screening answers (the picker opens it and forwards its result).
+     */
     private fun startInvestigation() {
         val loaded = details ?: return
         val form = FormFields.Vhf.CASE_FORM
@@ -163,8 +167,10 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         Timber.tag("SCREENED_SAVE").d(
             "Investigating screened %s with %d pre-filled answers", patientId, loaded.prefill.size
         )
+        ResidenceLocation.clear(this)
         formLauncher.launch(
-            Intent(this, AddParentCaseActivity::class.java)
+            Intent(this, ResidencePickerActivity::class.java)
+                .putExtra(ResidencePickerActivity.EXTRA_OPEN_FORM, true)
                 .putExtra("AddParentTitle", " ${getString(R.string.vhf_form)}")
                 .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, form)
         )

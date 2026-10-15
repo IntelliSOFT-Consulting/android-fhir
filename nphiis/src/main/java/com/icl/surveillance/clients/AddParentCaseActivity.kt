@@ -33,6 +33,9 @@ import com.icl.surveillance.databinding.ActivityAddParentCaseBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.SdcQuestionnaireResponseSaver
 import com.icl.surveillance.fhir.forms.CaseTypes
+import org.hl7.fhir.r4.model.Coding
+import com.icl.surveillance.ui.patients.SummarizedActivity
+import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
@@ -333,6 +336,7 @@ class AddParentCaseActivity : AppCompatActivity() {
             }
 
             else -> {
+                openContactsAfterSave = isNewVhfCase(questionnaireResponse)
                 viewModel.savePatientData(
                     questionnaireResponse,
                     this@AddParentCaseActivity
@@ -343,15 +347,26 @@ class AddParentCaseActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        if (isFinishing) {
-            // A contact registration applies to this form only.
-            FormatterClass().deleteSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this)
-            // Likewise a case investigation started from a screened person.
-            FormatterClass().deleteSharedPref(com.icl.surveillance.fhir.forms.VhfScreened.PREF_SOURCE, this)
-            FormPrefill.clear(this)
-        }
+        // Once handed over to the case's Contacts tab, that tab may already have staged the next
+        // contact; this form cleaned up its own state before handing over.
+        if (isFinishing && !handedOverToContacts) clearFormState()
         super.onDestroy()
     }
+
+    /**
+     * A contact registration, a case investigation started from a screened person, and staged
+     * answers apply to this form only.
+     */
+    private fun clearFormState() {
+        FormatterClass().deleteSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this)
+        FormatterClass().deleteSharedPref(com.icl.surveillance.fhir.forms.VhfScreened.PREF_SOURCE, this)
+        FormPrefill.clear(this)
+        // A residence picked for this form applies to it only.
+        com.icl.surveillance.fhir.forms.ResidenceLocation.clear(this)
+    }
+
+    /** Set when this form opened the saved case's Contacts tab; see [onDestroy]. */
+    private var handedOverToContacts = false
 
     private fun addUserCountyResponse(
         userCounty: String,
@@ -679,6 +694,73 @@ class AddParentCaseActivity : AppCompatActivity() {
         }
     }
 
+    /** Set when the case being saved should open on its Contacts tab afterwards. */
+    private var openContactsAfterSave = false
+
+    /**
+     * A new VHF case (not a contact, and not a contact being registered from its source case,
+     * which returns to that case): after saving, its contacts should be registered.
+     */
+    private fun isNewVhfCase(response: QuestionnaireResponse): Boolean {
+        val formatter = FormatterClass()
+        if (formatter.getSharedPref("questionnaire", this) != FormFields.Vhf.CASE_FORM) return false
+        if (!formatter.getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this).isNullOrBlank()) {
+            return false
+        }
+        fun find(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>):
+            QuestionnaireResponse.QuestionnaireResponseItemComponent? =
+            items.firstNotNullOfOrNull { if (it.linkId == FormFields.Vhf.CASE_TYPE) it else find(it.item) }
+        val caseType = find(response.item)?.answerFirstRep?.value as? Coding
+        val isContact = caseType?.code.equals("contact", ignoreCase = true) ||
+            caseType?.display.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)
+        return !isContact
+    }
+
+    /**
+     * Leaves the form after a successful save. For a new VHF case, first asks whether to register
+     * its contacts now, so the step is not forgotten.
+     */
+    private fun closeAfterSave() {
+        setResult(Activity.RESULT_OK)
+        if (!openContactsAfterSave || viewModel.lastSavedCase == null) {
+            finish()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Register contacts?")
+            .setMessage("Would you like to add the contacts of this case now?")
+            .setCancelable(false)
+            .setPositiveButton("Add contacts") { _, _ ->
+                openSavedCaseContacts()
+                finish()
+            }
+            .setNegativeButton("Later") { _, _ -> finish() }
+            .show()
+    }
+
+    /**
+     * Opens the case just saved on its Contacts tab (as when opened from the case list), which
+     * starts registering a contact: ID verification first, then the contact form.
+     */
+    private fun openSavedCaseContacts() {
+        val (patientId, encounterId) = viewModel.lastSavedCase ?: return
+        clearFormState()
+        handedOverToContacts = true
+        val formatter = FormatterClass()
+        formatter.saveSharedPref("patientId", patientId, this)
+        formatter.saveSharedPref("resourceId", patientId, this)
+        formatter.saveSharedPref("patientIdParent", patientId, this)
+        formatter.saveSharedPref("encounterId", encounterId, this)
+        formatter.saveSharedPref("currentCase", CaseTypes.VHF, this)
+        formatter.saveSharedPref("latestEncounter", CaseSlugs.VHF, this)
+        formatter.deleteSharedPref("isCase", this)
+        startActivity(
+            Intent(this, SummarizedActivity::class.java)
+                .putExtra(SummarizedActivity.EXTRA_OPEN_TAB, "Contacts")
+                .putExtra(SummarizedActivity.EXTRA_REGISTER_CONTACT, true)
+        )
+    }
+
     fun showSuccessDialog(context: Context) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.success_dialog, null)
         val alertDialog = AlertDialog.Builder(context)
@@ -688,15 +770,12 @@ class AddParentCaseActivity : AppCompatActivity() {
 
         dialogView.findViewById<MaterialButton>(R.id.btn_cancel).setOnClickListener {
             alertDialog.dismiss()
-            setResult(Activity.RESULT_OK)
-            this@AddParentCaseActivity.finish()
+            closeAfterSave()
         }
 
         dialogView.findViewById<MaterialButton>(R.id.btn_finish).setOnClickListener {
-            // handle finish action
-            setResult(Activity.RESULT_OK)
-            this@AddParentCaseActivity.finish()
             alertDialog.dismiss()
+            closeAfterSave()
         }
 
         alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)

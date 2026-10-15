@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/lookup_surface"
+    android:fitsSystemWindows="true"
     tools:context=".clients.ClientLookupActivity">
 
     <com.google.android.material.appbar.AppBarLayout

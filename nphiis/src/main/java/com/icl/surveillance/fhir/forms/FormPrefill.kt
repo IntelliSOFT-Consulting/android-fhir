@@ -56,12 +56,30 @@ object FormPrefill {
         takeStaged(context, questionnaireFile).values
 
     /** Returns (and clears) the values and locked linkIds staged for [questionnaireFile]. */
-    fun takeStaged(context: Context, questionnaireFile: String?): Staged {
+    fun takeStaged(context: Context, questionnaireFile: String?): Staged =
+        peek(context, questionnaireFile).also { clear(context) }
+
+    /**
+     * Adds [values] to what is already staged for [questionnaireFile] (staged values win unless
+     * [overwrite]); locked linkIds are kept.
+     */
+    fun add(
+        context: Context,
+        questionnaireFile: String,
+        values: Map<String, String>,
+        overwrite: Boolean = false,
+    ) {
+        val current = peek(context, questionnaireFile)
+        val merged = if (overwrite) current.values + values else values + current.values
+        stage(context, questionnaireFile, merged, current.locked)
+    }
+
+    /** The values and locked linkIds staged for [questionnaireFile], left staged. */
+    fun peek(context: Context, questionnaireFile: String?): Staged {
         val formatter = FormatterClass()
         val stagedFor = formatter.getSharedPref(PREF_FORM, context)
         val json = formatter.getSharedPref(PREF_VALUES, context)
         val lockedJson = formatter.getSharedPref(PREF_LOCKED, context)
-        clear(context)
         if (questionnaireFile == null || stagedFor != questionnaireFile || json.isNullOrBlank()) {
             return Staged(emptyMap(), emptySet())
         }
@@ -212,6 +230,46 @@ object FormPrefill {
         return parts.filter { it.isNotBlank() }.mapNotNull { answerFor(question, it) }
     }
 
+    /**
+     * Saved answers whose question has since become a choice (e.g. VHF travel origin country,
+     * 14 Oct 2026) still hold the typed text. The form screen rejects an answer of the wrong type,
+     * so the text becomes the option with that display or code (ignoring case); text that matches
+     * no option is dropped, to be answered again. Open-choice questions keep typed text.
+     */
+    fun upgradeTextToChoiceAnswers(q: Questionnaire, r: QuestionnaireResponse) {
+        val choices = mutableMapOf<String, Questionnaire.QuestionnaireItemComponent>()
+        fun index(items: List<Questionnaire.QuestionnaireItemComponent>) {
+            items.forEach {
+                if (it.type == Questionnaire.QuestionnaireItemType.CHOICE && !isOpenChoice(it)) {
+                    choices[it.linkId] = it
+                }
+                index(it.item)
+            }
+        }
+        index(q.item)
+        fun visit(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                val question = choices[item.linkId]
+                if (question != null && item.answer.any { it.value is StringType }) {
+                    item.answer = item.answer.mapNotNullTo(mutableListOf()) { answer ->
+                        val text = (answer.value as? StringType)?.value?.trim()
+                            ?: return@mapNotNullTo answer
+                        question.answerOption
+                            .firstOrNull { option ->
+                                option.hasValueCoding() &&
+                                    (option.valueCoding.display.equals(text, ignoreCase = true) ||
+                                        option.valueCoding.code.equals(text, ignoreCase = true))
+                            }
+                            ?.let { answer.apply { value = it.valueCoding.copy() } }
+                    }
+                }
+                item.answer.forEach { visit(it.item) }
+                visit(item.item)
+            }
+        }
+        visit(r.item)
+    }
+
     private fun answerFor(question: Questionnaire.QuestionnaireItemComponent, raw: String): Type? =
         when (question.type) {
             Questionnaire.QuestionnaireItemType.CHOICE -> question.answerOption
@@ -225,6 +283,8 @@ object FormPrefill {
             Questionnaire.QuestionnaireItemType.DATE -> runCatching { DateType(raw) }.getOrNull()
             Questionnaire.QuestionnaireItemType.DATETIME -> runCatching { DateTimeType(raw) }.getOrNull()
             Questionnaire.QuestionnaireItemType.INTEGER -> raw.toIntOrNull()?.let { IntegerType(it) }
+            Questionnaire.QuestionnaireItemType.DECIMAL ->
+                raw.toBigDecimalOrNull()?.let { org.hl7.fhir.r4.model.DecimalType(it) }
             Questionnaire.QuestionnaireItemType.STRING,
             Questionnaire.QuestionnaireItemType.TEXT -> StringType(raw)
 

@@ -59,7 +59,6 @@ class EditChecklistActivity : AppCompatActivity() {
             "vl-case.json" -> "Edit VL Case"
             "vhf-case.json" -> "Edit VHF Case"
             "alert-rumor-log.json" -> "Edit Alert"
-            "vhf-lab-results.json" -> "Edit Laboratory Results"
             "vhf-contact-monitoring.json" -> "Edit Contact Monitoring"
             "rumor-tracking-case.json" -> "Edit Rumor Report"
             "social-community.json", "social-county.json" -> "Edit Social Investigation"

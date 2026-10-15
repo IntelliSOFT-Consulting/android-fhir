@@ -29,6 +29,7 @@ import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfSpecimens
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.fhir.forms.valueOf
 import com.icl.surveillance.models.QuestionnaireAnswer
@@ -1232,7 +1233,7 @@ class PatientListViewModel(
 
                     val hasVhfLabData = childEncounter.any { child ->
                         child.reasonCode in VHF_CHILD_RECORDS
-                    }
+                    } || fhirPatient.resource.identifier.any { id -> id.system == CaseSlugs.VHF }
 
                     when {
                         hasAfpLabData -> {
@@ -1465,9 +1466,9 @@ class PatientListViewModel(
     }
 
     /**
-     * VHF list columns. Lab: the latest "VHF Laboratory Results" final result (or the preliminary
-     * one while the final is outstanding) and the classification derived from it. Contacts: the
-     * status shows where the contact is in the 21-day follow up (e.g. "Day 7/21 - due today").
+     * VHF list columns. Lab: from the case's specimens -- Positive if any specimen is positive,
+     * Negative only when every specimen is negative, else Pending (see [VhfSpecimens]); status:
+     * the final classification derived from it. A contact shows its follow-up summary instead.
      */
     private suspend fun processVhfCase(
         fhirEngine: FhirEngine,
@@ -1476,35 +1477,15 @@ class PatientListViewModel(
         caseEncounterId: String,
     ): PatientItem {
         var result = data
-        val labEncounter = childEncounters
-            .filter { it.reasonCode == FormFields.Vhf.LAB_TITLE }
-            .maxByOrNull { it.lastUpdated }
+        val specimens = VhfSpecimens.summaryForCase(fhirEngine, data.resourceId, caseEncounterId)
         // Logcat tag VHF_LIST: what each row is built from (to check lab status / classification).
         Timber.tag("VHF_LIST").d(
-            "patient=%s case=%s children=%s lab=%s",
+            "patient=%s case=%s children=%s specimens=%s",
             data.resourceId, caseEncounterId,
-            childEncounters.map { "${it.reasonCode}#${it.id}" }, labEncounter?.id ?: "none",
+            childEncounters.map { "${it.reasonCode}#${it.id}" }, specimens?.result ?: "none",
         )
-        if (labEncounter != null) {
-            val obs = fhirEngine.search<Observation> {
-                filter(Observation.ENCOUNTER, { value = "Encounter/${labEncounter.id}" })
-            }
-            val finalResult = obs.valueOf(FormFields.Vhf.FINAL_RESULT)
-            val preliminary = obs.valueOf(FormFields.Vhf.PRELIMINARY_RESULT)
-            val labResults = when {
-                finalResult.isNotBlank() -> finalResult
-                preliminary.isNotBlank() && !preliminary.equals("Pending", ignoreCase = true) ->
-                    "Preliminary: $preliminary"
-                else -> "Pending"
-            }
-            result = data.copy(
-                labResults = labResults,
-                status = FormFields.Vhf.finalClassification(finalResult)
-            )
-            Timber.tag("VHF_LIST").d(
-                "  lab obs=%d final='%s' preliminary='%s' -> lab='%s' status='%s'",
-                obs.size, finalResult, preliminary, result.labResults, result.status,
-            )
+        if (specimens != null) {
+            result = data.copy(labResults = specimens.labResults, status = specimens.classification)
         }
 
         val caseType = fhirEngine.search<Observation> {
@@ -1963,9 +1944,8 @@ class PatientListViewModel(
         val logicalId: String, val name: String, val fever: String = "", val rash: String = ""
     )
 
-    /** Child records of a VHF case: lab results and, for contacts, follow up and monitoring. */
+    /** Child records of a VHF case (contact follow up and monitoring); lab results come from Specimens. */
     private val VHF_CHILD_RECORDS = setOf(
-        FormFields.Vhf.LAB_TITLE,
         FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE,
         FormFields.Vhf.CONTACT_MONITORING_TITLE,
     )

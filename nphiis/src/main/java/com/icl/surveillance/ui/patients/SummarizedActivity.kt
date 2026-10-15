@@ -37,6 +37,7 @@ import com.icl.surveillance.ui.patients.custom.VlFollowupFragment
 import com.icl.surveillance.ui.patients.custom.VlLabFragment
 import com.icl.surveillance.ui.patients.custom.VlTreatmentFragment
 import com.icl.surveillance.ui.patients.custom.VhfContactsFragment
+import com.icl.surveillance.ui.patients.custom.VhfSpecimensFragment
 import com.icl.surveillance.ui.patients.custom.VhfDailyFollowUpFragment
 import com.icl.surveillance.ui.patients.custom.afp.AFPFollowUpFragment
 import com.icl.surveillance.ui.patients.data.LabResultsFragment
@@ -79,6 +80,9 @@ class SummarizedActivity : AppCompatActivity() {
 
     /** Data and tab titles the pager was last built from; unchanged data keeps the same tabs. */
     private var tabSignature: String? = null
+
+    /** Tab to show first (e.g. Contacts after a new VHF case is saved); used once. */
+    private var openTab: String? = null
     private var tabMediator: TabLayoutMediator? = null
     private lateinit var binding: ActivitySummarizedBinding
     private lateinit var fhirEngine: FhirEngine
@@ -92,6 +96,7 @@ class SummarizedActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val patientId = FormatterClass().getSharedPref("resourceId", this@SummarizedActivity)
         casePatientId = patientId
+        if (savedInstanceState == null) openTab = intent.getStringExtra(EXTRA_OPEN_TAB)
         val currentCase = FormatterClass().getSharedPref("currentCase", this@SummarizedActivity)
 
 
@@ -275,8 +280,9 @@ class SummarizedActivity : AppCompatActivity() {
         }.also { it.attach() }
         tabSignature = signature
 
-        // Keep the tab the user was on (e.g. Contacts after registering a contact).
-        selectedTitle?.let { title ->
+        // Keep the tab the user was on (e.g. Contacts after registering a contact), or open the
+        // requested one the first time.
+        (selectedTitle ?: openTab.also { openTab = null })?.let { title ->
             (0 until adapter.itemCount).firstOrNull { adapter.getTabTitle(it) == title }
                 ?.let { viewPager.setCurrentItem(it, false) }
         }
@@ -304,10 +310,8 @@ class SummarizedActivity : AppCompatActivity() {
     private fun vhfTabs(
         observations: List<PatientListViewModel.ObservationItem>
     ): List<Pair<String, Fragment>> {
-        val lab = "Laboratory" to FollowUpFormFragment.newInstance(
-            FormFields.Vhf.LAB_TITLE,
-            FormFields.Vhf.LAB_FORM
-        )
+        // Lab results come from the case's specimens (no lab results form).
+        val lab = "Laboratory" to VhfSpecimensFragment()
         val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
         return if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) {
             listOf(
@@ -724,6 +728,14 @@ class SummarizedActivity : AppCompatActivity() {
         }
     }
 
+
+    companion object {
+        /** Title of the tab to open first, e.g. "Contacts". */
+        const val EXTRA_OPEN_TAB = "openTab"
+
+        /** True to start registering a contact of this VHF case as soon as its Contacts tab loads. */
+        const val EXTRA_REGISTER_CONTACT = "registerContact"
+    }
 }
 
 /** VHF case-form pages a contact skips (enableWhen Type of case != Contact). */

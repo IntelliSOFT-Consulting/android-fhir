@@ -21,3 +21,7 @@ nphiis.dha.baseUrl=https://ilm-dev.dha.go.ke/uat-middleware/api/
 nphiis.dha.clientId=
 nphiis.dha.clientSecret=
 nphiis.cr.baseUrl=https://dsrfhir.intellisoftkenya.com/api/
+
+# Google Maps + Places API key (residence picker on contact registration). Enable "Maps SDK for
+# Android" and "Places API (New)" for it; restrict it to the app's package + SHA-1.
+nphiis.mapsApiKey=

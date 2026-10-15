@@ -275,6 +275,69 @@ object VhfCards {
         return row
     }
 
+    /**
+     * A specimen collected for the case: type with its result pill, then the specimen ID (tube
+     * label), collection date and any notes.
+     */
+    fun specimen(
+        parent: ViewGroup,
+        type: String,
+        lines: List<String>,
+        status: String,
+        tone: CardTone,
+    ): View {
+        val context = parent.context
+        val density = context.resources.displayMetrics.density
+        val accent = ContextCompat.getColor(context, tone.accent)
+        val card = MaterialCardView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt()) }
+            setRadius(12 * density)
+            cardElevation = 0f
+            strokeWidth = (1 * density).toInt()
+            setStrokeColor(ContextCompat.getColor(context, R.color.home_card_stroke))
+            setCardBackgroundColor(ContextCompat.getColor(context, R.color.home_card_background))
+        }
+        val body = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (14 * density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+        val header = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        header.addView(TextView(context).apply {
+            text = type
+            textSize = 15f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(ContextCompat.getColor(context, R.color.home_card_title))
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        })
+        header.addView(TextView(context).apply {
+            text = status
+            textSize = 12f
+            setTypeface(typeface, Typeface.BOLD)
+            setBackgroundResource(R.drawable.bg_vhf_pill)
+            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, tone.tint))
+            setTextColor(accent)
+            setPadding((10 * density).toInt(), (3 * density).toInt(), (10 * density).toInt(), (3 * density).toInt())
+        })
+        body.addView(header)
+        lines.filter { it.isNotBlank() }.forEach { line ->
+            body.addView(TextView(context).apply {
+                text = line
+                textSize = 13f
+                setTextColor(ContextCompat.getColor(context, R.color.home_card_subtitle))
+                setPadding(0, (4 * density).toInt(), 0, 0)
+            })
+        }
+        card.addView(body)
+        card.contentDescription = "$type, $status"
+        return card
+    }
+
     private fun initials(name: String): String =
         name.split(" ").filter { it.isNotBlank() }.take(2)
             .joinToString("") { it.first().uppercase() }

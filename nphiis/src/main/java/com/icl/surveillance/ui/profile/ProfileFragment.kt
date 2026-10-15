@@ -112,6 +112,18 @@ class ProfileFragment : Fragment() {
                 )
             }
 
+            btnResetSync.setOnClickListener {
+                if (!NetworkUtils.isInternetAvailable(requireContext())) {
+                    DialogHelper.showSyncRequiresInternetDialog(requireContext())
+                    return@setOnClickListener
+                }
+                showConfirmationDialog(
+                    title = getString(R.string.reset_sync),
+                    message = getString(R.string.reset_sync_confirm),
+                    onConfirm = { resetResourceSyncInBackground() }
+                )
+            }
+
             btnClearCache.setOnClickListener {
                 showConfirmationDialog(
                     title = "Confirmation?",

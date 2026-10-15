@@ -24,6 +24,7 @@ class DemoDataStore(private val context: Context) {
                 ResourceType.QuestionnaireResponse,
                 ResourceType.MeasureReport,
                 ResourceType.Specimen,
+                ResourceType.DiagnosticReport,
                 ResourceType.Condition,
                 ResourceType.Immunization,
             )

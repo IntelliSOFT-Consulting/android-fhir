@@ -26,6 +26,9 @@ object StandardSpecimen {
     const val APP_SYSTEM = "specimen-details"
     const val ENCOUNTER_EXTENSION = "http://hl7.org/fhir/StructureDefinition/workflow-encounter"
 
+    /** Date the specimen was sent to the laboratory (R4 Specimen has no element for it). */
+    const val SENT_EXTENSION = "http://nphiis.health.go.ke/fhir/StructureDefinition/specimen-sent-date"
+
     /** Form answers (lower case) -> HL7 v2-0487 code and display. */
     private val V2_CODES = mapOf(
         "blood" to ("BLD" to "Whole blood"),
@@ -48,6 +51,7 @@ object StandardSpecimen {
      * @param sourceLinkId the question the specimen was recorded on.
      * @param specimenType the specimen type as answered (e.g. "Blood").
      * @param collected the collection date/date-time answer ("yyyy-MM-dd" or ISO date-time).
+     * @param sent the date it was sent to the laboratory, same formats.
      */
     fun build(
         sourceLinkId: String,
@@ -56,6 +60,7 @@ object StandardSpecimen {
         subjectRef: Reference,
         encounterRef: Reference?,
         notes: List<String> = emptyList(),
+        sent: String? = null,
     ): Specimen {
         val specimen = Specimen()
         specimen.status = Specimen.SpecimenStatus.AVAILABLE
@@ -71,6 +76,9 @@ object StandardSpecimen {
             parseCollected(collected)?.let { collection.setCollected(DateTimeType(it)) }
         }
         encounterRef?.let { specimen.addExtension(Extension(ENCOUNTER_EXTENSION, it)) }
+        sent?.trim()?.takeIf { it.isNotEmpty() }
+            ?.let { runCatching { DateTimeType(it) }.getOrNull() }
+            ?.let { specimen.addExtension(Extension(SENT_EXTENSION, it)) }
         specimen.note = notes.filter { it.isNotBlank() }.map { Annotation().setText(it) }
         return specimen
     }

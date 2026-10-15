@@ -50,6 +50,7 @@ class TimestampBasedDownloadWorkManagerImpl(
             listOf(
                 "Patient?_count=$PATIENT_PAGE_SIZE&_sort=_lastUpdated",
                 "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
+                "DiagnosticReport?_count=$REPORT_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
@@ -289,5 +290,6 @@ class TimestampBasedDownloadWorkManagerImpl(
     private companion object {
         const val PATIENT_PAGE_SIZE = 100
         const val RESPONSE_PAGE_SIZE = 50
+        const val REPORT_PAGE_SIZE = 50
     }
 }

@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
@@ -20,6 +21,9 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.databinding.ActivityClientLookupBinding
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
+import com.icl.surveillance.fhir.forms.ResidenceLocation
+import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.models.ClientDemographics
 import com.icl.surveillance.models.ClientLookupOutcome
 import com.icl.surveillance.models.LookupSource
@@ -82,6 +86,7 @@ class ClientLookupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         binding = ActivityClientLookupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -501,9 +506,21 @@ class ClientLookupActivity : AppCompatActivity() {
      */
     private fun openForm(prefill: Map<String, String>, locked: Set<String> = emptySet()) {
         internetDialog?.dismiss()
-        if (prefill.isEmpty()) FormPrefill.clear(this)
-        else FormPrefill.stage(this, questionnaireFile, prefill, locked)
-        val formIntent = Intent(this, AddParentCaseActivity::class.java).apply {
+        // Registering a contact of a case: keep the contact details its Contacts tab staged
+        // (Type of case, exposure, disease, source EPID) and add what was found here.
+        val contact = if (isContactRegistration()) FormPrefill.peek(this, questionnaireFile) else null
+        val values = contact?.values.orEmpty() + prefill
+        val lockedIds = contact?.locked.orEmpty() + locked
+        if (values.isEmpty()) FormPrefill.clear(this)
+        else FormPrefill.stage(this, questionnaireFile, values, lockedIds)
+        // Contacts: pick where the person lives on the map, then the form opens.
+        val formIntent = if (isContactRegistration()) {
+            ResidenceLocation.clear(this)
+            Intent(this, ResidencePickerActivity::class.java)
+                .putExtra(ResidencePickerActivity.EXTRA_OPEN_FORM, true)
+        } else {
+            Intent(this, AddParentCaseActivity::class.java)
+        }.apply {
             putExtras(intent)
             addFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT)
         }
@@ -512,6 +529,9 @@ class ClientLookupActivity : AppCompatActivity() {
     }
 
     // ---- Helpers
+
+    private fun isContactRegistration(): Boolean =
+        !FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, this).isNullOrBlank()
 
     private fun initials(name: String): String =
         name.split(Regex("\\s+")).filter { it.isNotEmpty() }
