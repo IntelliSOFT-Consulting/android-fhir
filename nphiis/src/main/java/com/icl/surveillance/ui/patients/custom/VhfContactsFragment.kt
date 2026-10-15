@@ -225,7 +225,7 @@ class VhfContactsFragment : Fragment() {
         rows.sortedWith(compareBy({ priority(it.state) }, { it.name })).forEach { row ->
             val state = row.state
             val (status, tone) = when {
-                state == null -> "Record unavailable" to CardTone.NEUTRAL
+                state == null -> "Suspected converted to case" to CardTone.NEUTRAL
                 !state.isContact -> "Converted · ${state.caseType.ifBlank { "case" }}" to CardTone.NEUTRAL
                 state.isClosed -> state.monitoringStatus to
                     if (state.monitoringStatus == FormFields.Vhf.STATUS_COMPLETED) CardTone.SUCCESS else CardTone.NEUTRAL

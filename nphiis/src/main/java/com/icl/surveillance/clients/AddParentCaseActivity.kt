@@ -37,6 +37,9 @@ import org.hl7.fhir.r4.model.Coding
 import com.icl.surveillance.ui.patients.SummarizedActivity
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.FormPrefill
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+import com.icl.surveillance.fhir.forms.FormDrafts
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.FormFields
@@ -100,6 +103,11 @@ class AddParentCaseActivity : AppCompatActivity() {
 
 //        checkAndRequestLocationPermission()
         updateArguments()
+        draftKey = FormDrafts.keyFor(
+            this,
+            FormatterClass().getSharedPref("questionnaire", this)
+                ?: intent.getStringExtra(QUESTIONNAIRE_FILE_PATH_KEY) ?: "form"
+        )
         if (savedInstanceState == null) {
             addQuestionnaireFragment()
         }
@@ -281,16 +289,69 @@ class AddParentCaseActivity : AppCompatActivity() {
 
 
     private fun showCancelScreenerQuestionnaireAlertDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.apply {
-            setMessage(getString(R.string.cancel_questionnaire_message))
-            setPositiveButton(getString(android.R.string.yes)) { _, _ ->
-                this@AddParentCaseActivity.finish()
+        AlertDialog.Builder(this)
+            .setTitle("Leave this form?")
+            .setMessage("Save your answers as a draft to continue later, or discard them.")
+            .setPositiveButton("Save draft") { _, _ ->
+                lifecycleScope.launch {
+                    if (saveDraft()) {
+                        Toast.makeText(this@AddParentCaseActivity, "Draft saved", Toast.LENGTH_SHORT).show()
+                    }
+                    draftsEnabled = false
+                    finish()
+                }
             }
-            setNegativeButton(getString(android.R.string.no)) { _, _ -> }
+            .setNegativeButton("Discard") { _, _ ->
+                draftsEnabled = false
+                FormDrafts.delete(this, draftKey)
+                finish()
+            }
+            .setNeutralButton("Keep editing") { _, _ -> }
+            .show()
+    }
+
+    // ---- Drafts (see FormDrafts)
+
+    /** This form's draft key; set in onCreate. */
+    private var draftKey: String = ""
+
+    /** Off once the form is submitted or left (saved or discarded): nothing more to keep. */
+    private var draftsEnabled = true
+
+    /** The answers the form opened with, so a draft is only kept once the user changed something. */
+    @Volatile
+    private var startAnswers: Map<String, List<String>>? = null
+
+    /** Saves the current answers as this form's draft when they differ from the starting ones. */
+    private suspend fun saveDraft(): Boolean {
+        if (!draftsEnabled) return false
+        val fragment = supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG)
+            as? QuestionnaireFragment ?: return false
+        val response = runCatching { fragment.getQuestionnaireResponse() }.getOrNull() ?: return false
+        if (FormDrafts.answersOf(response) == startAnswers) return false
+        val json = FhirContext.forR4Cached().newJsonParser().encodeResourceToString(response)
+        withContext(Dispatchers.IO) { FormDrafts.save(this@AddParentCaseActivity, draftKey, json) }
+        return true
+    }
+
+    /** Asks whether to continue the unsaved draft saved at [savedAt], or start a new form. */
+    private suspend fun askToResumeDraft(savedAt: Long): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            val time = java.text.SimpleDateFormat("d MMM, HH:mm", java.util.Locale.getDefault())
+                .format(java.util.Date(savedAt))
+            AlertDialog.Builder(this)
+                .setTitle("Continue your draft?")
+                .setMessage("You have unsaved answers on this form from $time. Continue where you left off, or start a new form?")
+                .setCancelable(false)
+                .setPositiveButton("Continue") { _, _ -> if (continuation.isActive) continuation.resume(true) }
+                .setNegativeButton("Start new") { _, _ -> if (continuation.isActive) continuation.resume(false) }
+                .show()
         }
-        val alertDialog = builder.create()
-        alertDialog.show()
+
+    /** Leaving the screen (Home, a call, the app closing): keep what was entered so far. */
+    override fun onPause() {
+        super.onPause()
+        if (draftsEnabled && !isFinishing) lifecycleScope.launch { saveDraft() }
     }
 
     private suspend fun saveCase(
@@ -614,6 +675,9 @@ class AddParentCaseActivity : AppCompatActivity() {
                 }.onFailure { Timber.tag(TAG).w(it, "Could not load VHF source cases") }
             }
 
+            // The form before staged answers lock any question (a resumed draft is not locked).
+            val unlockedQuestionnaireJson = viewModel.questionnaireJson
+
             // Answers staged by the opening screen, e.g. a contact registered from its case.
             val staged = FormPrefill.takeStaged(
                 this@AddParentCaseActivity,
@@ -635,7 +699,25 @@ class AddParentCaseActivity : AppCompatActivity() {
             }
 
             // 2. Serialize resource INTO JSON (expensive → done on background thread)
-            val questionnaireResponseJson = jsonParser.encodeResourceToString(resource)
+            var questionnaireResponseJson = jsonParser.encodeResourceToString(resource)
+            startAnswers = FormDrafts.answersOf(resource)
+
+            // An unsaved draft of this form: offer to continue it (if it still fits the form).
+            FormDrafts.load(this@AddParentCaseActivity, draftKey)?.let { draft ->
+                val form = jsonParser.parseResource(Questionnaire::class.java, unlockedQuestionnaireJson)
+                val fitted = FormDrafts.fitTo(form, draft.responseJson)
+                if (fitted == null) {
+                    FormDrafts.delete(this@AddParentCaseActivity, draftKey)
+                } else if (withContext(Dispatchers.Main) { askToResumeDraft(draft.savedAt) }) {
+                    questionnaireResponseJson = fitted
+                    viewModel.useQuestionnaireJson(unlockedQuestionnaireJson)
+                    startAnswers = FormDrafts.answersOf(
+                        jsonParser.parseResource(QuestionnaireResponse::class.java, fitted)
+                    )
+                } else {
+                    FormDrafts.delete(this@AddParentCaseActivity, draftKey)
+                }
+            }
 
             // 3. Prepare questionnaire JSON (if it’s very large)
             val questionnaireJson = viewModel.questionnaireJson
@@ -664,6 +746,14 @@ class AddParentCaseActivity : AppCompatActivity() {
                             fragmentBuilder.build(),
                             QUESTIONNAIRE_FRAGMENT_TAG
                         )
+                    }
+                    // The form's own starting answers (incl. its initial values, e.g. Country):
+                    // a draft is only kept once the user changes something.
+                    supportFragmentManager.executePendingTransactions()
+                    (supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG)
+                        as? QuestionnaireFragment)?.let { fragment ->
+                        runCatching { fragment.getQuestionnaireResponse() }.getOrNull()
+                            ?.let { startAnswers = FormDrafts.answersOf(it) }
                     }
                 }
             }
@@ -762,6 +852,8 @@ class AddParentCaseActivity : AppCompatActivity() {
     }
 
     fun showSuccessDialog(context: Context) {
+        draftsEnabled = false
+        FormDrafts.delete(this, draftKey)
         val dialogView = LayoutInflater.from(context).inflate(R.layout.success_dialog, null)
         val alertDialog = AlertDialog.Builder(context)
             .setView(dialogView)
