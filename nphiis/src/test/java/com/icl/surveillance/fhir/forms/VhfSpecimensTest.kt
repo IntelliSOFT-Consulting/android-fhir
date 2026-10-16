@@ -8,6 +8,7 @@ import org.hl7.fhir.r4.model.StringType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import com.icl.surveillance.models.QuestionnaireAnswer
 
 class VhfSpecimensTest {
 
@@ -82,5 +83,25 @@ class VhfSpecimensTest {
         assertEquals(VhfSpecimens.Result.NEGATIVE, VhfSpecimens.resultOf(specimen, listOf(test("Negative"), test("Not detected"))))
         specimen.status = Specimen.SpecimenStatus.UNSATISFACTORY
         assertEquals(VhfSpecimens.Result.REJECTED, VhfSpecimens.resultOf(specimen, listOf(test("Positive"))))
+    }
+
+    private fun answer(linkId: String, value: String) = QuestionnaireAnswer(linkId, "", value)
+
+    @Test
+    fun `case form sample only when samples are collected`() {
+        assertNull(VhfSpecimens.sampleFromCaseForm(listOf(answer(FormFields.Vhf.SAMPLES_COLLECTED, "No"))))
+        val sample = VhfSpecimens.sampleFromCaseForm(
+            listOf(
+                answer(FormFields.Vhf.SAMPLES_COLLECTED, "Yes"),
+                answer(FormFields.Vhf.SAMPLE_TYPE, "Saliva"),
+                answer(FormFields.Vhf.COLLECTION_DATE, "2026-10-16T09:00:00+03:00"),
+                answer(FormFields.Vhf.SAMPLE_TRANSPORT, "Road"),
+                answer(FormFields.Vhf.SAMPLE_TRANSPORT_ROAD, "Public"),
+                answer(FormFields.Vhf.SENT_DATE, "2026-10-16T12:00:00+03:00"),
+            )
+        )!!
+        assertEquals("Saliva", sample.type)
+        assertEquals("2026-10-16T12:00:00+03:00", sample.sent)
+        assertEquals(listOf("Transport: Road (Public)"), sample.notes)
     }
 }

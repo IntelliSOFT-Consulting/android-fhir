@@ -32,6 +32,7 @@ import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.SpecimenId
+import com.icl.surveillance.fhir.forms.VhfSpecimens
 import com.icl.surveillance.fhir.forms.StandardSpecimen
 import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.fhir.forms.VhfTraining
@@ -939,34 +940,13 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         "VHF samples collected = '%s', type = '%s'",
                         answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED), answers.answerOf(FormFields.Vhf.SAMPLE_TYPE),
                     )
-                    if (answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED).equals("yes", ignoreCase = true)) {
-                        val answeredType = answers.answerOf(FormFields.Vhf.SAMPLE_TYPE)
-                        val type = when {
-                            answeredType == null -> "Unspecified"
-                            answeredType.startsWith("Other", ignoreCase = true) ->
-                                answers.answerOf(FormFields.Vhf.SAMPLE_TYPE_OTHER) ?: answeredType
-                            else -> answeredType
-                        }
-                        val transport = answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT)?.let { mode ->
-                            when {
-                                mode.startsWith("Other", ignoreCase = true) ->
-                                    answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT_OTHER) ?: mode
-                                mode.equals("Road", ignoreCase = true) ->
-                                    answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT_ROAD)
-                                        ?.let { "Road ($it)" } ?: mode
-                                else -> mode
-                            }
-                        }
+                    VhfSpecimens.sampleFromCaseForm(answers)?.let { sample ->
                         saveSpecimen(
                             FormFields.Vhf.SAMPLE_TYPE,
-                            answers.answerOf(FormFields.Vhf.COLLECTION_DATE),
-                            type,
-                            listOfNotNull(
-                                answers.answerOf(FormFields.Vhf.SAMPLE_TISSUE_TYPE)
-                                    ?.takeIf { type == "Tissue" }?.let { "Tissue type: $it" },
-                                transport?.let { "Transport: $it" },
-                            ),
-                            sent = answers.answerOf(FormFields.Vhf.SENT_DATE),
+                            sample.collected,
+                            sample.type,
+                            sample.notes,
+                            sent = sample.sent,
                         )
                     }
                 }

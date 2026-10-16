@@ -1,14 +1,18 @@
 package com.icl.surveillance.fhir.forms
 
+import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
+import com.icl.surveillance.models.QuestionnaireAnswer
 import java.util.Date
+import java.util.UUID
 import org.hl7.fhir.r4.model.BaseDateTimeType
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DiagnosticReport
+import org.hl7.fhir.r4.model.DomainResource
 import org.hl7.fhir.r4.model.IdType
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
@@ -33,6 +37,112 @@ import timber.log.Timber
  * Negative ("Discarded"); otherwise Pending ("Pending Results").
  */
 object VhfSpecimens {
+
+    /** The sample recorded in the case form's Laboratory section. */
+    data class CaseFormSample(
+        val type: String,
+        val collected: String?,
+        val sent: String?,
+        val notes: List<String>,
+    )
+
+    /** The case form's sample, or null when "Samples collected" is not Yes. */
+    fun sampleFromCaseForm(answers: List<QuestionnaireAnswer>): CaseFormSample? {
+        if (!answers.answerOf(FormFields.Vhf.SAMPLES_COLLECTED).equals("yes", ignoreCase = true)) return null
+        val answeredType = answers.answerOf(FormFields.Vhf.SAMPLE_TYPE)
+        val type = when {
+            answeredType == null -> "Unspecified"
+            answeredType.startsWith("Other", ignoreCase = true) ->
+                answers.answerOf(FormFields.Vhf.SAMPLE_TYPE_OTHER) ?: answeredType
+            else -> answeredType
+        }
+        val transport = answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT)?.let { mode ->
+            when {
+                mode.startsWith("Other", ignoreCase = true) ->
+                    answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT_OTHER) ?: mode
+                mode.equals("Road", ignoreCase = true) ->
+                    answers.answerOf(FormFields.Vhf.SAMPLE_TRANSPORT_ROAD)?.let { "Road ($it)" } ?: mode
+                else -> mode
+            }
+        }
+        return CaseFormSample(
+            type = type,
+            collected = answers.answerOf(FormFields.Vhf.COLLECTION_DATE),
+            sent = answers.answerOf(FormFields.Vhf.SENT_DATE),
+            notes = listOfNotNull(
+                answers.answerOf(FormFields.Vhf.SAMPLE_TISSUE_TYPE)
+                    ?.takeIf { type == "Tissue" }?.let { "Tissue type: $it" },
+                transport?.let { "Transport: $it" },
+            ),
+        )
+    }
+
+    /**
+     * After the VHF case form is edited: creates the case's Specimen when samples are now
+     * collected and none was recorded, or updates the one recorded from the case form (keeping
+     * its specimen ID). Nothing is removed when samples are changed to No: a specimen may already
+     * be at the laboratory with results. [template] supplies facility tags and extensions.
+     */
+    suspend fun syncFromCaseForm(
+        context: Context,
+        fhirEngine: FhirEngine,
+        patientId: String,
+        caseEncounterId: String?,
+        answers: List<QuestionnaireAnswer>,
+        template: DomainResource?,
+    ) {
+        val sample = sampleFromCaseForm(answers)
+        Timber.tag("SPECIMEN").d("Edit of Patient/%s: case-form sample = %s", patientId, sample)
+        if (sample == null) return
+        val subject = Reference("Patient/$patientId")
+        val encounter = caseEncounterId?.let { Reference("Encounter/$it") }
+        val built = StandardSpecimen.build(
+            sourceLinkId = FormFields.Vhf.SAMPLE_TYPE,
+            specimenType = sample.type,
+            collected = sample.collected,
+            subjectRef = subject,
+            encounterRef = encounter,
+            notes = sample.notes,
+            sent = sample.sent,
+        )
+        val existing = fhirEngine.search<Specimen> {
+            filter(Specimen.SUBJECT, { value = "Patient/$patientId" })
+        }.map { it.resource }
+            .filter { it.status != Specimen.SpecimenStatus.ENTEREDINERROR }
+            .filter { belongsTo(it, caseEncounterId) }
+            .firstOrNull { specimen ->
+                specimen.type.coding.any {
+                    it.system == StandardSpecimen.APP_SYSTEM && it.code == FormFields.Vhf.SAMPLE_TYPE
+                }
+            }
+
+        if (existing == null) {
+            built.id = UUID.randomUUID().toString()
+            SpecimenId.ensure(built, context)
+            template?.let { from ->
+                built.meta.tag = from.meta.tag.mapTo(ArrayList()) { it.copy() }
+                from.extension
+                    .filter { it.url != StandardSpecimen.ENCOUNTER_EXTENSION }
+                    .forEach { built.addExtension(it.copy()) }
+            }
+            fhirEngine.create(built)
+            Timber.tag("SPECIMEN").d("Created %s specimen %s (ID %s) on edit", sample.type, built.id, SpecimenId.of(built))
+            return
+        }
+
+        val updated = existing.copy().apply {
+            type = built.type
+            collection = built.collection
+            note = built.note
+            extension.removeAll { it.url == StandardSpecimen.SENT_EXTENSION }
+            built.getExtensionByUrl(StandardSpecimen.SENT_EXTENSION)?.let { addExtension(it.copy()) }
+        }
+        SpecimenId.ensure(updated, context)
+        if (!updated.equalsDeep(existing)) {
+            LocalWins.save(fhirEngine, updated)
+            Timber.tag("SPECIMEN").d("Updated specimen %s on edit", updated.idElement.idPart)
+        }
+    }
 
     /** How specimens saved before the sent date had its own extension recorded it. */
     private const val LEGACY_SENT_NOTE = "Sent to the laboratory:"

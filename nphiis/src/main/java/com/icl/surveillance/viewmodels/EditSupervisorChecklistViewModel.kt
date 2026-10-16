@@ -16,6 +16,7 @@ import com.icl.surveillance.fhir.forms.CaseResponse
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.VhfSourceCases
+import com.icl.surveillance.fhir.forms.VhfSpecimens
 import com.icl.surveillance.ui.patients.custom.VhfContactActions.PREF_CONVERT_TO_SUSPECTED
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.PatientMapper
@@ -219,6 +220,18 @@ class EditSupervisorChecklistViewModel(
             if (questionnaire == FormFields.Vhf.CASE_FORM) {
                 runCatching { linkVhfSourceCase(patientId, answers) }
                     .onFailure { Timber.e(it, "Failed to link the source case after editing") }
+                // Laboratory section: create (or update) the case's Specimen.
+                runCatching {
+                    val encounterId = original.encounter?.referenceElement?.idPart
+                    val template = encounterId?.let { id ->
+                        fhirEngine.search<Observation> {
+                            filter(Observation.ENCOUNTER, { value = "Encounter/$id" })
+                        }.firstOrNull()?.resource
+                    }
+                    VhfSpecimens.syncFromCaseForm(
+                        getApplication<Application>(), fhirEngine, patientId, encounterId, answers, template,
+                    )
+                }.onFailure { Timber.e(it, "Failed to update the specimen after editing") }
             }
         }
     }
