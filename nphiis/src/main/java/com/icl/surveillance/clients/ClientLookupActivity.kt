@@ -3,6 +3,7 @@ package com.icl.surveillance.clients
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputFilter
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -15,7 +16,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
-import android.widget.DatePicker
 import com.icl.surveillance.R
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.databinding.ActivityClientLookupBinding
@@ -34,8 +34,6 @@ import com.icl.surveillance.utils.NetworkUtils
 import com.icl.surveillance.utils.PhoneNumbers
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -73,9 +71,6 @@ class ClientLookupActivity : AppCompatActivity() {
     private var lastGuardian: ClientDemographics? = null
     private var lastChildren: List<ClientDemographics> = emptyList()
 
-    /** yyyy-MM-dd, or null until picked. */
-    private var selectedDob: String? = null
-
     private var internetDialog: AlertDialog? = null
 
     /** Set when the user went to the internet settings from the alert; checked on return. */
@@ -102,20 +97,28 @@ class ClientLookupActivity : AppCompatActivity() {
         setUpIdType()
         applyAgeGroup()
 
+        binding.firstName.filters = binding.firstName.filters + InputFilter.AllCaps()
+        binding.firstName.doAfterTextChanged {
+            binding.firstNameLayout.error = null
+            showIdle()
+        }
         binding.idNumber.doAfterTextChanged {
             binding.idNumberLayout.error = null
             showIdle()
         }
         binding.idNumber.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                hideKeyboard()
-                if (selectedDob == null) pickDob() else search()
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                binding.firstName.requestFocus()
                 true
             } else false
         }
-        binding.dob.setOnClickListener { pickDob() }
-        binding.dobLayout.setEndIconOnClickListener { pickDob() }
-        savedInstanceState?.getString(STATE_DOB)?.let { setDob(it) }
+
+        binding.firstName.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                search()
+                true
+            } else false
+        }
 
         binding.searchButton.setOnClickListener { search() }
         binding.notThisPersonButton.setOnClickListener {
@@ -188,7 +191,7 @@ class ClientLookupActivity : AppCompatActivity() {
         binding.ageNote.setText(if (selectedMinor) R.string.client_lookup_minor_note else R.string.client_lookup_adult_note)
         binding.idTypeLayout.hint = getString(if (minor) R.string.client_lookup_guardian_id_type else R.string.client_lookup_id_type)
         binding.idNumberLayout.hint = getString(if (minor) R.string.client_lookup_guardian_id_number else R.string.client_lookup_id_number)
-        binding.dobLayout.hint = getString(if (minor) R.string.client_lookup_guardian_dob else R.string.client_lookup_dob)
+        binding.firstNameLayout.hint = getString(if (minor) R.string.client_lookup_guardian_first_name else R.string.client_lookup_first_name)
     }
 
     /** Fills the ID type list for the current source; hidden when there is only one choice. */
@@ -215,38 +218,10 @@ class ClientLookupActivity : AppCompatActivity() {
 
     private fun enteredId(): String = binding.idNumber.text?.toString()?.trim().orEmpty()
 
-    private fun pickDob() {
-        val format = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { isLenient = false }
-        val today = Calendar.getInstance()
-        val earliest = (today.clone() as Calendar).apply { add(Calendar.YEAR, -MAX_AGE_YEARS) }
-        val selected = Calendar.getInstance().apply {
-            selectedDob?.let { value -> runCatching { format.parse(value) }.getOrNull()?.let { time = it } }
-        }
-        val picker = layoutInflater.inflate(R.layout.dialog_client_dob, null) as DatePicker
-        picker.minDate = earliest.timeInMillis
-        picker.maxDate = today.timeInMillis
-        picker.updateDate(selected.get(Calendar.YEAR), selected.get(Calendar.MONTH), selected.get(Calendar.DAY_OF_MONTH))
-        AlertDialog.Builder(this)
-            .setTitle(R.string.client_lookup_dob)
-            .setView(picker)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                picker.clearFocus()
-                setDob(String.format(Locale.US, "%04d-%02d-%02d", picker.year, picker.month + 1, picker.dayOfMonth))
-            }
-            .show()
-    }
-
-    private fun setDob(value: String) {
-        selectedDob = value
-        binding.dob.setText(value)
-        binding.dobLayout.error = null
-        showIdle()
-    }
+    private fun enteredFirstName(): String = binding.firstName.text?.toString()?.trim().orEmpty()
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        selectedDob?.let { outState.putString(STATE_DOB, it) }
         outState.putString(STATE_ID_TYPE, selectedIdType)
         outState.putBoolean(STATE_MINOR, selectedMinor)
     }
@@ -255,10 +230,16 @@ class ClientLookupActivity : AppCompatActivity() {
 
     private fun search() {
         val id = enteredId()
-        val dob = selectedDob
+        val firstName = enteredFirstName()
         if (id.isEmpty()) binding.idNumberLayout.error = getString(R.string.client_lookup_id_required)
-        if (dob == null) binding.dobLayout.error = getString(R.string.client_lookup_dob_required)
-        if (id.isEmpty() || dob == null) return
+        else if (selectedIdType == FormFields.Vhf.ID_TYPE_NATIONAL_ID_CODE &&
+            !ClientLookupValidation.validNationalId(id)) {
+            binding.idNumberLayout.error = getString(R.string.client_lookup_id_length)
+        }
+        if (firstName.isEmpty()) binding.firstNameLayout.error = getString(R.string.client_lookup_first_name_required)
+        if (id.isEmpty() || firstName.isEmpty() ||
+            (selectedIdType == FormFields.Vhf.ID_TYPE_NATIONAL_ID_CODE &&
+                !ClientLookupValidation.validNationalId(id))) return
         hideKeyboard()
         if (needsInternet() && !isOnline()) {
             showInternetRequired()
@@ -269,18 +250,23 @@ class ClientLookupActivity : AppCompatActivity() {
         val source = selectedSource
         val minor = isMinorSearch
         lookupJob = lifecycleScope.launch {
-            val outcome =
-                ClientLookupRepository.lookup(this@ClientLookupActivity, source, id, selectedIdType, minor, dateOfBirth = dob)
+            val outcome = ClientLookupRepository.lookup(
+                this@ClientLookupActivity, source, id, selectedIdType, minor)
             showLoading(false)
-            showOutcome(outcome, minor, id)
+            showOutcome(outcome, minor, id, firstName)
         }
     }
 
-    private fun showOutcome(outcome: ClientLookupOutcome, minor: Boolean, id: String) {
+    private fun showOutcome(outcome: ClientLookupOutcome, minor: Boolean, id: String, firstName: String) {
         when (outcome) {
-            is ClientLookupOutcome.Found -> showMatch(outcome.client)
+            is ClientLookupOutcome.Found ->
+                if (ClientLookupValidation.matchesFirstName(firstName, outcome.client.firstName))
+                    showMatch(outcome.client)
+                else showMessage(getString(R.string.client_lookup_name_mismatch))
             is ClientLookupOutcome.Dependents ->
-                if (minor) showChildren(outcome) else showMatch(outcome.guardian)
+                if (!ClientLookupValidation.matchesFirstName(firstName, outcome.guardian.firstName))
+                    showMessage(getString(R.string.client_lookup_name_mismatch))
+                else if (minor) showChildren(outcome) else showMatch(outcome.guardian)
             ClientLookupOutcome.NotFound -> showMessage(
                 getString(
                     if (minor) R.string.client_lookup_guardian_not_found else R.string.client_lookup_not_found,
@@ -313,12 +299,6 @@ class ClientLookupActivity : AppCompatActivity() {
 
         fillRows(binding.resultRows, ClientLookupSummary.rows(client).map { getString(it.first) to it.second })
 
-        if (!isGuardian && dobMismatch(client)) {
-            binding.dobWarning.text = getString(R.string.client_lookup_dob_mismatch, selectedDob)
-            binding.dobWarning.visibility = View.VISIBLE
-        } else {
-            binding.dobWarning.visibility = View.GONE
-        }
         // Verified details are locked on the form; "Enter details manually instead" keeps it editable.
         binding.useDetailsButton.setOnClickListener {
             val prefill = if (isGuardian) client.toPrefill() else prefillFor(client)
@@ -347,11 +327,9 @@ class ClientLookupActivity : AppCompatActivity() {
             getString(R.string.client_lookup_children_title, guardian.fullName.ifBlank { enteredId() })
         binding.childrenList.removeAllViews()
 
-        // The entered date belongs to the principal in both search modes.
         addPersonCard(
             guardian,
             role = getString(R.string.client_lookup_guardian_badge),
-            dobMatch = guardian.dateOfBirth != null && guardian.dateOfBirth == selectedDob,
         ) { showMatch(guardian, isGuardian = isMinorSearch) }
         if (lastChildren.isEmpty()) {
             binding.childrenList.addView(TextView(this).apply {
@@ -365,7 +343,6 @@ class ClientLookupActivity : AppCompatActivity() {
             addPersonCard(
                 child,
                 role = child.relationship ?: getString(R.string.client_lookup_dependant_badge),
-                dobMatch = false,
             ) { showMatch(withGuardian(child, guardian)) }
         }
         scrollTo(binding.childrenCard)
@@ -374,7 +351,6 @@ class ClientLookupActivity : AppCompatActivity() {
     private fun addPersonCard(
         person: ClientDemographics,
         role: String,
-        dobMatch: Boolean = false,
         onSelect: () -> Unit,
     ) {
         val card = LayoutInflater.from(this).inflate(R.layout.item_lookup_person, binding.childrenList, false)
@@ -386,7 +362,6 @@ class ClientLookupActivity : AppCompatActivity() {
         }
         card.findViewById<View>(R.id.personInitials).visibility = if (name.isBlank()) View.GONE else View.VISIBLE
         card.findViewById<TextView>(R.id.personRole).text = role
-        card.findViewById<View>(R.id.personDobMatch).visibility = if (dobMatch) View.VISIBLE else View.GONE
         fillRows(card.findViewById(R.id.personRows),
             ClientLookupSummary.rows(person).map { getString(it.first) to it.second })
 
@@ -455,7 +430,7 @@ class ClientLookupActivity : AppCompatActivity() {
         binding.searchButton.isEnabled = !loading
         binding.searchButton.setText(if (loading) R.string.client_lookup_searching else R.string.client_lookup_search)
         listOf(
-            binding.idNumber, binding.idType, binding.dob,
+            binding.idNumber, binding.idType, binding.firstName,
             binding.ageAdult, binding.ageMinor,
         )
             .forEach { it.isEnabled = !loading }
@@ -469,7 +444,7 @@ class ClientLookupActivity : AppCompatActivity() {
     // ---- Opening the form
 
     /**
-     * Case-form answers (by linkId) for what was typed: ID and date of birth. For a minor the ID
+     * Case-form answers (by linkId) for the entered ID. For a minor the ID
      * typed is the guardian's, so it is not the child's ID; the guardian (when found) becomes the
      * next of kin instead.
      */
@@ -482,23 +457,16 @@ class ClientLookupActivity : AppCompatActivity() {
             }
         } else if (id.isNotEmpty()) {
             // Adults and minors have separate "Type of identification" questions; only the one
-            // offering this code takes the answer. Both depend on the date of birth.
+            // offering this code takes the answer.
             put(FormFields.Vhf.ID_TYPE, selectedIdType)
             put(FormFields.Vhf.ID_TYPE_MINOR, selectedIdType)
             put(FormFields.Vhf.NATIONAL_ID, id)
         }
-        selectedDob?.takeIf { !isMinorSearch }?.let {
-            put(ClientDemographics.DOB_KNOWN, "known")
-            put(FormFields.Person.DATE_OF_BIRTH, it)
-        }
     }
 
-    /** What was typed, overlaid with the record. The record's date of birth wins when it has one. */
+    /** The entered ID overlaid with the verified record, including its date of birth. */
     private fun prefillFor(client: ClientDemographics): Map<String, String> =
         idOnlyPrefill() + client.toPrefill()
-
-    private fun dobMismatch(client: ClientDemographics): Boolean =
-        !isMinorSearch && !client.dateOfBirth.isNullOrBlank() && selectedDob != null && client.dateOfBirth != selectedDob
 
     /**
      * Opens the case form with [prefill]; [locked] linkIds are read-only there. The form's result
@@ -553,9 +521,6 @@ class ClientLookupActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val STATE_DOB = "selectedDob"
-
-        private const val MAX_AGE_YEARS = 120
         private const val STATE_ID_TYPE = "idType"
         private const val STATE_MINOR = "minor"
     }

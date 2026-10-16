@@ -197,33 +197,30 @@
                                 android:id="@+id/idNumber"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:imeOptions="actionDone"
+                                android:imeOptions="actionNext"
                                 android:inputType="number"
                                 android:maxLines="1" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/dobLayout"
+                            android:id="@+id/firstNameLayout"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="@string/client_lookup_dob"
+                            android:hint="@string/client_lookup_first_name"
                             app:boxCornerRadiusBottomEnd="10dp"
                             app:boxCornerRadiusBottomStart="10dp"
                             app:boxCornerRadiusTopEnd="10dp"
                             app:boxCornerRadiusTopStart="10dp"
-                            app:endIconDrawable="@drawable/ic_vhf_edit_calendar"
-                            app:endIconMode="custom">
+                            app:endIconMode="clear_text">
 
                             <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/dob"
+                                android:id="@+id/firstName"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:clickable="true"
-                                android:cursorVisible="false"
-                                android:focusable="false"
-                                android:inputType="none"
+                                android:imeOptions="actionDone"
+                                android:inputType="textCapCharacters|textPersonName"
                                 android:maxLines="1" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -312,19 +309,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
-
-                    <TextView
-                        android:id="@+id/dobWarning"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_lookup_warning"
-                        android:padding="12dp"
-                        android:textColor="@color/lookup_warning_text"
-                        android:textSize="13sp"
-                        android:visibility="gone"
-                        tools:text="The date of birth entered does not match this record."
-                        tools:visibility="visible" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/useDetailsButton"

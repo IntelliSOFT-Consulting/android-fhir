@@ -62,6 +62,8 @@ data class ClientDemographics(
     val recordDetails: List<Pair<String, String>> = emptyList(),
     /** For a dependant: their relationship to the principal member, e.g. "Child". */
     val relationship: String? = null,
+    /** Exact first_name from the lookup response, used only for client validation. */
+    val firstName: String? = null,
 ) {
     val fullName: String
         get() = listOfNotNull(givenNames, surname).filter { it.isNotBlank() }.joinToString(" ")

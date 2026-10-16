@@ -6,13 +6,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ClientLookupFallbackTest {
-    @Test fun requestIncludesDocumentTypeIdAndDob() {
+    @Test fun requestIncludesDocumentTypeAndIdOnly() {
         assertEquals(mapOf(
             "identification_number" to "TEST001",
-            "identification_type" to "National ID",
-            "date_of_birth" to "1995-12-29"),
-            ClientLookupRepository.registryParams(" TEST001 ", "national-id", "1995-12-29"))
-        assertEquals("Alien ID", ClientLookupRepository.registryParams("TEST002", "alien-id", "1990-01-01")["identification_type"])
+            "identification_type" to "National ID"),
+            ClientLookupRepository.registryParams(" TEST001 ", "national-id"))
+        assertEquals("Alien ID", ClientLookupRepository.registryParams("TEST002", "alien-id")["identification_type"])
     }
 
     @Test fun readsNormalizedPatientFromEitherBackendSource() {
@@ -24,6 +23,7 @@ class ClientLookupFallbackTest {
             assertEquals("TEST001", patient.identificationNumber)
             assertEquals("Female", patient.gender)
             assertEquals("1995-12-29", patient.dateOfBirth)
+            assertEquals("Test", patient.toDemographics(null).firstName)
         }
     }
 
