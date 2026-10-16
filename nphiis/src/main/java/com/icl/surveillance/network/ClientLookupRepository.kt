@@ -46,7 +46,6 @@ object ClientLookupRepository {
         identifier: String,
         identificationType: String,
         minor: Boolean = false,
-        dateOfBirth: String,
     ): ClientLookupOutcome = withContext(Dispatchers.IO) {
         if (source == LookupSource.CLIENT_REGISTRY && Constants.CLIENT_LOOKUP_USE_MOCK) {
             return@withContext fromCr(context, MockClientRegistry.find(identifier, crType(identificationType)))
@@ -55,7 +54,7 @@ object ClientLookupRepository {
         try {
             val api = RetrofitBuilder.getExternalRetrofit(Constants.CLIENT_LOOKUP_BASE_URL, logRequests = false)
                 .create(Interface::class.java)
-            val params = registryParams(identifier, identificationType, dateOfBirth)
+            val params = registryParams(identifier, identificationType)
             var token = TokenStore.getAccessToken(context)
                 ?: FormatterClass().getSharedPref("access_token", context)
             if (token.isNullOrBlank()) return@withContext ClientLookupOutcome.Failed("Sign in to continue.")
@@ -103,11 +102,10 @@ object ClientLookupRepository {
         }
     }
 
-    internal fun registryParams(identifier: String, identificationType: String, dateOfBirth: String) =
+    internal fun registryParams(identifier: String, identificationType: String) =
         mapOf(
             "identification_number" to identifier.trim(),
             "identification_type" to crType(identificationType),
-            "date_of_birth" to dateOfBirth,
         )
 
     /** The combined endpoint returns {status, found, source, patient}. */

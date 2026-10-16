@@ -78,6 +78,7 @@ data class CrPatient(
         val child = isUnder18()
         return ClientDemographics(
             relationship = relationship?.trim()?.ifBlank { null },
+            firstName = firstName?.trim()?.ifBlank { null },
             surname = lastName.titleCase(),
             givenNames = listOfNotNull(firstName, middleName).filter { it.isNotBlank() }
                 .joinToString(" ").titleCase(),

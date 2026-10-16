@@ -48,22 +48,6 @@
             android:textSize="13sp"
             tools:text="Male · Born 2018-06-20" />
 
-        <TextView
-            android:id="@+id/childMatch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:background="@drawable/bg_lookup_pill"
-            android:paddingStart="8dp"
-            android:paddingTop="1dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="1dp"
-            android:text="@string/client_lookup_child_dob_match"
-            android:textColor="@color/lookup_success"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            tools:visibility="visible" />
     </LinearLayout>
 
     <ImageView

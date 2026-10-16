@@ -73,22 +73,6 @@
                         android:textStyle="bold"
                         tools:text="Principal member" />
 
-                    <TextView
-                        android:id="@+id/personDobMatch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_lookup_warning"
-                        android:paddingStart="8dp"
-                        android:paddingTop="1dp"
-                        android:paddingEnd="8dp"
-                        android:paddingBottom="1dp"
-                        android:text="@string/client_lookup_child_dob_match"
-                        android:textColor="@color/lookup_warning_text"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
