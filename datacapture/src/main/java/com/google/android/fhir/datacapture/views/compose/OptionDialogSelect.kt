@@ -18,6 +18,7 @@ package com.google.android.fhir.datacapture.views.compose
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.util.TypedValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
@@ -44,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -53,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.google.android.fhir.datacapture.MINIMUM_NUMBER_OF_ANSWER_OPTIONS_FOR_DIALOG
 import com.google.android.fhir.datacapture.R
 import com.google.android.fhir.datacapture.extensions.displayString
 import com.google.android.fhir.datacapture.extensions.itemAnswerOptionImage
@@ -71,17 +75,24 @@ fun OptionDialogSelect(
   selectedOptions: SelectedOptions,
   onDismiss: () -> Unit,
   onConfirm: (SelectedOptions) -> Unit,
+  enhanced: Boolean? = null,
 ) {
+  val enhancedMode = enhanced ?: enhancedChoiceControls()
+  var searchQuery by remember { mutableStateOf("") }
+  var committedOtherOptions by remember { mutableStateOf(selectedOptions.otherOptions) }
   var choiceOptions by
-    remember(multiSelect, selectedOptions.options) {
+    remember(
+      multiSelect,
+      if (enhancedMode) selectedOptions.options.map { it.item } else selectedOptions.options,
+    ) {
       mutableStateOf(selectedOptions.options.map { OptionSelectRow.Option(it) })
     }
   var otherOptionRowSelected by
-    remember(otherOptionsAllowed, selectedOptions.otherOptions) {
+    remember(otherOptionsAllowed, if (enhancedMode) Unit else selectedOptions.otherOptions) {
       mutableStateOf(otherOptionsAllowed && selectedOptions.otherOptions.isNotEmpty())
     }
   val otherOptionEditTexts =
-    remember(otherOptionsAllowed, selectedOptions.otherOptions) {
+    remember(otherOptionsAllowed, if (enhancedMode) Unit else selectedOptions.otherOptions) {
       val list = selectedOptions.otherOptions.map { OptionSelectRow.OtherEditText.fromText(it) }
       mutableStateListOf(*list.toTypedArray())
     }
@@ -90,7 +101,7 @@ fun OptionDialogSelect(
   val listState = rememberLazyListState()
 
   LaunchedEffect(otherOptionRowSelected, otherOptionEditTexts.size) {
-    if (otherOptionRowSelected) {
+    if (otherOptionRowSelected && searchQuery.isEmpty()) {
       val listSize =
         choiceOptions.size +
           if (otherOptionsAllowed) {
@@ -106,7 +117,8 @@ fun OptionDialogSelect(
 
   Dialog(
     onDismissRequest = onDismiss,
-    properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+    properties =
+      DialogProperties(dismissOnBackPress = enhancedMode, dismissOnClickOutside = enhancedMode),
   ) {
     Surface(
       shape = MaterialTheme.shapes.extraLarge,
@@ -119,6 +131,18 @@ fun OptionDialogSelect(
           style = MaterialTheme.typography.headlineSmall,
           modifier = Modifier.padding(dimensionResource(R.dimen.dialog_title_margin_bottom)),
         )
+
+        if (enhancedMode && choiceOptions.size >= MINIMUM_NUMBER_OF_ANSWER_OPTIONS_FOR_DIALOG) {
+          ChoiceSearchField(searchQuery, onQueryChange = { searchQuery = it })
+        }
+        val visibleOptions =
+          if (enhancedMode && searchQuery.isNotBlank()) {
+            choiceOptions.filter {
+              it.option.displayString.contains(searchQuery, ignoreCase = true)
+            }
+          } else {
+            choiceOptions
+          }
 
         LazyColumn(
           state = listState,
@@ -133,11 +157,11 @@ fun OptionDialogSelect(
           contentPadding =
             PaddingValues(horizontal = dimensionResource(R.dimen.option_item_margin_horizontal)),
         ) {
-          itemsIndexed(
-            choiceOptions,
-            key = { _, row -> row.key() },
-            contentType = { _, row -> row::class.simpleName },
-          ) { index, optionSelectRow ->
+          items(
+            visibleOptions,
+            key = { row -> row.key() },
+            contentType = { row -> row::class.simpleName },
+          ) { optionSelectRow ->
             val label = optionSelectRow.option.displayString.toAnnotatedString()
             val image = optionSelectRow.option.item.itemAnswerOptionImage(context)
             OptionChoice(
@@ -148,9 +172,9 @@ fun OptionDialogSelect(
               image = image,
             ) { selected ->
               choiceOptions =
-                choiceOptions.mapIndexed { ind, option ->
+                choiceOptions.map { option ->
                   when {
-                    ind == index || option == optionSelectRow -> {
+                    option == optionSelectRow -> {
                       optionSelectRow.copy(
                         option = optionSelectRow.option.copy(selected = selected),
                       )
@@ -180,6 +204,16 @@ fun OptionDialogSelect(
               if (selected && (!multiSelect || optionSelectRow.option.item.optionExclusive)) {
                 otherOptionRowSelected = false
                 otherOptionEditTexts.clear()
+                committedOtherOptions = emptyList()
+              }
+              if (enhancedMode) {
+                onConfirm(
+                  SelectedOptions(
+                    choiceOptions.map { it.option },
+                    if (otherOptionRowSelected) committedOtherOptions else emptyList(),
+                  ),
+                )
+                if (!multiSelect) onDismiss()
               }
             }
           }
@@ -213,6 +247,15 @@ fun OptionDialogSelect(
 
                 if (selected && otherOptionEditTexts.isEmpty()) {
                   otherOptionEditTexts.add(OptionSelectRow.OtherEditText.fromText(""))
+                }
+                if (enhancedMode) {
+                  searchQuery = ""
+                  if (!selected) {
+                    choiceOptions = selectedOptions.options.map { OptionSelectRow.Option(it) }
+                    committedOtherOptions = emptyList()
+                    otherOptionEditTexts.clear()
+                    onConfirm(SelectedOptions(choiceOptions.map { it.option }, emptyList()))
+                  }
                 }
               }
             }
@@ -269,36 +312,50 @@ fun OptionDialogSelect(
 
         Row(
           modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
+          horizontalArrangement = if (enhancedMode) Arrangement.End else Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
         ) {
-          TextButton(
-            modifier =
-              Modifier.padding(dimensionResource(R.dimen.dialog_confirmation_button_padding)),
-            onClick = onDismiss,
-          ) {
-            Text(
-              stringResource(android.R.string.cancel),
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-            )
+          if (!enhancedMode) {
+            TextButton(
+              modifier =
+                Modifier.padding(dimensionResource(R.dimen.dialog_confirmation_button_padding)),
+              onClick = onDismiss,
+            ) {
+              Text(
+                stringResource(android.R.string.cancel),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+              )
+            }
           }
           TextButton(
             modifier =
               Modifier.padding(dimensionResource(R.dimen.dialog_confirmation_button_padding)),
             onClick = {
-              onConfirm(
-                SelectedOptions(
-                  options = choiceOptions.map { it.option },
-                  otherOptions =
-                    otherOptionEditTexts.map { it.currentText }.filterNot { it.isBlank() },
-                ),
-              )
+              if (!enhancedMode || otherOptionRowSelected) {
+                onConfirm(
+                  SelectedOptions(
+                    options =
+                      choiceOptions.map {
+                        if (enhancedMode && otherOptionRowSelected) {
+                          it.option.copy(
+                            selected =
+                              multiSelect && it.option.selected && !it.option.item.optionExclusive
+                          )
+                        } else {
+                          it.option
+                        }
+                      },
+                    otherOptions =
+                      otherOptionEditTexts.map { it.currentText }.filterNot { it.isBlank() },
+                  ),
+                )
+              }
               onDismiss()
             },
           ) {
             Text(
-              stringResource(R.string.save),
+              stringResource(if (enhancedMode) R.string.done else R.string.save),
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
             )
@@ -307,6 +364,27 @@ fun OptionDialogSelect(
       }
     }
   }
+}
+
+@Composable
+internal fun enhancedChoiceControls(): Boolean {
+  val context = LocalContext.current
+  return remember(context) {
+    val value = TypedValue()
+    context.theme.resolveAttribute(R.attr.questionnaireEnhancedChoiceControls, value, true) &&
+      value.data != 0
+  }
+}
+
+@Composable
+internal fun ChoiceSearchField(query: String, onQueryChange: (String) -> Unit) {
+  OutlinedTextField(
+    value = query,
+    onValueChange = onQueryChange,
+    modifier = Modifier.fillMaxWidth().testTag(CHOICE_SEARCH_FIELD_TAG),
+    label = { Text(stringResource(R.string.search_options)) },
+    singleLine = true,
+  )
 }
 
 @Composable
@@ -392,6 +470,7 @@ internal sealed class OptionSelectRow {
     }
 }
 
+internal const val CHOICE_SEARCH_FIELD_TAG = "choice_search_field"
 internal const val OPTION_CHOICE_LIST_TAG = "dialog_select_option_choice_list"
 internal const val OPTION_CHOICE_TAG = "dialog_select_option_choice"
 internal const val OTHER_OPTION_TEXT_FIELD_TAG = "other_option_edit_text_field"

@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -153,11 +154,13 @@ internal fun AutoCompleteDropDownItem(
   isError: Boolean = false,
   showClearIcon: Boolean = false,
   readOnly: Boolean = showClearIcon,
+  enhanced: Boolean? = null,
   selectedOption: DropDownAnswerOption? = null,
   options: List<DropDownAnswerOption>,
   onDropDownAnswerOptionSelected: (DropDownAnswerOption?) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
+  val enhancedMode = enhanced ?: enhancedChoiceControls()
   var expanded by remember { mutableStateOf(false) }
   var selectedDropDownAnswerOption by
     remember(selectedOption, options) { mutableStateOf(selectedOption) }
@@ -184,6 +187,12 @@ internal fun AutoCompleteDropDownItem(
       }
     }
 
+  fun resetSearch() {
+    inFilterMode = false
+    val text = selectedDropDownAnswerOption?.answerOptionString ?: ""
+    selectedOptionDisplay = TextFieldValue(text, selection = TextRange(text.length))
+  }
+
   LaunchedEffect(selectedDropDownAnswerOption) {
     if (selectedDropDownAnswerOption != null) {
       focusManager.clearFocus()
@@ -194,7 +203,14 @@ internal fun AutoCompleteDropDownItem(
   ExposedDropdownMenuBox(
     modifier = modifier,
     expanded = expanded,
-    onExpandedChange = { expanded = it },
+    onExpandedChange = {
+      expanded = it
+      if (enhancedMode && !it) resetSearch()
+      if (enhancedMode && it && selectedDropDownAnswerOption != null) {
+        selectedOptionDisplay =
+          selectedOptionDisplay.copy(selection = TextRange(0, selectedOptionDisplay.text.length))
+      }
+    },
   ) {
     OutlinedTextField(
       value = selectedOptionDisplay,
@@ -207,8 +223,14 @@ internal fun AutoCompleteDropDownItem(
         Modifier.fillMaxWidth()
           .testTag(DROP_DOWN_TEXT_FIELD_TAG)
           .semantics { if (isError) error(supportingText ?: "") }
+          .onFocusChanged {
+            if (enhancedMode && !it.isFocused && inFilterMode) {
+              expanded = false
+              resetSearch()
+            }
+          }
           .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, enabled),
-      readOnly = readOnly,
+      readOnly = readOnly && !enhancedMode,
       enabled = enabled,
       minLines = 1,
       isError = isError,
@@ -247,10 +269,17 @@ internal fun AutoCompleteDropDownItem(
     )
 
     if (filteredOptions.isNotEmpty()) {
-      ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      ExposedDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = {
+          expanded = false
+          if (enhancedMode) resetSearch()
+        },
+      ) {
         filteredOptions.forEach { option ->
           DropDownAnswerMenuItem(enabled, option) {
             selectedDropDownAnswerOption = option
+            if (enhancedMode) resetSearch()
             expanded = false
           }
         }
