@@ -64,6 +64,12 @@ class AddParentCaseActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "AddParentCaseActivity"
         private const val SDC_EXTRACT_QUESTIONNAIRE = "add-case-sdc-extract.json"
+
+        /** True when the user already chose to continue this form's draft (UnfinishedDraftPrompt). */
+        const val EXTRA_RESUME_DRAFT = "resumeDraft"
+
+        /** True when the user chose Start new over this form's draft: the draft is not offered. */
+        const val EXTRA_START_NEW = "startNewOverDraft"
     }
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 100
@@ -303,7 +309,7 @@ class AddParentCaseActivity : AppCompatActivity() {
             }
             .setNegativeButton("Discard") { _, _ ->
                 draftsEnabled = false
-                FormDrafts.delete(this, draftKey)
+                if (ownsDraft) FormDrafts.delete(this, draftKey)
                 finish()
             }
             .setNeutralButton("Keep editing") { _, _ -> }
@@ -318,6 +324,13 @@ class AddParentCaseActivity : AppCompatActivity() {
     /** Off once the form is submitted or left (saved or discarded): nothing more to keep. */
     private var draftsEnabled = true
 
+    /**
+     * Whether the stored draft is this form's (continued or saved here). Only then do Discard and
+     * submitting delete it: a form started new over a draft leaves that draft alone until it
+     * saves its own, which replaces it.
+     */
+    private var ownsDraft = false
+
     /** The answers the form opened with, so a draft is only kept once the user changed something. */
     @Volatile
     private var startAnswers: Map<String, List<String>>? = null
@@ -331,6 +344,7 @@ class AddParentCaseActivity : AppCompatActivity() {
         if (FormDrafts.answersOf(response) == startAnswers) return false
         val json = FhirContext.forR4Cached().newJsonParser().encodeResourceToString(response)
         withContext(Dispatchers.IO) { FormDrafts.save(this@AddParentCaseActivity, draftKey, json) }
+        ownsDraft = true
         return true
     }
 
@@ -703,20 +717,24 @@ class AddParentCaseActivity : AppCompatActivity() {
             startAnswers = FormDrafts.answersOf(resource)
 
             // An unsaved draft of this form: offer to continue it (if it still fits the form).
-            FormDrafts.load(this@AddParentCaseActivity, draftKey)?.let { draft ->
+            FormDrafts.load(this@AddParentCaseActivity, draftKey)
+                ?.takeUnless { intent.getBooleanExtra(EXTRA_START_NEW, false) }
+                ?.let { draft ->
                 val form = jsonParser.parseResource(Questionnaire::class.java, unlockedQuestionnaireJson)
                 val fitted = FormDrafts.fitTo(form, draft.responseJson)
                 if (fitted == null) {
                     FormDrafts.delete(this@AddParentCaseActivity, draftKey)
-                } else if (withContext(Dispatchers.Main) { askToResumeDraft(draft.savedAt) }) {
+                } else if (intent.getBooleanExtra(EXTRA_RESUME_DRAFT, false) ||
+                    withContext(Dispatchers.Main) { askToResumeDraft(draft.savedAt) }
+                ) {
                     questionnaireResponseJson = fitted
+                    ownsDraft = true
                     viewModel.useQuestionnaireJson(unlockedQuestionnaireJson)
                     startAnswers = FormDrafts.answersOf(
                         jsonParser.parseResource(QuestionnaireResponse::class.java, fitted)
                     )
-                } else {
-                    FormDrafts.delete(this@AddParentCaseActivity, draftKey)
                 }
+                // Start new: the old draft is kept until this form saves a draft of its own.
             }
 
             // 3. Prepare questionnaire JSON (if it’s very large)
@@ -855,7 +873,7 @@ class AddParentCaseActivity : AppCompatActivity() {
 
     fun showSuccessDialog(context: Context) {
         draftsEnabled = false
-        FormDrafts.delete(this, draftKey)
+        if (ownsDraft) FormDrafts.delete(this, draftKey)
         val dialogView = LayoutInflater.from(context).inflate(R.layout.success_dialog, null)
         val alertDialog = AlertDialog.Builder(context)
             .setView(dialogView)

@@ -1,5 +1,7 @@
 package com.icl.surveillance.ui.patients.custom
 
+import com.icl.surveillance.clients.AddParentCaseActivity
+import com.icl.surveillance.clients.UnfinishedDraftPrompt
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -304,11 +306,26 @@ class VhfContactsFragment : Fragment() {
             // A contact is always registered as a Contact: Type of case is shown read-only.
             locked = setOf(FormFields.Vhf.CASE_TYPE),
         )
-        // Verify the contact's identity (IPRS / Client Registry) first; it opens the form.
-        returnToCase.launch(
-            Intent(context, ClientLookupActivity::class.java)
-                .putExtra("AddParentTitle", title)
-                .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CASE_FORM)
+        // An unfinished draft for a contact of this case is offered first (straight to the form);
+        // otherwise verify the contact's identity (IPRS / Client Registry) first; it opens the form.
+        UnfinishedDraftPrompt.offer(
+            context, FormFields.Vhf.CASE_FORM,
+            onContinue = {
+                returnToCase.launch(
+                    Intent(context, AddParentCaseActivity::class.java)
+                        .putExtra("AddParentTitle", title)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CASE_FORM)
+                        .putExtra(AddParentCaseActivity.EXTRA_RESUME_DRAFT, true)
+                )
+            },
+            onStartNew = {
+                returnToCase.launch(
+                    Intent(context, ClientLookupActivity::class.java)
+                        .putExtra("AddParentTitle", title)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CASE_FORM)
+                        .putExtra(AddParentCaseActivity.EXTRA_START_NEW, true)
+                )
+            },
         )
     }
 
