@@ -78,10 +78,12 @@ object VhfSpecimens {
     }
 
     /**
-     * After the VHF case form is edited: creates the case's Specimen when samples are now
-     * collected and none was recorded, or updates the one recorded from the case form (keeping
-     * its specimen ID). Nothing is removed when samples are changed to No: a specimen may already
-     * be at the laboratory with results. [template] supplies facility tags and extensions.
+     * After the VHF case form is edited, for the sample now in its Laboratory section:
+     *  - a specimen of that type was already recorded for the case -> it is updated (dates,
+     *    transport...), keeping its specimen ID;
+     *  - no specimen of that type yet (none at all, or the type was changed, e.g. Urine -> Blood)
+     *    -> a new Specimen is added. Earlier specimens stay: each has its own lab result.
+     * Nothing is removed when samples are changed to No. [template] supplies facility tags.
      */
     suspend fun syncFromCaseForm(
         context: Context,
@@ -105,16 +107,22 @@ object VhfSpecimens {
             notes = sample.notes,
             sent = sample.sent,
         )
-        val existing = fhirEngine.search<Specimen> {
+        val caseSpecimens = fhirEngine.search<Specimen> {
             filter(Specimen.SUBJECT, { value = "Patient/$patientId" })
         }.map { it.resource }
             .filter { it.status != Specimen.SpecimenStatus.ENTEREDINERROR }
             .filter { belongsTo(it, caseEncounterId) }
-            .firstOrNull { specimen ->
-                specimen.type.coding.any {
-                    it.system == StandardSpecimen.APP_SYSTEM && it.code == FormFields.Vhf.SAMPLE_TYPE
-                }
-            }
+        // The specimen of this sample type recorded from the case form, if any.
+        val existing = caseSpecimens.firstOrNull { specimen ->
+            specimen.type.coding.any {
+                it.system == StandardSpecimen.APP_SYSTEM && it.code == FormFields.Vhf.SAMPLE_TYPE
+            } && specimen.type.text.orEmpty().trim().equals(sample.type.trim(), ignoreCase = true)
+        }
+        Timber.tag("SPECIMEN").d(
+            "Case specimens: %s; %s -> %s",
+            caseSpecimens.map { it.type.text }, sample.type,
+            if (existing == null) "add new" else "update ${existing.idElement.idPart}",
+        )
 
         if (existing == null) {
             built.id = UUID.randomUUID().toString()
