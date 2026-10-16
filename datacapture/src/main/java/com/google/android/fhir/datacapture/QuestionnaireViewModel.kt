@@ -1108,16 +1108,29 @@ internal class QuestionnaireViewModel(application: Application, state: SavedStat
         responseItemKeys.contains(questionnaireItem.linkId) &&
           enablementEvaluator.evaluate(questionnaireItem, questionnaireResponseItem)
       ) {
-        questionnaireResponseItem.apply {
-          if (text.isNullOrBlank()) {
-            text = questionnaireItem.localizedTextSpanned?.toString()
+        // Build a copy instead of changing the item in place: enablement is evaluated against the
+        // live response items (by reference), and that response must keep every item, enabled or
+        // not, so it still pairs with the questionnaire while the form is open. Replacing the item
+        // lists in place removed disabled items from the form being filled in, and the next pass
+        // over it (e.g. calculated expressions) failed whenever the response was read before
+        // submitting (e.g. to save a draft).
+        val enabled =
+          questionnaireResponseItem.copy().apply {
+            if (text.isNullOrBlank()) {
+              text = questionnaireItem.localizedTextSpanned?.toString()
+            }
+            // Nested group items
+            item = getEnabledResponseItems(questionnaireItem.item, questionnaireResponseItem.item)
+            // Nested question items
+            answer.forEachIndexed { index, answer ->
+              answer.item =
+                getEnabledResponseItems(
+                  questionnaireItem.item,
+                  questionnaireResponseItem.answer[index].item,
+                )
+            }
           }
-          // Nested group items
-          item = getEnabledResponseItems(questionnaireItem.item, questionnaireResponseItem.item)
-          // Nested question items
-          answer.forEach { it.item = getEnabledResponseItems(questionnaireItem.item, it.item) }
-        }
-        result.add(questionnaireResponseItem)
+        result.add(enabled)
       }
     }
     return result

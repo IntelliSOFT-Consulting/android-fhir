@@ -1867,12 +1867,6 @@
                 "code": "no",
                 "display": "No"
               }
-            },
-            {
-              "valueCoding": {
-                "code": "unknown",
-                "display": "Unknown"
-              }
             }
           ]
         },
@@ -2192,6 +2186,12 @@
               "valueCoding": {
                 "code": "hcw",
                 "display": "Health care worker"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "friend",
+                "display": "Friend"
               }
             },
             {
@@ -3131,7 +3131,7 @@
         },
         {
           "linkId": "vhf-antibiotics",
-          "text": "Taken any antibiotics?",
+          "text": "Taken any medication such as Panadol, ibuprofen or antipyretics?",
           "type": "choice",
           "extension": [
             {
@@ -3174,7 +3174,7 @@
         },
         {
           "linkId": "vhf-antibiotic-name",
-          "text": "Name of the antibiotic",
+          "text": "Specify the medication taken",
           "type": "string",
           "enableWhen": [
             {
@@ -3604,6 +3604,12 @@
                 "code": "indirect",
                 "display": "Indirect"
               }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
             }
           ]
         },
@@ -3898,59 +3904,6 @@
           ]
         },
         {
-          "linkId": "vhf-contact-duration",
-          "text": "Maximum duration of contact",
-          "type": "choice",
-          "enableWhen": [
-            {
-              "question": "vhf-exposure-type",
-              "operator": "=",
-              "answerCoding": {
-                "code": "human",
-                "display": "Human contact"
-              }
-            }
-          ],
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "radio-button",
-                    "display": "Radio Button"
-                  }
-                ]
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
-              "valueCode": "horizontal"
-            }
-          ],
-          "answerOption": [
-            {
-              "valueCoding": {
-                "code": "under-15-min",
-                "display": "< 15 min"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "15-min-to-1-hour",
-                "display": "15 min - 1 hour"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "over-1-hour",
-                "display": "> 1 hour"
-              }
-            }
-          ]
-        },
-        {
           "linkId": "vhf-contact-location",
           "text": "Location of contact",
           "type": "choice",
@@ -4001,6 +3954,18 @@
               "valueCoding": {
                 "code": "workplace",
                 "display": "Workplace"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "mass-gathering",
+                "display": "Mass gathering"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "travel",
+                "display": "Travel"
               }
             },
             {
@@ -4072,6 +4037,12 @@
               "valueCoding": {
                 "code": "friend",
                 "display": "Friend"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "workmate",
+                "display": "Workmate"
               }
             },
             {
