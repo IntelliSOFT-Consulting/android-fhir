@@ -205,7 +205,9 @@ class GeneralEditorActivity : AppCompatActivity() {
                         supportFragmentManager.commit {
                             setReorderingAllowed(true)
                             val questionnaireFragmentBuilder =
-                                QuestionnaireFragment.builder().apply {
+                                QuestionnaireFragment.builder()
+                    // Required questions: red asterisk after the question, no "Required" line.
+                    .showAsterisk(true).showRequiredText(false).apply {
                                     setShowSubmitAnywayButton(false)
                                     setQuestionnaireResponse(updatedQuestionnaireResponseJson)
                                     setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(

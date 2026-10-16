@@ -731,7 +731,9 @@ class AddParentCaseActivity : AppCompatActivity() {
                     supportFragmentManager.commit {
                         setReorderingAllowed(true)
 
-                        val fragmentBuilder = QuestionnaireFragment.builder().apply {
+                        val fragmentBuilder = QuestionnaireFragment.builder()
+                    // Required questions: red asterisk after the question, no "Required" line.
+                    .showAsterisk(true).showRequiredText(false).apply {
                             setShowSubmitAnywayButton(false)
                             setQuestionnaireResponse(questionnaireResponseJson)
                             setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(

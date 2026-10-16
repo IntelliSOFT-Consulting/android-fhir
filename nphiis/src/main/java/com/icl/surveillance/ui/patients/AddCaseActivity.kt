@@ -425,7 +425,9 @@ class AddCaseActivity : AppCompatActivity() {
 
                             setReorderingAllowed(true)
                             val questionnaireFragmentBuilder =
-                                QuestionnaireFragment.builder().apply {
+                                QuestionnaireFragment.builder()
+                    // Required questions: red asterisk after the question, no "Required" line.
+                    .showAsterisk(true).showRequiredText(false).apply {
                                     setShowSubmitAnywayButton(false)
                                     setQuestionnaireResponse(questionnaireResponseJson)
                                     setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(

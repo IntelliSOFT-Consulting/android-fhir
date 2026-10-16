@@ -20,10 +20,12 @@ import android.content.Context
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
+import android.text.style.ForegroundColorSpan
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.google.android.fhir.datacapture.R
 import com.google.android.fhir.datacapture.views.QuestionnaireViewItem
 import com.google.android.material.card.MaterialCardView
@@ -104,7 +106,15 @@ fun appendAsteriskToQuestionText(
         questionnaireViewItem.questionnaireItem.required &&
         !questionnaireViewItem.questionnaireItem.localizedTextSpanned.isNullOrEmpty()
     ) {
+      val start = length
       append(context.applicationContext.getString(R.string.space_asterisk))
+      // The asterisk in its own colour (red by default; apps override R.color.required_asterisk).
+      setSpan(
+        ForegroundColorSpan(ContextCompat.getColor(context, R.color.required_asterisk)),
+        start,
+        length,
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+      )
     }
   }
 }

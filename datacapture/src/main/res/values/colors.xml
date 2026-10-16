@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
   <color name="transparent">#00000000</color>
+  <!-- Asterisk after the text of a required question (when showAsterisk is on). -->
+  <color name="required_asterisk">#D32F2F</color>
 </resources>

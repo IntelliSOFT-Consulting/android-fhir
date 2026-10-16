@@ -178,7 +178,9 @@ class EditChecklistActivity : AppCompatActivity() {
             supportFragmentManager.commit {
                 add(
                     R.id.add_patient_container,
-                    QuestionnaireFragment.builder().apply {
+                    QuestionnaireFragment.builder()
+                    // Required questions: red asterisk after the question, no "Required" line.
+                    .showAsterisk(true).showRequiredText(false).apply {
                         // Edits must pass validation: no "Submit anyway" in the errors dialog.
                         setShowSubmitAnywayButton(false)
                         setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(
