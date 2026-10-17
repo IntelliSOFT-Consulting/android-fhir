@@ -65,6 +65,33 @@ object FormDrafts {
         file(context, key).delete()
     }
 
+    /** The draft a new [questionnaireFile] form opened now would offer (same key as the form). */
+    fun pending(context: Context, questionnaireFile: String): Draft? =
+        load(context, keyFor(context, questionnaireFile))
+
+    /**
+     * "You have an unfinished VHF case for John Otieno under ID 1000262." The name and ID come
+     * from the draft's answers; either is left out when not answered yet.
+     */
+    fun unfinishedVhfMessage(draft: Draft): String {
+        val answers = runCatching {
+            answersOf(
+                FhirContext.forR4Cached().newJsonParser()
+                    .parseResource(QuestionnaireResponse::class.java, draft.responseJson)
+            )
+        }.getOrDefault(emptyMap())
+        fun answer(linkId: String) = answers[linkId]?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+        val name = listOfNotNull(answer(FormFields.Person.FIRST_NAME), answer(FormFields.Person.SURNAME))
+            .joinToString(" ").ifBlank { null }
+        val id = answer(FormFields.Vhf.NATIONAL_ID)
+        return buildString {
+            append("You have an unfinished VHF case")
+            name?.let { append(" for ").append(it) }
+            id?.let { append(" under ID ").append(it) }
+            append(".")
+        }
+    }
+
     /**
      * The draft's response made to fit [questionnaire] as it is now: answers to questions that no
      * longer exist are dropped, and answers whose question changed type are carried over where

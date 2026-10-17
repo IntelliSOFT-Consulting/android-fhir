@@ -1,5 +1,6 @@
 package com.icl.surveillance.ui.home
 
+import com.icl.surveillance.clients.UnfinishedDraftPrompt
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -533,11 +534,7 @@ class CaseSelectionFragment : Fragment() {
                             showPermissionErrorDialog(requireContext())
                             return@CaseOptionsAdapter
                         }
-                        // Look the client up (IPRS / Client Registry) before opening the form.
-                        val intent = Intent(requireContext(), ClientLookupActivity::class.java)
-                        intent.putExtra("AddParentTitle", " $titleName")
-                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
-                        addParentCaseLauncher.launch(intent)
+                        openNewVhfCase(" $titleName")
                     }
 
                     "Add New VHF Training Case" -> {
@@ -554,11 +551,7 @@ class CaseSelectionFragment : Fragment() {
                             showPermissionErrorDialog(requireContext())
                             return@CaseOptionsAdapter
                         }
-                        // Look the client up (IPRS / Client Registry) before opening the form.
-                        val intent = Intent(requireContext(), ClientLookupActivity::class.java)
-                        intent.putExtra("AddParentTitle", " $titleName")
-                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
-                        addParentCaseLauncher.launch(intent)
+                        openNewVhfCase(" $titleName")
                     }
 
                     "VHF Training Case List" -> {
@@ -949,6 +942,33 @@ class CaseSelectionFragment : Fragment() {
         val hasFacility = FormatterClass().getSharedPref("facility", requireContext())
         println("Facility Selection: $hasFacility")
         return true // !hasFacility.isNullOrEmpty()
+    }
+
+    /**
+     * A new VHF case: an unfinished draft of the form is offered first (straight to the form);
+     * otherwise, or for a new case, the client is looked up (IPRS / Client Registry) first.
+     */
+    private fun openNewVhfCase(title: String) {
+        val context = requireContext()
+        UnfinishedDraftPrompt.offer(
+            context, VHF_QUESTIONNAIRE,
+            onContinue = {
+                addParentCaseLauncher.launch(
+                    Intent(context, AddParentCaseActivity::class.java)
+                        .putExtra("AddParentTitle", title)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
+                        .putExtra(AddParentCaseActivity.EXTRA_RESUME_DRAFT, true)
+                )
+            },
+            onStartNew = {
+                addParentCaseLauncher.launch(
+                    Intent(context, ClientLookupActivity::class.java)
+                        .putExtra("AddParentTitle", title)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
+                        .putExtra(AddParentCaseActivity.EXTRA_START_NEW, true)
+                )
+            },
+        )
     }
 
     override fun onResume() {

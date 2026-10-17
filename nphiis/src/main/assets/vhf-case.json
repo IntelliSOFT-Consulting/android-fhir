@@ -1590,9 +1590,9 @@
                 { "url": "severity", "valueCode": "error" },
                 {
                   "url": "expression",
-                  "valueString": "answer.empty() or %resource.repeat(item).where(linkId = 'vhf-id-type' and answer.value.code = 'national-id').exists().not() or answer.value.matches('^[0-9]{7,10}$')"
+                  "valueString": "answer.empty() or %resource.repeat(item).where(linkId = 'vhf-id-type' and answer.value.code = 'national-id').exists().not() or answer.value.matches('^[0-9]{7,8}$')"
                 },
-                { "url": "human", "valueString": "National ID must be 7 to 10 digits" }
+                { "url": "human", "valueString": "National ID must be 7 or 8 digits" }
               ]
             }
           ]
