@@ -75,6 +75,12 @@
         <item name="android:lineSpacingExtra">1dp</item>
     </style>
 
+    <!-- Floating bottom nav labels: small, semi-bold, same size selected or not (no jump). -->
+    <style name="TextAppearance.Surveillance.BottomNav" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">@font/intersemi</item>
+    </style>
+
     <!-- Patient summary tabs: sentence case, semi-bold, no all-caps. -->
     <style name="SummaryTabText" parent="TextAppearance.Material3.TitleSmall">
         <item name="android:textSize">13sp</item>

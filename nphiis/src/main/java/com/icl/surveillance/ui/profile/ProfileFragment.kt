@@ -202,13 +202,14 @@ class ProfileFragment : Fragment() {
         menuHost.addMenuProvider(
             object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                    menuInflater.inflate(R.menu.menu_profile, menu)
+                    // Settings (reset sync, bulk upload) is for administrators only.
+                    if (isAdministrator()) menuInflater.inflate(R.menu.menu_profile, menu)
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                     return when (menuItem.itemId) {
                         R.id.action_profile_settings -> {
-                            ProfileSettingsBottomSheet.show(childFragmentManager)
+                            if (isAdministrator()) ProfileSettingsBottomSheet.show(childFragmentManager)
                             true
                         }
 
@@ -219,6 +220,15 @@ class ProfileFragment : Fragment() {
             viewLifecycleOwner,
             Lifecycle.State.RESUMED
         )
+    }
+
+    private fun isAdministrator(): Boolean {
+        val formatter = FormatterClass()
+        val stored = formatter.getSharedPref("practitionerRole", requireContext())
+            ?.takeIf { it.isNotBlank() }
+            ?: formatter.getSharedPref("role", requireContext())
+            ?: return false
+        return UserRole.fromAny(stored) == UserRole.ADMINISTRATOR
     }
 
     private fun setupProfileSettingsBottomSheetResult() {

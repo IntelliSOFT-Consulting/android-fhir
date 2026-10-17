@@ -202,7 +202,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
                 answers[item.linkId] = values
             }
         }
-        fixCountyLevel(answers)
+        completeResidence(answers, warnings)
 
         // Reporting site, as the form fills it for this user (hidden role + area, and the
         // facility in the section for the user's level); the save tags records with it.
@@ -397,19 +397,40 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
             ?.mapNotNull { it.value as? Coding }?.firstOrNull { it.code == code }?.copy()
 
     /**
-     * A Location by name (spacing, case and punctuation ignored: "Lang'ata" = "Langata"). When
-     * several share the name: a county for the county question, else the one inside an area
-     * chosen earlier in the row.
+     * A Location by name (spacing, case and punctuation ignored: "Lang'ata" = "Langata"), at the
+     * level the question asks for: the server walks sub-county -> county -> country from these
+     * answers, so a same-named ward or facility must never be picked for the sub-county.
+     * When several still match, the one inside an area chosen earlier in the row wins.
+     * The County question also accepts a sub-county ([completeResidence] moves it down).
      */
     private suspend fun location(name: String, chosenLocations: MutableList<String>, linkId: String): Type? {
         val matches = locationsNamed(name)
-        val location = (if (linkId == COUNTY) matches.firstOrNull { it.isCounty() } else null)
-            ?: matches.firstOrNull { it.partOf?.referenceElement?.idPart in chosenLocations }
-            ?: matches.firstOrNull() ?: return null
+        val candidates = when (linkId) {
+            COUNTY -> matches.filter { it.isCounty() }.ifEmpty { matches.filter { isSubCounty(it) } }
+            SUB_COUNTY -> matches.filter { isSubCounty(it) }
+            WARD -> matches.filter { isWard(it) }
+            else -> matches
+        }
+        val location = candidates.firstOrNull { it.partOf?.referenceElement?.idPart in chosenLocations }
+            ?: candidates.firstOrNull() ?: return null
         val id = location.idElement.idPart
         chosenLocations += id
         return Reference("Location/$id").setDisplay(location.name)
     }
+
+    private val locationCache = HashMap<String, Location?>()
+
+    private suspend fun locationById(id: String?): Location? {
+        if (id.isNullOrBlank()) return null
+        return locationCache.getOrPut(id) { runCatching { fhirEngine.get<Location>(id) }.getOrNull() }
+    }
+
+    private suspend fun parentOf(location: Location): Location? =
+        locationById(location.partOf?.referenceElement?.idPart)
+
+    private suspend fun isSubCounty(location: Location) = parentOf(location)?.isCounty() == true
+
+    private suspend fun isWard(location: Location) = parentOf(location)?.let { isSubCounty(it) } == true
 
     private suspend fun locationsNamed(name: String): List<Location> {
         val key = locationKey(name)
@@ -424,20 +445,45 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
     private fun Location.isCounty() = partOf?.referenceElement?.idPart == "0"
 
     /**
-     * Line lists sometimes hold a sub-county in the County column ("Embakasi East"): when the
-     * County answer is not a county and no sub-county was given, it becomes the sub-county and
-     * its county is filled in.
+     * Makes the residence a complete chain the server can resolve (sub-county -> county ->
+     * country), filling missing levels from the levels below:
+     * - a sub-county in the County column ("Embakasi East") becomes the sub-county;
+     * - a ward without a sub-county gives its sub-county;
+     * - the county is always the sub-county's own county (a mismatch is corrected and noted).
      */
-    private suspend fun fixCountyLevel(answers: MutableMap<String, List<Type>>) {
-        val countyRef = answers[COUNTY]?.firstOrNull() as? Reference ?: return
-        val id = countyRef.referenceElement.idPart ?: return
-        val location = runCatching { fhirEngine.get<Location>(id) }.getOrNull() ?: return
-        if (location.isCounty() || SUB_COUNTY in answers) return
-        val parentId = location.partOf?.referenceElement?.idPart ?: return
-        val parent = runCatching { fhirEngine.get<Location>(parentId) }.getOrNull() ?: return
-        if (!parent.isCounty()) return
-        answers[SUB_COUNTY] = listOf(countyRef)
-        answers[COUNTY] = listOf(Reference("Location/$parentId").setDisplay(parent.name))
+    private suspend fun completeResidence(answers: MutableMap<String, List<Type>>, warnings: MutableList<String>) {
+        fun refId(linkId: String) = (answers[linkId]?.firstOrNull() as? Reference)?.referenceElement?.idPart
+        fun ref(location: Location) = listOf(Reference("Location/${location.idElement.idPart}").setDisplay(location.name))
+
+        // Sub-county given in the County column.
+        locationById(refId(COUNTY))?.let { county ->
+            if (!county.isCounty()) {
+                if (SUB_COUNTY !in answers && isSubCounty(county)) answers[SUB_COUNTY] = ref(county)
+                answers.remove(COUNTY)
+            }
+        }
+        // Sub-county from the ward.
+        val ward = locationById(refId(WARD))
+        if (ward != null && SUB_COUNTY !in answers) {
+            parentOf(ward)?.takeIf { isSubCounty(it) }?.let { answers[SUB_COUNTY] = ref(it) }
+        }
+        // County from the sub-county.
+        val subCounty = locationById(refId(SUB_COUNTY)) ?: return
+        val county = parentOf(subCounty)?.takeIf { it.isCounty() }
+        if (county == null) {
+            warnings += "Sub county \"${subCounty.name}\" is not linked to a county on this device; left out"
+            answers.remove(SUB_COUNTY)
+            return
+        }
+        val given = refId(COUNTY)
+        if (given != null && given != county.idElement.idPart) {
+            warnings += "County changed to ${county.name} (the county of ${subCounty.name})"
+        }
+        answers[COUNTY] = ref(county)
+        if (ward != null && parentOf(ward)?.idElement?.idPart != subCounty.idElement.idPart) {
+            warnings += "Ward \"${ward.name}\" is not in ${subCounty.name}; left out"
+            answers.remove(WARD)
+        }
     }
 
     /**
@@ -766,6 +812,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
                 )).toSet()
         private const val COUNTY = "a4-county"
         private const val SUB_COUNTY = "a3-sub-county"
+        private const val WARD = "a2-ward"
         private const val DOB_KNOWN = "442636360588"
         private const val AGE_YEARS = "492731638700"
         private const val RELATIONSHIP = "vhf-relationship"

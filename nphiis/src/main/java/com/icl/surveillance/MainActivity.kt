@@ -136,6 +136,17 @@ class MainActivity : AppCompatActivity() {
 
             insets
         }
+        // Keep the floating bottom nav above the gesture / navigation bar.
+        val navCard: View = findViewById(R.id.nav_view_card)
+        val navCardBaseMargin = (12 * resources.displayMetrics.density).toInt()
+        ViewCompat.setOnApplyWindowInsetsListener(navCard) { card, insets ->
+            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+            (card.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let { lp ->
+                lp.bottomMargin = navCardBaseMargin + bottomInset
+                card.layoutParams = lp
+            }
+            insets
+        }
         handleTokenRefresh()
         getUserProfile()
 
@@ -157,6 +168,16 @@ class MainActivity : AppCompatActivity() {
         checkForAppUpdate()
 
         val navView: BottomNavigationView = binding.navView
+        // The nav floats in a card that already sits above the gesture bar (see nav_view_card),
+        // so the nav itself must not add the system-bar inset as extra bottom padding.
+        ViewCompat.setOnApplyWindowInsetsListener(navView) { v, insets ->
+            v.setPadding(v.paddingLeft, 0, v.paddingRight, 0)
+            insets
+        }
+        // One highlight only: the rounded indicator behind the selected icon, in the app's blue tint.
+        navView.isItemActiveIndicatorEnabled = true
+        navView.itemActiveIndicatorColor =
+            ContextCompat.getColorStateList(this, R.color.nav_item_active_background)
         setSupportActionBar(binding.toolbar)
 
         val navController = resolveNavController()
