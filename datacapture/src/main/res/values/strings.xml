@@ -54,6 +54,8 @@
     <string name="open_choice_other_add_another">Add another answer</string>
     <string name="multi_select_dialog_subtitle">Select all that apply</string>
     <string name="save">Save</string>
+    <string name="search_options">Search options</string>
+    <string name="done">Done</string>
     <string name="cancel">Cancel</string>
 
     <!-- 2.5 Date / DateTime -->

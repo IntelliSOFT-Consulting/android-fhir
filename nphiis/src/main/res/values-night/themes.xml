@@ -14,6 +14,7 @@
         <!-- Customize your theme here. -->
 
         <item name="android:fontFamily">@font/montserratregular</item>
+        <item name="questionnaire_theme">@style/Theme.Surveillance.Questionnaire</item>
     </style>
 
 
@@ -43,6 +44,7 @@
     </style>
     <!-- Base application theme. -->
     <style name="Base.Theme.Surveillance" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="questionnaire_theme">@style/Theme.Surveillance.Questionnaire</item>
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
