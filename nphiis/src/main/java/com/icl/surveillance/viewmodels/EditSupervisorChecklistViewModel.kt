@@ -124,7 +124,7 @@ class EditSupervisorChecklistViewModel(
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
 
         // VHF: offer the cases on this device as choices for "Contact Link to Case".
-        if (this.questionnaire == FormFields.Vhf.CASE_FORM) {
+        if (FormFields.Vhf.isRegistrationForm(this.questionnaire)) {
             val patientId = questionnaireResponse.subject?.referenceElement?.idPart
             val training = runCatching { com.icl.surveillance.fhir.forms.VhfTraining.isTraining(fhirEngine.get<Patient>(patientId!!)) }.getOrNull()
             val options = runCatching { VhfSourceCases.options(fhirEngine, excludePatientId = patientId, training = training) }
@@ -152,7 +152,11 @@ class EditSupervisorChecklistViewModel(
         val visit = com.icl.surveillance.fhir.forms.VhfContactTracker
             .load(fhirEngine, patientId, encounterId)?.firstSymptomaticVisit ?: return emptyMap()
         val symptomQuestion = findQuestion(questionnaire.item, FormFields.Vhf.SYMPTOMS) ?: return emptyMap()
-        val ticked = visit.symptoms.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val ticked = visit.symptoms.split(",").map { it.trim() }.filter { it.isNotEmpty() } +
+            // A temperature of 38 °C or more at the follow up is fever, even if not ticked.
+            listOfNotNull("fever".takeIf {
+                visit.temperatures.any { t -> t >= FormFields.Vhf.FEVER_THRESHOLD_C }
+            })
         val codes = ticked.filterNot { it.equals("None", ignoreCase = true) }.mapNotNull { shown ->
             symptomQuestion.answerOption.firstOrNull { option ->
                 option.hasValueCoding() &&
@@ -162,12 +166,12 @@ class EditSupervisorChecklistViewModel(
         }
         val onset = visit.date?.toString()
         return buildMap {
-            if (codes.isNotEmpty()) put(FormFields.Vhf.SYMPTOMS, FormPrefill.multi(codes))
+            if (codes.isNotEmpty()) put(FormFields.Vhf.SYMPTOMS, FormPrefill.multi(codes.distinct()))
             visit.bleedingSite.takeIf { it.isNotBlank() }?.let { put(FormFields.Vhf.BLEEDING_SITE, it) }
             visit.otherSymptoms.takeIf { it.isNotBlank() }?.let { put(FormFields.Vhf.SYMPTOMS_OTHER, it) }
             if (onset != null && codes.isNotEmpty()) {
                 put(FormFields.Vhf.ONSET_DATE, onset)
-                codes.forEach { code -> put("vhf-onset-$code", onset) }
+                codes.distinct().forEach { code -> put("vhf-onset-$code", onset) }
             }
         }
     }
@@ -267,9 +271,11 @@ class EditSupervisorChecklistViewModel(
                 .onFailure { Timber.e(it, "Failed to update the answers after editing %s", questionnaire) }
             runCatching { updatePatientDetails(patientId, answers, questionnaire) }
                 .onFailure { Timber.e(it, "Failed to update the patient after editing %s", questionnaire) }
-            if (questionnaire == FormFields.Vhf.CASE_FORM) {
+            if (FormFields.Vhf.isRegistrationForm(questionnaire)) {
                 runCatching { linkVhfSourceCase(patientId, answers) }
                     .onFailure { Timber.e(it, "Failed to link the source case after editing") }
+            }
+            if (questionnaire == FormFields.Vhf.CASE_FORM) {
                 // Laboratory section: create (or update) the case's Specimen.
                 runCatching {
                     val encounterId = original.encounter?.referenceElement?.idPart
@@ -417,6 +423,7 @@ class EditSupervisorChecklistViewModel(
             "add-case.json" to PERSON,
             "mpox-register.json" to PERSON,
             "vhf-case.json" to PERSON.copy(middleName = null),
+            "vhf-contact.json" to PERSON.copy(middleName = null),
             "afp-case.json" to PERSON.copy(nameOrder = PatientMapper.NameOrder.FIRST_AS_FAMILY),
             "vl-case.json" to PatientFields(
                 FormFields.Vl.FIRST_NAME, FormFields.Vl.MIDDLE_NAME, FormFields.Vl.SURNAME,

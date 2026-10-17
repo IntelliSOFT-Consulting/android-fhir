@@ -675,8 +675,9 @@ class AddParentCaseActivity : AppCompatActivity() {
             }
 
             // VHF: offer the cases on this device as choices for "Contact Link to Case".
-            if (formatter.getSharedPref("questionnaire", this@AddParentCaseActivity) ==
-                FormFields.Vhf.CASE_FORM
+            if (FormFields.Vhf.isRegistrationForm(
+                    formatter.getSharedPref("questionnaire", this@AddParentCaseActivity)
+                )
             ) {
                 runCatching {
                     val options = VhfSourceCases.options(

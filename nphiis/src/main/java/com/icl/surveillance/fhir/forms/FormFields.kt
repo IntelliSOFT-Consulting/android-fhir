@@ -225,6 +225,22 @@ object FormFields {
         /** The VHF case investigation form; contacts are registered with the same form. */
         const val CASE_FORM = "vhf-case.json"
 
+        /**
+         * Contact registration (MoH EVD Contact Listing Form): reporting site, source case EPID
+         * and the contact's listing details. Its questions are the case form's (same linkIds,
+         * groups and order, plus the contact-only ones), so a contact's record also opens in
+         * the case form when it is converted to a case.
+         */
+        const val CONTACT_FORM = "vhf-contact.json"
+        const val CONTACT_FORM_TITLE = "Edit VHF Contact"
+        const val CONTACT_CATEGORY = "vhf-contact-category"
+        const val HEAD_OF_HOUSEHOLD = "vhf-head-of-household"
+        const val CONTACT_HCW = "vhf-contact-hcw"
+        const val CONTACT_HCW_FACILITY = "vhf-contact-hcw-facility"
+
+        /** The VHF case form or the contact form (both register a VHF record). */
+        fun isRegistrationForm(file: String?): Boolean = file == CASE_FORM || file == CONTACT_FORM
+
         // ---- Contact follow-up. A contact is a VHF record whose "Type of case" is Contact; it is
         // followed for 21 days from the date of contact (day 0), per the CIF / data dictionary.
         const val CASE_TYPE_CONTACT = "Contact"
@@ -244,6 +260,23 @@ object FormFields {
         const val FOLLOW_UP_TEMPERATURE_AM = "vhf-follow-up-temperature-am"
         const val FOLLOW_UP_TEMPERATURE_PM = "vhf-follow-up-temperature-pm"
         const val FOLLOW_UP_TEMPERATURE = "vhf-follow-up-temperature"
+        /** Paper follow-up form: the contact's status that day (Alive / Died) and date of death. */
+        const val FOLLOW_UP_CONTACT_STATUS = "vhf-follow-up-contact-status"
+        const val FOLLOW_UP_DEATH_DATE = "vhf-follow-up-death-date"
+        /** Asked when the day is marked X (fever and/or bleeding). */
+        const val FOLLOW_UP_REFERRED = "vhf-follow-up-referred"
+        const val FOLLOW_UP_REFERRAL_FACILITY = "vhf-follow-up-referral-facility"
+        /** Paper form header: the volunteer / CHP and where the follow up was done. */
+        const val FOLLOW_UP_TRACER_NAME = "vhf-follow-up-tracer-name"
+        const val FOLLOW_UP_TRACER_PHONE = "vhf-follow-up-tracer-phone"
+        const val FOLLOW_UP_TRACER_EMAIL = "vhf-follow-up-tracer-email"
+        const val FOLLOW_UP_VILLAGE = "vhf-follow-up-village"
+        const val FOLLOW_UP_WARD = "vhf-follow-up-ward"
+        const val FOLLOW_UP_SUB_COUNTY = "vhf-follow-up-sub-county"
+        const val FOLLOW_UP_COUNTY = "vhf-follow-up-county"
+        /** Paper form: a temperature at or above this (°C) is fever, so the day is marked X. */
+        const val FEVER_THRESHOLD_C = 38.0
+        const val STATUS_DIED_CODE = "died"
 
         /** Case-form clinical questions filled from the follow up when a contact is converted. */
         const val SYMPTOMS = "vhf-symptoms"

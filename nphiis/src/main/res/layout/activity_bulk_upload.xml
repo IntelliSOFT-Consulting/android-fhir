@@ -35,7 +35,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add VHF contacts from an Excel file (.xlsx or .csv). The first row holds the column names, matching the case form (CIF) questions; each row after it becomes a contact."
+                android:text="Add VHF contacts from an Excel file (.xlsx or .csv) laid out like the Contact Listing Form. The first row holds the column names (Surname, Other Names, Sex, Age, Relation to Case, Date of Last Contact with Case, Type of Contact, Head of Household, Address, County, Sub County, Phone Number, Healthcare Worker); each row after it becomes a contact."
                 android:textColor="@color/home_card_subtitle"
                 android:textSize="14sp" />
 

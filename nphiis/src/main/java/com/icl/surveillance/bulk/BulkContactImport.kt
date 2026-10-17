@@ -44,18 +44,20 @@ import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 
 /**
- * Bulk upload of VHF contacts from a spreadsheet laid out like the VHF case form (CIF).
+ * Bulk upload of VHF contacts from a spreadsheet laid out like the MoH Contact Listing Form
+ * (the contact form, vhf-contact.json; sheets laid out like the case form still work for the
+ * questions the two forms share).
  *
  * Columns are matched to the form's questions by linkId or by question text (case and spacing
  * ignored; repeated texts such as "County" go to the form's questions in order). Each row
- * becomes a filled-in VHF case form with Type of case = Contact, linked to its source case
- * (picked in the app, or the row's "Contact Link to Case" EPID), and is then saved through the
- * app's normal case save (Patient, Encounter, answers, EPID, link, follow-up schedule).
+ * becomes a filled-in contact form, linked to its source case (picked in the app, or the row's
+ * "Case ID" EPID number), and is then saved through the app's normal case save (Patient,
+ * Encounter, answers, EPID, link, follow-up schedule).
  */
 class BulkContactImport(private val context: Context, private val fhirEngine: FhirEngine) {
 
     /** Line-list columns that do not map to one question but are worked out (see [planRow]). */
-    enum class Special { FULL_NAME, AGE_YEARS, RELATIONSHIP, FLIGHT_SEAT, COMMENT }
+    enum class Special { FULL_NAME, AGE_YEARS, RELATIONSHIP, FLIGHT_SEAT, COMMENT, CONTACT_TYPE, HEALTH_WORKER }
 
     data class Column(
         val index: Int,
@@ -103,7 +105,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
     )
 
     val questionnaire: Questionnaire by lazy {
-        val json = context.assets.open(FormFields.Vhf.CASE_FORM).bufferedReader().use { it.readText() }
+        val json = context.assets.open(FormFields.Vhf.CONTACT_FORM).bufferedReader().use { it.readText() }
         FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             .parseResource(Questionnaire::class.java, json)
     }
@@ -157,7 +159,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
 
     /**
      * Reads every row into a form response, ready to import. [sourceEpid]: the case picked in
-     * the app (every row becomes its contact); null to use each row's "Contact Link to Case".
+     * the app (every row becomes its contact); null to use each row's "Case ID" (source EPID).
      */
     suspend fun plan(table: SpreadsheetReader.Table, sourcePatientId: String?, site: ReportingSite?): Plan {
         val columns = matchColumns(table.headers)
@@ -203,6 +205,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
             }
         }
         completeResidence(answers, warnings)
+        contactFormDefaults(answers)
 
         // Reporting site, as the form fills it for this user (hidden role + area, and the
         // facility in the section for the user's level); the save tags records with it.
@@ -221,7 +224,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
         }
         when {
             pickedSourceId == null && rowEpid == null ->
-                errors += "No source case (pick one above, or fill \"Contact Link to Case\")"
+                errors += "No source case (pick one above, or fill the \"Case ID\" column with its EPID number)"
             source == null -> errors += "Source case ${rowEpid ?: ""} is not on this device"
             else -> {
                 // The case's EPID when it has one; the link itself is by record (see BulkUploadActivity).
@@ -306,9 +309,9 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
             .mapNotNull { patient ->
                 val type = caseTypeOf(patient)
                 if (type.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return@mapNotNull null
-                val name = patient.nameFirstRep.nameAsSingleString.trim().ifEmpty { "Unnamed" }
-                val epid = VhfSourceCases.epidOf(patient) ?: "EPID pending"
-                val label = "$name · $epid" + if (type.isNotBlank()) " ($type)" else ""
+                // Privacy: source cases are listed by EPID number only, never by name.
+                val epid = VhfSourceCases.epidOf(patient) ?: "EPID pending (record ${patient.idElement.idPart.take(8)})"
+                val label = epid + if (type.isNotBlank()) " ($type)" else ""
                 patient to SourceCase(patient.idElement.idPart, label)
             }
             .sortedByDescending { (patient, _) -> patient.meta.lastUpdated?.time ?: 0L }
@@ -445,6 +448,19 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
     private fun Location.isCounty() = partOf?.referenceElement?.idPart == "0"
 
     /**
+     * Answers the contact form fills itself when a contact is registered in the app: date of
+     * birth known / unknown (from the row), country and date of listing (today). Row values win.
+     */
+    private fun contactFormDefaults(answers: MutableMap<String, List<Type>>) {
+        if (DOB_KNOWN !in answers) {
+            val known = FormFields.Person.DATE_OF_BIRTH in answers
+            coding(DOB_KNOWN, if (known) "known" else "unknown")?.let { answers[DOB_KNOWN] = listOf(it) }
+        }
+        if (COUNTRY !in answers) answers[COUNTRY] = listOf(StringType("Kenya"))
+        if (LISTING_DATE !in answers) answers[LISTING_DATE] = listOf(DateType(Date(), TemporalPrecisionEnum.DAY))
+    }
+
+    /**
      * Makes the residence a complete chain the server can resolve (sub-county -> county ->
      * country), filling missing levels from the levels below:
      * - a sub-county in the County column ("Embakasi East") becomes the sub-county;
@@ -532,6 +548,12 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
                 val option = coding(RELATIONSHIP, code) ?: coding(RELATIONSHIP, "other") ?: return
                 answers[RELATIONSHIP] = listOf(option)
                 if (option.code == "other") answers[RELATIONSHIP_OTHER] = listOf(StringType(text))
+                // Line lists have no "Healthcare worker" column: a health worker relation
+                // (HCW, nurse, lab, port health...) answers it; a "Healthcare worker" column wins.
+                if (FormFields.Vhf.CONTACT_HCW !in answers) {
+                    coding(FormFields.Vhf.CONTACT_HCW, if (code == "hcw") "yes" else "no")
+                        ?.let { answers[FormFields.Vhf.CONTACT_HCW] = listOf(it) }
+                }
             }
 
             Special.FLIGHT_SEAT -> {
@@ -543,6 +565,41 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
 
             Special.COMMENT -> {
                 if (normalize(raw).contains("confirmed case")) errors += "Marked as a confirmed case, not a contact"
+            }
+
+            // "1, 3", "1 2 4", "2;4" or words ("body fluids, household"): the form's types 1-4.
+            Special.CONTACT_TYPE -> {
+                val key = normalize(raw)
+                val codes = LinkedHashSet<String>()
+                Regex("[1-4]").findAll(raw).forEach { CONTACT_TYPE_CODES[it.value]?.let(codes::add) }
+                val words = key.split(' ')
+                CONTACT_TYPE_WORDS.forEach { (word, code) ->
+                    // Phrases anywhere; single words only as the start of a word ("ate" is not "date").
+                    val found = if (' ' in word) key.contains(word) else words.any { it.startsWith(word) }
+                    if (found) codes += code
+                }
+                val options = codes.mapNotNull { coding(FormFields.Vhf.CONTACT_CATEGORY, it) }
+                if (options.isEmpty()) warnings += "${header.replace('\n', ' ')}: \"$raw\" not understood (use 1, 2, 3, 4)"
+                else answers[FormFields.Vhf.CONTACT_CATEGORY] = options
+            }
+
+            // "Y", "N", "Yes - Kenyatta National Hospital", "Y (KNH)": the answer and the facility.
+            Special.HEALTH_WORKER -> {
+                val text = raw.trim()
+                val first = text.split(Regex("[\\s,;:()\\-–/]+")).firstOrNull().orEmpty()
+                val yes = yesNo(first) ?: yesNo(text)
+                if (yes == null) {
+                    // Only a facility name: the contact works there.
+                    coding(FormFields.Vhf.CONTACT_HCW, "yes")?.let { answers[FormFields.Vhf.CONTACT_HCW] = listOf(it) }
+                    answers[FormFields.Vhf.CONTACT_HCW_FACILITY] = listOf(StringType(text))
+                    return
+                }
+                coding(FormFields.Vhf.CONTACT_HCW, if (yes) "yes" else "no")
+                    ?.let { answers[FormFields.Vhf.CONTACT_HCW] = listOf(it) }
+                val facility = text.drop(first.length).trim(' ', '-', '–', ':', ',', ';', '(', ')', '/').trim()
+                if (yes && facility.isNotBlank() && FormFields.Vhf.CONTACT_HCW_FACILITY !in answers) {
+                    answers[FormFields.Vhf.CONTACT_HCW_FACILITY] = listOf(StringType(facility))
+                }
             }
         }
     }
@@ -814,6 +871,19 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
         private const val SUB_COUNTY = "a3-sub-county"
         private const val WARD = "a2-ward"
         private const val DOB_KNOWN = "442636360588"
+        private const val COUNTRY = "vhf-country"
+        private const val LISTING_DATE = "vhf-investigation-date"
+
+        /** Contact Listing Form "Type of Contact": 1 fluids, 2 body, 3 linens, 4 household. */
+        private val CONTACT_TYPE_CODES = mapOf(
+            "1" to "body-fluids", "2" to "physical-contact", "3" to "linens", "4" to "household",
+        )
+        private val CONTACT_TYPE_WORDS = listOf(
+            "fluid" to "body-fluids", "blood" to "body-fluids", "vomit" to "body-fluids",
+            "physical" to "physical-contact", "touched the body" to "physical-contact",
+            "linen" to "linens", "cloth" to "linens", "dish" to "linens",
+            "household" to "household", "slept" to "household", "ate" to "household",
+        )
         private const val AGE_YEARS = "492731638700"
         private const val RELATIONSHIP = "vhf-relationship"
         private const val RELATIONSHIP_OTHER = "vhf-relationship-other"
@@ -833,6 +903,13 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
             "Seat" to Special.FLIGHT_SEAT,
             "Comment" to Special.COMMENT,
             "Comments" to Special.COMMENT,
+            "Type of contact" to Special.CONTACT_TYPE,
+            // Line lists (e.g. the BVD contact list) code the Contact Listing Form's type of
+            // contact (1-4) in an "Exposure Type" column.
+            "Exposure type" to Special.CONTACT_TYPE,
+            "Healthcare worker" to Special.HEALTH_WORKER,
+            "Health care worker" to Special.HEALTH_WORKER,
+            "HCW" to Special.HEALTH_WORKER,
         )
 
         /** Line-list column names for single questions (matched by their first words). */
@@ -853,6 +930,19 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
             "Village" to "vhf-village",
             "ID number" to FormFields.Vhf.NATIONAL_ID,
             "National ID" to FormFields.Vhf.NATIONAL_ID,
+            // Contact Listing Form and older case-form (CIF) sheets.
+            "Case ID" to FormFields.Vhf.SOURCE_CASE_EPID,
+            "Source case EPID" to FormFields.Vhf.SOURCE_CASE_EPID,
+            "Case EPID" to FormFields.Vhf.SOURCE_CASE_EPID,
+            "Contact link to case" to FormFields.Vhf.SOURCE_CASE_EPID,
+            "Family name" to FormFields.Person.SURNAME,
+            "Given names" to FormFields.Person.FIRST_NAME,
+            "First name" to FormFields.Person.FIRST_NAME,
+            "Date of last contact" to "vhf-contact-date",
+            "Date of investigation" to LISTING_DATE,
+            "Date of listing" to LISTING_DATE,
+            "If yes what facility" to FormFields.Vhf.CONTACT_HCW_FACILITY,
+            "Head of household" to FormFields.Vhf.HEAD_OF_HOUSEHOLD,
         )
 
         private val FAMILY_WORDS = listOf(

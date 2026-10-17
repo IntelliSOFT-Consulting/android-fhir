@@ -2021,6 +2021,21 @@
           "required": true
         },
         {
+          "linkId": "vhf-head-of-household",
+          "text": "Head of household",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-case-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ]
+        },
+        {
           "linkId": "residence-map-name",
           "text": "Residence (picked on map)",
           "type": "string",
@@ -4406,6 +4421,125 @@
               "answerCoding": {
                 "code": "other",
                 "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-category",
+          "text": "Type of contact (tick all that apply)",
+          "type": "choice",
+          "repeats": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "body-fluids",
+                "display": "1 - Touched body fluids of the case (blood, vomit, saliva, urine, feces)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "physical-contact",
+                "display": "2 - Had direct physical contact with the body of the case (alive or dead)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "linens",
+                "display": "3 - Touched or cleaned the linens, clothes, or dishes of the case"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "household",
+                "display": "4 - Slept or ate in the same household as the case"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-case-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-hcw",
+          "text": "Healthcare worker?",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-case-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "contact",
+                "display": "Contact"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-contact-hcw-facility",
+          "text": "If yes, what facility?",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-contact-hcw",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
               }
             }
           ]

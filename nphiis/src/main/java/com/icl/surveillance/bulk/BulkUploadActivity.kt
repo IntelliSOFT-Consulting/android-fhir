@@ -36,8 +36,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Settings > Bulk Upload: VHF contacts from an Excel (.xlsx) or CSV file laid out like the case
- * form. Pick the source case (or use the file's "Contact Link to Case" column), choose the file,
+ * Settings > Bulk Upload: VHF contacts from an Excel (.xlsx) or CSV file laid out like the Contact Listing
+ * form. Pick the source case (or use the file's "Case ID" column, the source case's EPID number), choose the file,
  * check the preview, then import; each row is saved like a contact registered by hand.
  */
 class BulkUploadActivity : AppCompatActivity() {
@@ -47,7 +47,7 @@ class BulkUploadActivity : AppCompatActivity() {
     private val importer by lazy { BulkContactImport(applicationContext, fhirEngine) }
 
     private var sources: List<BulkContactImport.SourceCase> = emptyList()
-    /** Null = each row's own "Contact Link to Case" column. */
+    /** Null = each row's own "Case ID" (source case EPID) column. */
     private var selectedSourceId: String? = null
     private var table: SpreadsheetReader.Table? = null
     private var site: BulkContactImport.ReportingSite? = null
@@ -260,7 +260,7 @@ class BulkUploadActivity : AppCompatActivity() {
         binding.progress.visibility = View.VISIBLE
         // A private instance: only its suspend save is used, as by the test-data generator.
         val saver = AddClientViewModel(
-            application, SavedStateHandle(mapOf(QUESTIONNAIRE_FILE_PATH_KEY to FormFields.Vhf.CASE_FORM))
+            application, SavedStateHandle(mapOf(QUESTIONNAIRE_FILE_PATH_KEY to FormFields.Vhf.CONTACT_FORM))
         )
         val formatter = FormatterClass()
         val log = ImportLog.start(this, fileName)
@@ -449,7 +449,7 @@ class BulkUploadActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "BULK_UPLOAD"
-        private const val FROM_FILE = "Use the file's \"Contact Link to Case\" column"
+        private const val FROM_FILE = "Use the file's \"Case ID\" column (source case EPID)"
         private val MIME_TYPES = arrayOf(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel",

@@ -33,7 +33,7 @@ object VhfSourceCases {
 
     /**
      * Suspected, probable and confirmed VHF cases on this device that have an EPID number,
-     * newest first, labelled "EPID  Name (Type)". Starts from the case-type and final-result
+     * newest first, labelled by EPID number only (no name, for privacy). Starts from the case-type and final-result
      * answers (indexed searches) instead of scanning every patient.
      */
     suspend fun options(
@@ -53,12 +53,9 @@ object VhfSourceCases {
             .sortedByDescending { it.meta.lastUpdated?.time ?: 0L }
             .mapNotNull { patient ->
                 val epid = epidOf(patient) ?: return@mapNotNull null
-                val name = patient.nameFirstRep.nameAsSingleString.trim()
-                val type = types[patient.logicalId]?.let { " ($it)" }.orEmpty()
-                SourceOption(
-                    epid, patient.logicalId,
-                    (if (name.isBlank()) epid else "$epid  $name") + type,
-                )
+                // Privacy: a source case is offered (and saved on the contact) by its EPID number
+                // only; its name is never shown or stored with the contact.
+                SourceOption(epid, patient.logicalId, epid)
             }
             .distinctBy { it.epid }
     }
@@ -111,8 +108,8 @@ object VhfSourceCases {
     }
 
     /**
-     * The EPID number in an answer: a picked case's answer reads "EPID  Name" (or is the code),
-     * a typed one is the EPID number itself. EPID numbers contain no spaces.
+     * The EPID number in an answer: a picked case's answer is its EPID number (older records
+     * read "EPID  Name"), a typed one is the EPID number itself. EPID numbers contain no spaces.
      */
     fun epidFrom(answer: String?): String? =
         answer?.trim()?.split(Regex("\\s+"))?.firstOrNull()?.takeIf { it.isNotBlank() }

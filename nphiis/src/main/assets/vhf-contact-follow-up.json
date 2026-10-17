@@ -68,6 +68,99 @@
           ]
         },
         {
+          "linkId": "vhf-follow-up-contact-status",
+          "text": "Contact status today",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "died",
+                "display": "Died"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-death-date",
+          "text": "Date of death",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "died",
+                "display": "Died"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-mark-x-died",
+          "type": "display",
+          "text": "Mark X: the contact has died. Complete the Case Report Form and record the monitoring status as Died.",
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "died",
+                "display": "Died"
+              }
+            }
+          ]
+        },
+        {
           "linkId": "vhf-follow-up-symptomatic",
           "text": "Symptomatic?",
           "type": "choice",
@@ -103,7 +196,23 @@
                 "display": "No"
               }
             }
-          ]
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "exists",
+              "answerBoolean": false
+            }
+          ],
+          "enableBehavior": "any"
         },
         {
           "linkId": "vhf-follow-up-symptoms",
@@ -271,7 +380,23 @@
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
               "valueString": "e.g. 37.5"
             }
-          ]
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "exists",
+              "answerBoolean": false
+            }
+          ],
+          "enableBehavior": "any"
         },
         {
           "linkId": "vhf-follow-up-temperature-pm",
@@ -290,13 +415,179 @@
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
               "valueString": "e.g. 37.5"
             }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "exists",
+              "answerBoolean": false
+            }
+          ],
+          "enableBehavior": "any"
+        },
+        {
+          "linkId": "vhf-follow-up-mark-x",
+          "type": "display",
+          "text": "Mark X: fever and/or bleeding. Complete the Case Report Form (Convert to case) and refer the contact to hospital.",
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            },
+            {
+              "question": "vhf-follow-up-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Hemorrhage"
+              }
+            },
+            {
+              "question": "vhf-follow-up-temperature-am",
+              "operator": ">=",
+              "answerDecimal": 38.0
+            },
+            {
+              "question": "vhf-follow-up-temperature-pm",
+              "operator": ">=",
+              "answerDecimal": 38.0
+            }
+          ],
+          "enableBehavior": "any"
+        },
+        {
+          "linkId": "vhf-follow-up-referred",
+          "text": "Referred to hospital?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            },
+            {
+              "question": "vhf-follow-up-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Hemorrhage"
+              }
+            },
+            {
+              "question": "vhf-follow-up-temperature-am",
+              "operator": ">=",
+              "answerDecimal": 38.0
+            },
+            {
+              "question": "vhf-follow-up-temperature-pm",
+              "operator": ">=",
+              "answerDecimal": 38.0
+            }
+          ],
+          "enableBehavior": "any"
+        },
+        {
+          "linkId": "vhf-follow-up-referral-facility",
+          "text": "Referred to (health facility)",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-referred",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-tracer-name",
+          "text": "Volunteer / CHP name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-follow-up-tracer-phone",
+          "text": "Volunteer / CHP mobile number",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid mobile number (07xxxxxxxx)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^\\d{10,10}$"
+            }
           ]
         },
         {
           "linkId": "vhf-follow-up-tracer-email",
-          "text": "Contact tracer (email address)",
+          "text": "Volunteer / CHP email address",
           "type": "string",
-          "required": true,
+          "required": false,
           "extension": [
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
@@ -419,6 +710,42 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-follow-up-location",
+      "text": "Where the follow up was done",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "vhf-follow-up-village",
+          "text": "Village",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-follow-up-ward",
+          "text": "Ward",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-follow-up-town",
+          "text": "Town",
+          "type": "string"
+        },
+        {
+          "linkId": "vhf-follow-up-sub-county",
+          "text": "Sub County",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-follow-up-county",
+          "text": "County",
+          "type": "string",
+          "required": true
         }
       ]
     }

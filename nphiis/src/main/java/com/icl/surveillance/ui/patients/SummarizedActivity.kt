@@ -525,6 +525,10 @@ class SummarizedActivity : AppCompatActivity() {
                             ).show()
                         }
 
+                        // VHF: a contact registered with the contact form is edited in that form.
+                        CaseSlugs.VHF -> com.icl.surveillance.ui.patients.custom.VhfContactActions
+                            .editRecord(this@SummarizedActivity)
+
                         else -> {
                             // Every questionnaire-based module edits its saved response in place.
                             val questionnaireFile = questionnaireFileFor(slug)

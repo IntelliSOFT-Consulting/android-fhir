@@ -28,6 +28,7 @@ import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.ContactFollowUpState
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.fhir.forms.VhfSpecimens
 import com.icl.surveillance.fhir.forms.toCaseSlug
@@ -223,10 +224,27 @@ class PatientListViewModel(
         updatePatientListAndPatientCount({ getSearchResults(nameQuery) }, { count(nameQuery) })
     }
 
-    fun handleCurrentCaseListing(category: String, units: List<String>, userRole: UserRole?) {
-        viewModelScope.launch {
-            liveSearchedCases.value = retrieveCasesByDisease(category, units, userRole)
+    private var caseListJob: Job? = null
 
+    /**
+     * Loads the module's case list off the main thread. The list is published after every
+     * batch of [CASE_BATCH_SIZE] records, so the first rows show while the rest load; a new
+     * request cancels one still running (e.g. after a sync).
+     */
+    fun handleCurrentCaseListing(category: String, units: List<String>, userRole: UserRole?) {
+        caseListJob?.cancel()
+        caseListJob = viewModelScope.launch {
+            val started = System.currentTimeMillis()
+            val cases = withContext(Dispatchers.IO) {
+                retrieveCasesByDisease(category, units, userRole) { partial ->
+                    liveSearchedCases.postValue(partial)
+                }
+            }
+            // Posted like the partial lists, so a partial one still queued cannot replace it.
+            liveSearchedCases.postValue(cases)
+            Timber.tag("CASE_LIST").d(
+                "%s: %d rows in %d ms", category, cases.size, System.currentTimeMillis() - started
+            )
         }
     }
 
@@ -563,6 +581,7 @@ class PatientListViewModel(
         nameQuery: String,
         units: List<String>,
         userRole: UserRole?,
+        onProgress: ((List<PatientItem>) -> Unit)? = null,
     ): List<PatientItem> {
         val isSummary = nameQuery.contains("mpox")
 
@@ -828,7 +847,12 @@ class PatientListViewModel(
                     filter(Patient.ACTIVE, { value = of(true) })
                     sort(Patient.GIVEN, Order.ASCENDING)
                 }
+                val built = ArrayList<PatientItem>()
                 return patients.mapIndexedNotNull { index, fhirPatient ->
+                    // Rows of the batches done so far, before the next batch is loaded.
+                    if (onProgress != null && index > 0 && index % CASE_BATCH_SIZE == 0 && built.isNotEmpty()) {
+                        onProgress(built.sortedByDescending { it.lastUpdated })
+                    }
                     batches?.ensureLoaded(index)
 
                     val tag =
@@ -1060,7 +1084,8 @@ class PatientListViewModel(
                             }
 
                             CaseSlugs.VHF -> {
-                                data = processVhfCase(fhirEngine, childEncounter, data, logicalId)
+                                data = batches?.vhfRow(data, logicalId, obs)
+                                    ?: processVhfCase(fhirEngine, childEncounter, data, logicalId)
                             }
 
                             CaseSlugs.ALERT_LOG -> {
@@ -1136,6 +1161,7 @@ class PatientListViewModel(
                             supervisorName = supervisorName,
                             sourceTag = "$tag"
                         )
+                        built += data
                         data
                     } else {
                         null // Not a match — exclude
@@ -1875,6 +1901,28 @@ class PatientListViewModel(
 
     companion object {
         private const val CASE_BATCH_SIZE = 100
+
+        /**
+         * Answers the case lists read from each record (the rest of a form's answers are not
+         * loaded for the list). Add a code here when a list column needs another answer.
+         */
+        private val LIST_ANSWER_CODES: List<String> = (listOf(
+            FhirSystems.EPID,
+            FormFields.EVENT_DATE,
+            FormFields.Residence.COUNTY,
+            FormFields.Residence.SUB_COUNTY,
+            FormFields.Measles.CASE_OR_LINE_LIST,
+            FormFields.Measles.MR_VACCINE_LAST_30_DAYS,
+            FormFields.MpoxTallySheet.CAMPAIGN_DAY,
+            FormFields.MpoxTallySheet.TEAM_NUMBER,
+            FormFields.MpoxTallySheet.SUPERVISOR_NAME,
+            FormFields.Rcce.OCCUPATION,
+            FormFields.Rcce.OCCUPATION_OTHER,
+            FormFields.MpoxRegister.VACCINATION_CENTER,
+            FormFields.AlertLog.DATE,
+            FormFields.AlertLog.SUSPECTED,
+            FormFields.AlertLog.SUSPECTED_OTHER,
+        ) + VhfContactTracker.CASE_ANSWER_CODES).distinct()
         private const val PATIENT_LOAD_CHUNK = 200
         private const val RUMOR_PAGE_SIZE = 200
 
@@ -2241,7 +2289,7 @@ class PatientListViewModel(
      */
     private suspend fun caseBatchLoader(nameQuery: String): CaseBatchLoader? {
         val found = casePatients(nameQuery) ?: return null
-        return CaseBatchLoader(found.patients, found.encountersByPatient)
+        return CaseBatchLoader(found.patients, found.encountersByPatient, nameQuery)
     }
 
     private class CasePatients(
@@ -2290,15 +2338,17 @@ class PatientListViewModel(
                     (byIdentifier[id].orEmpty() + byCaseName[id].orEmpty()).distinct()
                 }
 
+            // One search per chunk of ids instead of one read per patient.
             val patients = encountersByPatient.keys
                 .chunked(PATIENT_LOAD_CHUNK)
                 .flatMap { chunk ->
-                    chunk.mapNotNull { id ->
-                        runCatching { fhirEngine.get(ResourceType.Patient, id) as Patient }
-                            .getOrNull()
-                            ?.takeIf { it.active }
-                            ?.let { SearchResult(it, null, null) }
-                    }
+                    fhirEngine.search<Patient> {
+                        filter(Resource.RES_ID, *chunk.map<String, TokenParamFilterCriterion.() -> Unit> { id ->
+                            { value = of(id) }
+                        }.toTypedArray())
+                    }.map { it.resource }
+                        .filter { it.active }
+                        .map { SearchResult(it, null, null) }
                 }
                 .sortedBy { it.resource.nameFirstRep.givenAsSingleString.orEmpty().lowercase() }
 
@@ -2319,11 +2369,14 @@ class PatientListViewModel(
     private inner class CaseBatchLoader(
         val patients: List<SearchResult<Patient>>,
         private val encountersByPatient: Map<String, List<String>>,
+        private val nameQuery: String,
     ) {
         private var loadedBatch = -1
         private var observations: Map<String, List<SearchResult<Observation>>> = emptyMap()
         private var children: Map<String, List<EncounterItem>> = emptyMap()
         private var responses: Map<String, List<SearchResult<QuestionnaireResponse>>> = emptyMap()
+        private var specimens: VhfSpecimens.Batch? = null
+        private var contactStates: Map<String, ContactFollowUpState> = emptyMap()
 
         suspend fun ensureLoaded(index: Int) {
             val batch = index / CASE_BATCH_SIZE
@@ -2339,9 +2392,11 @@ class PatientListViewModel(
             }
             val patientRefs = patientIds.map { "Patient/$it" }
 
+            // Only the answers the list shows (a case form has 100+ answers; the list reads ~20).
             observations = if (encounterRefs.isEmpty()) emptyMap() else
                 fhirEngine.search<Observation> {
                     filter(Observation.ENCOUNTER, *references(encounterRefs))
+                    filter(Observation.CODE, *codes(LIST_ANSWER_CODES))
                 }.groupBy { it.resource.encounter.referenceElement.idPart ?: "" }
 
             children = if (encounterRefs.isEmpty()) emptyMap() else
@@ -2360,9 +2415,73 @@ class PatientListViewModel(
                         }.sortedByDescending { it.lastUpdated }
                     }
 
-            responses = fhirEngine.search<QuestionnaireResponse> {
-                filter(QuestionnaireResponse.SUBJECT, *references(patientRefs))
-            }.groupBy { it.resource.subject.referenceElement.idPart ?: "" }
+            // RCCE and MOH 505 rows read the response; other modules do not need it.
+            responses = if (nameQuery != CaseSlugs.RCCE && nameQuery != CaseSlugs.MOH_505) emptyMap() else
+                fhirEngine.search<QuestionnaireResponse> {
+                    filter(QuestionnaireResponse.SUBJECT, *references(patientRefs))
+                }.groupBy { it.resource.subject.referenceElement.idPart ?: "" }
+
+            if (nameQuery == CaseSlugs.VHF) loadVhf(patientIds)
+        }
+
+        /** VHF: the batch's specimens (lab column) and the follow ups of its contacts. */
+        private suspend fun loadVhf(patientIds: List<String>) {
+            specimens = runCatching { VhfSpecimens.loadBatch(fhirEngine, patientIds) }
+                .onFailure { Timber.tag("CASE_LIST").w(it, "Could not load the batch's specimens") }
+                .getOrNull()
+
+            val contactCases = observations
+                .filterValues { answers ->
+                    answers.valueOf(FormFields.Vhf.CASE_TYPE).equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)
+                }
+                .keys.filter { it.isNotBlank() }
+            if (contactCases.isEmpty()) {
+                contactStates = emptyMap()
+                return
+            }
+            val childRecords = contactCases.associateWith { caseId ->
+                children[caseId].orEmpty().map { VhfContactTracker.ChildRecord(it.id, it.reasonCode, it.lastUpdated) }
+            }
+            val toRead = childRecords.values.flatMap { VhfContactTracker.recordsToRead(it) }.map { "Encounter/${it.id}" }
+            val childAnswers = if (toRead.isEmpty()) emptyMap() else toRead.chunked(CASE_BATCH_SIZE).flatMap { chunk ->
+                fhirEngine.search<Observation> {
+                    filter(Observation.ENCOUNTER, *references(chunk))
+                    filter(Observation.CODE, *codes(VhfContactTracker.CHILD_ANSWER_CODES))
+                }.map { it.resource }
+            }.groupBy { it.encounter.referenceElement.idPart ?: "" }
+            // The registration date counts day 0 when a contact has no date of contact.
+            val caseEncounters = fhirEngine.search<Encounter> {
+                filter(Resource.RES_ID, *contactCases.map<String, TokenParamFilterCriterion.() -> Unit> { id ->
+                    { value = of(id) }
+                }.toTypedArray())
+            }.associateBy { it.resource.logicalId }
+            val today = java.time.LocalDate.now()
+            contactStates = contactCases.associateWith { caseId ->
+                VhfContactTracker.assemble(
+                    caseAnswers = observations[caseId].orEmpty().map { it.resource },
+                    registered = VhfContactTracker.registeredOn(caseEncounters[caseId]?.resource, today),
+                    children = childRecords[caseId].orEmpty(),
+                    childAnswers = childAnswers,
+                    today = today,
+                )
+            }
+        }
+
+        /**
+         * The VHF columns from the loaded batch (see [processVhfCase]): lab result and final
+         * classification from the specimens; a contact shows its follow-up summary instead.
+         * Null when the batch was not loaded for VHF.
+         */
+        fun vhfRow(data: PatientItem, caseEncounterId: String, caseAnswers: List<SearchResult<Observation>>): PatientItem? {
+            if (nameQuery != CaseSlugs.VHF) return null
+            var result = data
+            specimens?.summaryForCase(data.resourceId, caseEncounterId)?.let { summary ->
+                result = result.copy(labResults = summary.labResults, status = summary.classification)
+            }
+            val caseType = caseAnswers.valueOf(FormFields.Vhf.CASE_TYPE)
+            if (!caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return result
+            val contact = contactStates[caseEncounterId] ?: return result
+            return result.copy(status = contact.summary)
         }
 
         /** The patient's case Encounter id, for patients without a case identifier. */
@@ -2375,6 +2494,10 @@ class PatientListViewModel(
 
         private fun references(values: List<String>) =
             values.map<String, ReferenceParamFilterCriterion.() -> Unit> { ref -> { value = ref } }
+                .toTypedArray()
+
+        private fun codes(values: List<String>) =
+            values.map<String, TokenParamFilterCriterion.() -> Unit> { code -> { value = of(code) } }
                 .toTypedArray()
     }
 

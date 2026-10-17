@@ -118,6 +118,74 @@ object VhfScheduleCards {
         return card
     }
 
+    /**
+     * The paper follow-up form's day grid (days 1-[window], 7 per row): each recorded day shows
+     * its mark, "0" (no fever or bleeding) or "X" (fever and/or bleeding, or died); a past day
+     * without a record shows "–"; later days are blank. [today] is the current follow-up day.
+     */
+    fun marksGrid(parent: ViewGroup, window: Int, marks: Map<Int, String>, today: Int): View {
+        val context = parent.context
+        val card = card(parent)
+        val body = column(context, 14, 12)
+        body.addView(text(context, "Daily marks", 14f, R.color.home_card_title, bold = true))
+        body.addView(text(context, "0 = no fever or bleeding  ·  X = fever and/or bleeding, or died", 11f, R.color.home_card_subtitle).apply {
+            setPadding(0, dp(context, 2), 0, dp(context, 8))
+        })
+        (1..window).chunked(7).forEach { week ->
+            val line = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = dp(context, 4) }
+            }
+            week.forEach { day -> line.addView(markCell(context, day, marks[day], day < today)) }
+            repeat(7 - week.size) {
+                line.addView(View(context).apply { layoutParams = LinearLayout.LayoutParams(0, 1, 1f) })
+            }
+            body.addView(line)
+        }
+        card.addView(body)
+        return card
+    }
+
+    private fun markCell(context: android.content.Context, day: Int, mark: String?, past: Boolean): View {
+        val tone = when {
+            mark == "X" -> CardTone.ALERT
+            mark != null -> CardTone.SUCCESS
+            past -> CardTone.WARNING
+            else -> CardTone.NEUTRAL
+        }
+        val accent = ContextCompat.getColor(context, tone.accent)
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                .apply { setMargins(dp(context, 2), 0, dp(context, 2), 0) }
+            setPadding(0, dp(context, 4), 0, dp(context, 6))
+            background = ContextCompat.getDrawable(context, R.drawable.bg_vhf_pill)
+            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, tone.tint))
+            addView(TextView(context).apply {
+                text = day.toString()
+                textSize = 10f
+                gravity = Gravity.CENTER
+                setTextColor(ContextCompat.getColor(context, R.color.home_card_subtitle))
+            })
+            addView(TextView(context).apply {
+                text = mark ?: if (past) "–" else " "
+                textSize = 16f
+                gravity = Gravity.CENTER
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(accent)
+            })
+            contentDescription = "Day $day, " + when {
+                mark == "X" -> "marked X"
+                mark != null -> "marked 0"
+                past -> "not recorded"
+                else -> "upcoming"
+            }
+        }
+    }
+
     private fun scheduleRow(context: android.content.Context, row: ScheduleRow): View {
         val accent = ContextCompat.getColor(context, row.tone.accent)
         val active = row.onRecord != null

@@ -207,7 +207,7 @@ class VhfContactsFragment : Fragment() {
         parent.setPadding(parent.paddingLeft, parent.paddingTop, parent.paddingRight, (88 * resources.displayMetrics.density).toInt())
 
         val states = rows.mapNotNull { it.state }.filter { it.isContact }
-        val symptomatic = states.count { !it.isClosed && it.firstSymptomaticVisit != null }
+        val symptomatic = states.count { !it.isClosed && (it.firstSymptomaticVisit != null || it.deathVisit != null) }
         val converted = rows.count { it.state != null && !it.state.isContact }
         parent.addView(
             VhfCards.stats(
@@ -243,7 +243,7 @@ class VhfContactsFragment : Fragment() {
                 !state.isContact -> "Converted · ${state.caseType.ifBlank { "case" }}" to CardTone.NEUTRAL
                 state.isClosed -> state.monitoringStatus to
                     if (state.monitoringStatus == FormFields.Vhf.STATUS_COMPLETED) CardTone.SUCCESS else CardTone.NEUTRAL
-                state.firstSymptomaticVisit != null -> state.summary to CardTone.ALERT
+                state.deathVisit != null || state.firstSymptomaticVisit != null -> state.summary to CardTone.ALERT
                 state.isDueToday -> state.summary to CardTone.INFO
                 state.missedDays.isNotEmpty() ->
                     "${state.summary} · ${state.missedDays.size} missed" to CardTone.WARNING
@@ -258,7 +258,7 @@ class VhfContactsFragment : Fragment() {
         state == null -> 5
         !state.isContact -> 4
         state.isClosed -> 3
-        state.firstSymptomaticVisit != null -> 0
+        state.deathVisit != null || state.firstSymptomaticVisit != null -> 0
         state.isDueToday -> 1
         else -> 2
     }
@@ -289,13 +289,14 @@ class VhfContactsFragment : Fragment() {
         savePrefs()
         val formatter = FormatterClass()
         formatter.saveSharedPref("currentCase", CaseTypes.VHF, context)
-        formatter.saveSharedPref("questionnaire", FormFields.Vhf.CASE_FORM, context)
-        val title = if (source.name.isBlank()) "Register contact" else "Register contact of ${source.name}"
+        formatter.saveSharedPref("questionnaire", FormFields.Vhf.CONTACT_FORM, context)
+        // Privacy: the source case is named by its EPID number only, never by name.
+        val title = source.epid?.let { "Register contact of $it" } ?: "Register contact"
         formatter.saveSharedPref("AddParentTitle", title, context)
         formatter.saveSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, source.patientId, context)
         FormPrefill.stage(
             context,
-            FormFields.Vhf.CASE_FORM,
+            FormFields.Vhf.CONTACT_FORM,
             buildMap {
                 put(FormFields.Vhf.CASE_TYPE, FormFields.Vhf.CASE_TYPE_CONTACT)
                 put(FormFields.Vhf.EXPOSURE_TYPE, FormFields.Vhf.EXPOSURE_HUMAN_CONTACT)
@@ -303,18 +304,19 @@ class VhfContactsFragment : Fragment() {
                 if (source.diseaseOther.isNotBlank()) put(FormFields.Vhf.DISEASE_OTHER, source.diseaseOther)
                 source.epid?.let { put(FormFields.Vhf.SOURCE_CASE_EPID, it) }
             },
-            // A contact is always registered as a Contact: Type of case is shown read-only.
-            locked = setOf(FormFields.Vhf.CASE_TYPE),
+            // A contact is always registered as a Contact (hidden on the contact form), and the
+            // source case it was listed from is shown read-only.
+            locked = setOfNotNull(FormFields.Vhf.CASE_TYPE, FormFields.Vhf.SOURCE_CASE_EPID.takeIf { source.epid != null }),
         )
         // An unfinished draft for a contact of this case is offered first (straight to the form);
         // otherwise verify the contact's identity (IPRS / Client Registry) first; it opens the form.
         UnfinishedDraftPrompt.offer(
-            context, FormFields.Vhf.CASE_FORM,
+            context, FormFields.Vhf.CONTACT_FORM,
             onContinue = {
                 returnToCase.launch(
                     Intent(context, AddParentCaseActivity::class.java)
                         .putExtra("AddParentTitle", title)
-                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CASE_FORM)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CONTACT_FORM)
                         .putExtra(AddParentCaseActivity.EXTRA_RESUME_DRAFT, true)
                 )
             },
@@ -322,7 +324,7 @@ class VhfContactsFragment : Fragment() {
                 returnToCase.launch(
                     Intent(context, ClientLookupActivity::class.java)
                         .putExtra("AddParentTitle", title)
-                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CASE_FORM)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.Vhf.CONTACT_FORM)
                         .putExtra(AddParentCaseActivity.EXTRA_START_NEW, true)
                 )
             },

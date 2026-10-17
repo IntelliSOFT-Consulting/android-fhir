@@ -85,7 +85,8 @@ class VhfDailyFollowUpFragment : Fragment() {
         binding.lnEmpty.visibility = View.GONE
         // Recording stops once the contact is symptomatic (convert to case), closed or converted;
         // the schedule stays visible and its rows say why when tapped.
-        val canRecord = state.isContact && !state.isClosed && state.firstSymptomaticVisit == null
+        val canRecord = state.isContact && !state.isClosed && state.firstSymptomaticVisit == null &&
+            state.deathVisit == null
         val demo = VhfDemoMode.enabled
         // Testing aid (debug builds and demo mode): add the next follow up in the schedule.
         binding.fab.apply {
@@ -128,6 +129,7 @@ class VhfDailyFollowUpFragment : Fragment() {
             !state.isContact -> "Converted to case" to CardTone.ALERT
             state.isClosed -> state.monitoringStatus to
                 if (state.monitoringStatus == FormFields.Vhf.STATUS_COMPLETED) CardTone.SUCCESS else CardTone.NEUTRAL
+            state.deathVisit != null -> "Died" to CardTone.ALERT
             state.firstSymptomaticVisit != null -> "Symptomatic" to CardTone.ALERT
             !started -> "Not started" to CardTone.NEUTRAL
             else -> FormFields.Vhf.STATUS_UNDER_FOLLOW_UP to CardTone.INFO
@@ -150,6 +152,8 @@ class VhfDailyFollowUpFragment : Fragment() {
             )
         )
 
+        parent.addView(VhfScheduleCards.marksGrid(parent, window, state.marks, state.daysSinceExposure))
+
         parent.addView(VhfCards.sectionHeader(parent, "Follow-up schedule"))
         val next = state.nextDay
         val rows = (0..window).mapNotNull { day ->
@@ -168,13 +172,31 @@ class VhfDailyFollowUpFragment : Fragment() {
             }
             val tap = { message: String -> { toast(message) } }
             when {
-                visits.any { it.symptomatic } -> ScheduleRow(
-                    day, date, "Follow up recorded", "Symptomatic", CardTone.ALERT,
-                    onTap = tap("Day $day: symptomatic at follow up.")
-                )
+                // Paper form marks: X = died or fever and/or bleeding; 0 = neither.
+                visits.any { it.markedX } -> {
+                    val visit = visits.first { it.markedX }
+                    val referral = when {
+                        visit.died -> ""
+                        visit.referred.equals("Yes", ignoreCase = true) -> " · referred"
+                        visit.referred.equals("No", ignoreCase = true) -> " · not referred"
+                        else -> ""
+                    }
+                    ScheduleRow(
+                        day, date, "${visit.markReason}$referral", "X", CardTone.ALERT,
+                        onTap = tap("Day $day: X (${visit.markReason})" +
+                            visit.temperature.takeIf { it.isNotBlank() }?.let { ". $it" }.orEmpty())
+                    )
+                }
+                visits.any { it.symptomatic } -> {
+                    val visit = visits.first { it.symptomatic }
+                    ScheduleRow(
+                        day, date, "Symptoms: ${visit.symptoms.ifBlank { "recorded" }}", "0", CardTone.WARNING,
+                        onTap = tap("Day $day: 0 (no fever or bleeding), but symptomatic: ${visit.symptoms}.")
+                    )
+                }
                 visits.isNotEmpty() -> ScheduleRow(
-                    day, date, "Follow up recorded", "No symptoms", CardTone.SUCCESS,
-                    onTap = tap("Day $day: no symptoms at follow up.")
+                    day, date, visits.first().temperature.ifBlank { "No fever or bleeding" }, "0", CardTone.SUCCESS,
+                    onTap = tap("Day $day: 0 (no fever or bleeding).")
                 )
                 !canRecord -> ScheduleRow(
                     day, date, "Follow up closed", "Not recorded", CardTone.NEUTRAL,
@@ -231,13 +253,35 @@ class VhfDailyFollowUpFragment : Fragment() {
                 state.monitoringStatus
             )
 
+            state.deathVisit != null -> {
+                val death = state.deathVisit!!
+                VhfCards.action(
+                    parent, CardTone.ALERT, R.drawable.ic_vhf_warning,
+                    "Died${death.day?.let { " · day $it" } ?: ""}",
+                    listOfNotNull(
+                        (death.deathDate ?: death.date)?.let { "Date of death ${DISPLAY.format(it)}" },
+                        "Complete the Case Report Form and record the outcome",
+                    ).joinToString("  ·  "),
+                    actionText = "Record outcome",
+                    actionIcon = R.drawable.ic_vhf_check_circle,
+                    onAction = { VhfContactActions.updateMonitoring(context, state) }
+                )
+            }
+
             symptomatic != null -> VhfCards.action(
                 parent, CardTone.ALERT, R.drawable.ic_vhf_warning,
-                "Symptomatic on ${symptomatic.day?.let { "day $it" } ?: "follow up"}",
+                (if (symptomatic.markedX) "Marked X on " else "Symptomatic on ") +
+                    (symptomatic.day?.let { "day $it" } ?: "follow up"),
                 listOfNotNull(
                     symptomatic.date?.let { DISPLAY.format(it) },
                     symptomatic.symptoms.takeIf { it.isNotBlank() },
                     symptomatic.temperature.takeIf { it.isNotBlank() },
+                    when {
+                        !symptomatic.markedX -> null
+                        symptomatic.referred.equals("Yes", ignoreCase = true) -> "Referred to hospital"
+                        symptomatic.referred.equals("No", ignoreCase = true) -> "Not referred to hospital"
+                        else -> "Refer to hospital"
+                    },
                 ).joinToString("  ·  "),
                 actionText = "Convert to case",
                 actionIcon = R.drawable.ic_vhf_swap,
@@ -306,6 +350,8 @@ class VhfDailyFollowUpFragment : Fragment() {
     /** Why no more follow ups can be recorded for this record. */
     private fun closedReason(state: ContactFollowUpState): String = when {
         !state.isContact -> "Follow up closed: this contact was converted to a suspected case."
+        state.deathVisit != null && !state.isClosed ->
+            "Follow up stopped: the contact died. Record the outcome."
         state.firstSymptomaticVisit != null && !state.isClosed ->
             "Follow up stopped: the contact is symptomatic. Convert to case."
         else -> "Follow up closed: ${state.monitoringStatus.ifBlank { "no further follow up" }}."

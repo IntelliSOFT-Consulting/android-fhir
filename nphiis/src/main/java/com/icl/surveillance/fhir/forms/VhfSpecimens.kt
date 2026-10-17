@@ -3,6 +3,8 @@ package com.icl.surveillance.fhir.forms
 import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
+import com.google.android.fhir.search.filter.ReferenceParamFilterCriterion
+import com.google.android.fhir.search.filter.TokenParamFilterCriterion
 import com.google.android.fhir.search.search
 import com.icl.surveillance.models.QuestionnaireAnswer
 import java.util.Date
@@ -18,6 +20,7 @@ import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.Specimen
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
@@ -294,36 +297,107 @@ object VhfSpecimens {
         val reports = fhirEngine.search<DiagnosticReport> {
             filter(DiagnosticReport.SPECIMEN, { value = "Specimen/$specimenId" })
         }.map { it.resource }
+        val observations = reports.flatMap { it.result }
+            .mapNotNull { ref -> ref.reference?.let { IdType(it).idPart } }
+            .distinct()
+            .mapNotNull { id -> runCatching { fhirEngine.get<Observation>(id) }.getOrNull() }
+            .associateBy { it.idElement.idPart }
+        return testsFrom(reports, observations)
+    }
+
+    /** Test results of a specimen from its reports and their result Observations (by id). */
+    private fun testsFrom(reports: List<DiagnosticReport>, observations: Map<String, Observation>): List<TestResult> =
+        reports
             .filter {
                 it.status != DiagnosticReport.DiagnosticReportStatus.ENTEREDINERROR &&
                     it.status != DiagnosticReport.DiagnosticReportStatus.CANCELLED
             }
-        return reports.flatMap { report ->
-            val reportFinal = report.status in FINAL_REPORT
-            val reportDate = report.issued ?: report.takeIf { it.hasEffectiveDateTimeType() }?.effectiveDateTimeType?.value
-            report.result.mapNotNull { ref ->
-                val id = ref.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
-                val observation = runCatching { fhirEngine.get<Observation>(id) }.getOrNull()
-                    ?: return@mapNotNull null
-                if (observation.status == Observation.ObservationStatus.ENTEREDINERROR ||
-                    observation.status == Observation.ObservationStatus.CANCELLED
-                ) return@mapNotNull null
-                val value = valueText(observation.value) ?: return@mapNotNull null
-                TestResult(
-                    name = observation.code.text
-                        ?: observation.code.coding.firstNotNullOfOrNull { it.display ?: it.code }
-                        ?: report.code.text
-                        ?: "Result",
-                    value = value,
-                    interpretation = interpret(value) ?: interpretationOf(observation),
-                    isFinal = reportFinal && observation.status in FINAL_OBSERVATION,
-                    date = observation.issued
-                        ?: observation.takeIf { it.hasEffectiveDateTimeType() }?.effectiveDateTimeType?.value
-                        ?: reportDate,
-                )
+            .flatMap { report ->
+                val reportFinal = report.status in FINAL_REPORT
+                val reportDate = report.issued ?: report.takeIf { it.hasEffectiveDateTimeType() }?.effectiveDateTimeType?.value
+                report.result.mapNotNull { ref ->
+                    val id = ref.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
+                    val observation = observations[id] ?: return@mapNotNull null
+                    if (observation.status == Observation.ObservationStatus.ENTEREDINERROR ||
+                        observation.status == Observation.ObservationStatus.CANCELLED
+                    ) return@mapNotNull null
+                    val value = valueText(observation.value) ?: return@mapNotNull null
+                    TestResult(
+                        name = observation.code.text
+                            ?: observation.code.coding.firstNotNullOfOrNull { it.display ?: it.code }
+                            ?: report.code.text
+                            ?: "Result",
+                        value = value,
+                        interpretation = interpret(value) ?: interpretationOf(observation),
+                        isFinal = reportFinal && observation.status in FINAL_OBSERVATION,
+                        date = observation.issued
+                            ?: observation.takeIf { it.hasEffectiveDateTimeType() }?.effectiveDateTimeType?.value
+                            ?: reportDate,
+                    )
+                }
             }
-        }
+
+    /**
+     * Specimens of many patients loaded at once for the case list: three queries per
+     * [BATCH_CHUNK] patients (specimens, their reports, the reports' results) instead of
+     * several per case.
+     */
+    class Batch internal constructor(private val byPatient: Map<String, List<Pair<Specimen, Row>>>) {
+        /** As [summaryForCase], from the loaded specimens. */
+        fun summaryForCase(patientId: String, caseEncounterId: String?): Summary? =
+            VhfSpecimens.summarize(
+                byPatient[patientId].orEmpty()
+                    .filter { (specimen, _) ->
+                        specimen.status != Specimen.SpecimenStatus.ENTEREDINERROR &&
+                            VhfSpecimens.belongsTo(specimen, caseEncounterId)
+                    }
+                    .map { it.second }
+            )
     }
+
+    suspend fun loadBatch(fhirEngine: FhirEngine, patientIds: Collection<String>): Batch {
+        val specimens = patientIds.distinct().chunked(BATCH_CHUNK).flatMap { chunk ->
+            fhirEngine.search<Specimen> {
+                filter(Specimen.SUBJECT, *references(chunk.map { "Patient/$it" }))
+            }.map { it.resource }
+        }
+        if (specimens.isEmpty()) return Batch(emptyMap())
+
+        val reports = specimens.map { "Specimen/${it.idElement.idPart}" }.chunked(BATCH_CHUNK).flatMap { chunk ->
+            fhirEngine.search<DiagnosticReport> {
+                filter(DiagnosticReport.SPECIMEN, *references(chunk))
+            }.map { it.resource }
+        }.distinctBy { it.idElement.idPart }
+        val reportsBySpecimen = HashMap<String, MutableList<DiagnosticReport>>()
+        reports.forEach { report ->
+            report.specimen.mapNotNull { ref -> ref.reference?.let { IdType(it).idPart } }.distinct()
+                .forEach { id -> reportsBySpecimen.getOrPut(id) { ArrayList() } += report }
+        }
+
+        val resultIds = reports.flatMap { it.result }
+            .mapNotNull { ref -> ref.reference?.let { IdType(it).idPart } }
+            .distinct()
+        val observations = resultIds.chunked(BATCH_CHUNK).flatMap { chunk ->
+            fhirEngine.search<Observation> {
+                filter(Resource.RES_ID, *chunk.map<String, TokenParamFilterCriterion.() -> Unit> { id ->
+                    { value = of(id) }
+                }.toTypedArray())
+            }.map { it.resource }
+        }.associateBy { it.idElement.idPart }
+
+        val byPatient = specimens.mapNotNull { specimen ->
+            val patientId = specimen.subject.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
+            val tests = testsFrom(reportsBySpecimen[specimen.idElement.idPart].orEmpty(), observations)
+            patientId to (specimen to rowOf(specimen, tests))
+        }.groupBy({ it.first }, { it.second })
+        return Batch(byPatient)
+    }
+
+    private fun references(values: List<String>) =
+        values.map<String, ReferenceParamFilterCriterion.() -> Unit> { ref -> { value = ref } }
+            .toTypedArray()
+
+    private const val BATCH_CHUNK = 100
 
     /** Observation.interpretation (HL7 v3 ObservationInterpretation: POS/DET, NEG/ND). */
     private fun interpretationOf(observation: Observation): Result? =
@@ -349,7 +423,7 @@ object VhfSpecimens {
     )
 
     /** Specimens saved with the case Encounter belong to that case; older ones without it, too. */
-    private fun belongsTo(specimen: Specimen, caseEncounterId: String?): Boolean {
+    internal fun belongsTo(specimen: Specimen, caseEncounterId: String?): Boolean {
         if (caseEncounterId.isNullOrBlank()) return true
         val encounter = specimen.getExtensionByUrl(StandardSpecimen.ENCOUNTER_EXTENSION)?.value
             as? Reference ?: return true
@@ -363,9 +437,11 @@ object VhfSpecimens {
         else -> null
     }
 
-    private suspend fun toRow(fhirEngine: FhirEngine, specimen: Specimen): Row {
+    private suspend fun toRow(fhirEngine: FhirEngine, specimen: Specimen): Row =
+        rowOf(specimen, testsFor(fhirEngine, specimen.idElement.idPart.orEmpty()))
+
+    private fun rowOf(specimen: Specimen, tests: List<TestResult>): Row {
         val logicalId = specimen.idElement.idPart.orEmpty()
-        val tests = testsFor(fhirEngine, logicalId)
         val result = resultOf(specimen, tests)
         val decided = tests.filter { it.isFinal }.takeIf { result != Result.PENDING && it.isNotEmpty() } ?: tests
         return Row(

@@ -15,6 +15,7 @@ import com.icl.surveillance.fhir.forms.ContactFollowUpState
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfDemoMode
+import com.icl.surveillance.fhir.forms.VhfForms
 import com.icl.surveillance.ui.patients.AddCaseActivity
 import com.icl.surveillance.ui.patients.responses.EditChecklistActivity
 import com.icl.surveillance.utils.FormatterClass
@@ -42,11 +43,37 @@ object VhfContactActions {
             context,
             FormFields.Vhf.CONTACT_FOLLOW_UP_FORM,
             FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE,
-            mapOf(
-                FormFields.Vhf.FOLLOW_UP_DAY to day.toString(),
-                FormFields.Vhf.FOLLOW_UP_DATE to date.toString(),
-            )
+            buildMap {
+                put(FormFields.Vhf.FOLLOW_UP_DAY, day.toString())
+                put(FormFields.Vhf.FOLLOW_UP_DATE, date.toString())
+                // Paper form header: the volunteer / CHP (the logged-in user) and where the
+                // follow up was done (the contact's residence); both can be corrected.
+                putAll(tracerDetails(context))
+                putAll(state.residence)
+            }
         )
+    }
+
+    /** The logged-in user as the volunteer / CHP: name, mobile number and email address. */
+    private fun tracerDetails(context: Context): Map<String, String> {
+        val formatter = FormatterClass()
+        fun pref(key: String) = formatter.getSharedPref(key, context)
+            ?.trim()?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && it != "N/A" }
+        val name = pref("fullNames")
+            ?: listOfNotNull(pref("firstName"), pref("lastName")).joinToString(" ").takeIf { it.isNotBlank() }
+        // The form accepts a 10-digit mobile number (07xxxxxxxx).
+        val phone = pref("phone")?.filter { it.isDigit() }?.let { digits ->
+            when {
+                digits.length == 10 -> digits
+                digits.length == 12 && digits.startsWith("254") -> "0" + digits.drop(3)
+                else -> null
+            }
+        }
+        return buildMap {
+            name?.let { put(FormFields.Vhf.FOLLOW_UP_TRACER_NAME, it) }
+            phone?.let { put(FormFields.Vhf.FOLLOW_UP_TRACER_PHONE, it) }
+            pref("email")?.let { put(FormFields.Vhf.FOLLOW_UP_TRACER_EMAIL, it) }
+        }
     }
 
     /** Opens "Contact Monitoring"; after day 21 a contact without symptoms is suggested for release. */
@@ -54,7 +81,12 @@ object VhfContactActions {
         val prefill = buildMap {
             if (state != null) {
                 put(FormFields.Vhf.MISSED_FOLLOW_UP_DAYS, state.missedDays.size.toString())
-                if (state.windowComplete && state.firstSymptomaticVisit == null) {
+                val death = state.deathVisit
+                if (death != null) {
+                    // Recorded as died at a daily follow up: the outcome is Died, on that date.
+                    put(FormFields.Vhf.MONITORING_STATUS, FormFields.Vhf.STATUS_DIED_CODE)
+                    (death.deathDate ?: death.date)?.let { put(FormFields.Vhf.FINAL_OUTCOME_DATE, it.toString()) }
+                } else if (state.windowComplete && state.firstSymptomaticVisit == null) {
                     put(FormFields.Vhf.MONITORING_STATUS, FormFields.Vhf.STATUS_COMPLETED_CODE)
                 }
             }
@@ -145,15 +177,19 @@ object VhfContactActions {
             return
         }
         scope.launch {
-            val responseId = withContext(Dispatchers.IO) {
-                CaseResponse.findId(FhirApplication.fhirEngine(context), patientId, encounterId)
+            val response = withContext(Dispatchers.IO) {
+                CaseResponse.find(FhirApplication.fhirEngine(context), patientId, encounterId)
             }
+            val responseId = response?.idElement?.idPart.orEmpty()
             if (responseId.isBlank()) {
                 Toast.makeText(context, "The case form for this record was not found.", Toast.LENGTH_SHORT).show()
                 return@launch
             }
             formatter.saveSharedPref("resourceId", responseId, context)
-            formatter.saveSharedPref("questionnaire", FormFields.Vhf.CASE_FORM, context)
+            // A contact registered with the contact form is edited in it; converting a contact to
+            // a case always opens the case form (the contact form's questions are a subset of it).
+            val form = if (convertToSuspected) FormFields.Vhf.CASE_FORM else VhfForms.formFor(response)
+            formatter.saveSharedPref("questionnaire", form, context)
             if (convertToSuspected) {
                 formatter.saveSharedPref(PREF_CONVERT_TO_SUSPECTED, "true", context)
             } else {
