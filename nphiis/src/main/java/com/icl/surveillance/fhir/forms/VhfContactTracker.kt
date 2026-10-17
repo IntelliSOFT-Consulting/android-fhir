@@ -19,6 +19,12 @@ data class ContactVisit(
     val date: LocalDate?,
     val symptomatic: Boolean,
     val recordedAt: String,
+    /** Symptoms ticked at this follow up, as shown ("Fever, Headache"). */
+    val symptoms: String = "",
+    val bleedingSite: String = "",
+    val otherSymptoms: String = "",
+    /** Temperatures in °C when taken, e.g. "AM 37.2 °C · PM 38.6 °C". */
+    val temperature: String = "",
 )
 
 /**
@@ -157,6 +163,14 @@ object VhfContactTracker {
                     symptomatic = answers.valueOf(FormFields.Vhf.FOLLOW_UP_SYMPTOMATIC)
                         .equals("Yes", ignoreCase = true),
                     recordedAt = encounter.createdAt(),
+                    symptoms = answers.valueOf(FormFields.Vhf.FOLLOW_UP_SYMPTOMS),
+                    bleedingSite = answers.valueOf(FormFields.Vhf.FOLLOW_UP_BLEEDING_SITE),
+                    otherSymptoms = answers.valueOf(FormFields.Vhf.FOLLOW_UP_SYMPTOMS_OTHER),
+                    temperature = listOfNotNull(
+                        answers.valueOf(FormFields.Vhf.FOLLOW_UP_TEMPERATURE_AM).takeIf { it.isNotBlank() }?.let { "AM $it °C" },
+                        answers.valueOf(FormFields.Vhf.FOLLOW_UP_TEMPERATURE_PM).takeIf { it.isNotBlank() }?.let { "PM $it °C" },
+                        answers.valueOf(FormFields.Vhf.FOLLOW_UP_TEMPERATURE).takeIf { it.isNotBlank() }?.let { "$it °C" },
+                    ).joinToString(" · "),
                 )
             }
             .sortedWith(compareBy<ContactVisit> { it.day ?: Int.MAX_VALUE }.thenBy { it.recordedAt })

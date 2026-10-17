@@ -236,6 +236,20 @@ object FormFields {
         const val FOLLOW_UP_DAY = "vhf-follow-up-day"
         const val FOLLOW_UP_DATE = "vhf-follow-up-date"
         const val FOLLOW_UP_SYMPTOMATIC = "vhf-follow-up-symptomatic"
+        /** Shown when symptomatic: the case form's symptom list (and its "specify" questions). */
+        const val FOLLOW_UP_SYMPTOMS = "vhf-follow-up-symptoms"
+        const val FOLLOW_UP_BLEEDING_SITE = "vhf-follow-up-bleeding-site"
+        const val FOLLOW_UP_SYMPTOMS_OTHER = "vhf-follow-up-symptoms-other"
+        /** Morning and evening temperatures (°C), optional; the single field came first. */
+        const val FOLLOW_UP_TEMPERATURE_AM = "vhf-follow-up-temperature-am"
+        const val FOLLOW_UP_TEMPERATURE_PM = "vhf-follow-up-temperature-pm"
+        const val FOLLOW_UP_TEMPERATURE = "vhf-follow-up-temperature"
+
+        /** Case-form clinical questions filled from the follow up when a contact is converted. */
+        const val SYMPTOMS = "vhf-symptoms"
+        const val BLEEDING_SITE = "vhf-bleeding-site"
+        const val SYMPTOMS_OTHER = "vhf-symptoms-other"
+        const val ONSET_DATE = "728034137219"
 
         /** Contact monitoring status and sign-off (dictionary contact_monitoring + official). */
         const val CONTACT_MONITORING_FORM = "vhf-contact-monitoring.json"

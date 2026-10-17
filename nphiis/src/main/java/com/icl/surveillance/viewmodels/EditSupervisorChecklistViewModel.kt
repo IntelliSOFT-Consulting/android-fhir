@@ -92,6 +92,10 @@ class EditSupervisorChecklistViewModel(
                     mapOf(FormFields.Vhf.CASE_TYPE to FormFields.Vhf.CASE_TYPE_SUSPECTED_CODE),
                     overwrite = true,
                 )
+                // Clinical information starts with what the follow up recorded (empty answers only).
+                runCatching { symptomsFromFollowUp(questionnaire, questionnaireResponse) }
+                    .onSuccess { FormPrefill.applyTo(questionnaire, questionnaireResponse, it) }
+                    .onFailure { Timber.w(it, "Could not carry the follow-up symptoms over") }
             }
         }
 
@@ -132,6 +136,52 @@ class EditSupervisorChecklistViewModel(
         return questionnaireJson to questionnaireResponseJson
     }
 
+
+    /**
+     * Symptoms of the contact's first symptomatic follow up, as case-form answers: the symptoms,
+     * bleeding site / other symptoms, and the follow-up date as the onset dates.
+     */
+    private suspend fun symptomsFromFollowUp(
+        questionnaire: Questionnaire,
+        response: QuestionnaireResponse,
+    ): Map<String, String> {
+        val patientId = response.subject?.referenceElement?.idPart ?: return emptyMap()
+        val encounterId = response.encounter?.referenceElement?.idPart
+            ?: formatter.getSharedPref("encounterId", getApplication())
+            ?: return emptyMap()
+        val visit = com.icl.surveillance.fhir.forms.VhfContactTracker
+            .load(fhirEngine, patientId, encounterId)?.firstSymptomaticVisit ?: return emptyMap()
+        val symptomQuestion = findQuestion(questionnaire.item, FormFields.Vhf.SYMPTOMS) ?: return emptyMap()
+        val ticked = visit.symptoms.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val codes = ticked.filterNot { it.equals("None", ignoreCase = true) }.mapNotNull { shown ->
+            symptomQuestion.answerOption.firstOrNull { option ->
+                option.hasValueCoding() &&
+                    (option.valueCoding.display.equals(shown, ignoreCase = true) ||
+                        option.valueCoding.code.equals(shown, ignoreCase = true))
+            }?.valueCoding?.code
+        }
+        val onset = visit.date?.toString()
+        return buildMap {
+            if (codes.isNotEmpty()) put(FormFields.Vhf.SYMPTOMS, FormPrefill.multi(codes))
+            visit.bleedingSite.takeIf { it.isNotBlank() }?.let { put(FormFields.Vhf.BLEEDING_SITE, it) }
+            visit.otherSymptoms.takeIf { it.isNotBlank() }?.let { put(FormFields.Vhf.SYMPTOMS_OTHER, it) }
+            if (onset != null && codes.isNotEmpty()) {
+                put(FormFields.Vhf.ONSET_DATE, onset)
+                codes.forEach { code -> put("vhf-onset-$code", onset) }
+            }
+        }
+    }
+
+    private fun findQuestion(
+        items: List<Questionnaire.QuestionnaireItemComponent>,
+        linkId: String,
+    ): Questionnaire.QuestionnaireItemComponent? {
+        for (item in items) {
+            if (item.linkId == linkId) return item
+            findQuestion(item.item, linkId)?.let { return it }
+        }
+        return null
+    }
 
     /**
      * The response to edit: "resourceId" normally holds the case's QuestionnaireResponse id, but

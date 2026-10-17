@@ -96,6 +96,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
     var lastSavedCase: Pair<String, String>? = null
         private set
 
+    /** Why the last persistPatientData call failed (exception message), or null. */
+    var lastSaveError: String? = null
+        private set
+
     // Parsed once: re-parsing the form JSON on every save was a large source of allocations.
     private val questionnaire: Questionnaire by lazy {
         FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
@@ -627,11 +631,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
         context: Context,
         caseOverride: String? = null,
         extraTags: List<Coding> = emptyList(),
+        /** False to save even with unanswered required questions (bulk upload of contacts). */
+        requireValid: Boolean = true,
     ): PersistResult {
         facilityInfoCache.clear()
         activeExtraTags = extraTags
+        lastSaveError = null
         try {
-            if (hasValidationErrors(questionnaireResponse)) {
+            if (requireValid && hasValidationErrors(questionnaireResponse)) {
                 return PersistResult.INVALID
             }
             val identifierSystem0 = Identifier()
@@ -1119,7 +1126,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     lastSavedCase = patientId to encounterId
                     PersistResult.SAVED
                 } catch (e: Exception) {
-                    Timber.tag("TAG").e(e, "Error experienced ${e.message}")
+                    lastSaveError = e.message ?: e.javaClass.simpleName
+                    Timber.tag("CASE_SAVE").e(e, "Saving the case failed: ${e.message}")
                     if (screened != null) {
                         Timber.tag(SCREENED_LOG).e(e, "Saving the case of screened %s failed", screened.logicalId)
                     }

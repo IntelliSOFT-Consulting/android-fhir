@@ -30,6 +30,14 @@ class ProfileSettingsBottomSheet : BottomSheetDialogFragment() {
             dismiss()
         }
 
+        view.findViewById<View>(R.id.actionBulkUpload).setOnClickListener {
+            parentFragmentManager.setFragmentResult(
+                RESULT_KEY,
+                bundleOf(RESULT_ACTION to ACTION_BULK_UPLOAD)
+            )
+            dismiss()
+        }
+
         view.findViewById<View>(R.id.btnCancelSheet).setOnClickListener {
             dismiss()
         }
@@ -39,6 +47,7 @@ class ProfileSettingsBottomSheet : BottomSheetDialogFragment() {
         const val RESULT_KEY = "profile_settings_result"
         const val RESULT_ACTION = "profile_settings_action"
         const val ACTION_RESET_RESOURCE_SYNC = 1
+        const val ACTION_BULK_UPLOAD = 2
 
         fun show(fragmentManager: FragmentManager) {
             ProfileSettingsBottomSheet().show(

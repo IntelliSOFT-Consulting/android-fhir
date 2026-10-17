@@ -230,6 +230,10 @@ class ProfileFragment : Fragment() {
                 ProfileSettingsBottomSheet.ACTION_RESET_RESOURCE_SYNC -> {
                     resetResourceSyncInBackground()
                 }
+
+                ProfileSettingsBottomSheet.ACTION_BULK_UPLOAD -> {
+                    startActivity(Intent(requireContext(), com.icl.surveillance.bulk.BulkUploadActivity::class.java))
+                }
             }
         }
     }

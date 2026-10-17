@@ -234,7 +234,11 @@ class VhfDailyFollowUpFragment : Fragment() {
             symptomatic != null -> VhfCards.action(
                 parent, CardTone.ALERT, R.drawable.ic_vhf_warning,
                 "Symptomatic on ${symptomatic.day?.let { "day $it" } ?: "follow up"}",
-                symptomatic.date?.let { DISPLAY.format(it) }.orEmpty(),
+                listOfNotNull(
+                    symptomatic.date?.let { DISPLAY.format(it) },
+                    symptomatic.symptoms.takeIf { it.isNotBlank() },
+                    symptomatic.temperature.takeIf { it.isNotBlank() },
+                ).joinToString("  ·  "),
                 actionText = "Convert to case",
                 actionIcon = R.drawable.ic_vhf_swap,
                 onAction = { VhfContactActions.convertToCase(context, state) }

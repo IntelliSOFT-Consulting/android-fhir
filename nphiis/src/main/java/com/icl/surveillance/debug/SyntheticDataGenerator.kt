@@ -204,41 +204,18 @@ object SyntheticDataGenerator {
      * Users without a recognised role are treated as national so every location is asked.
      */
     private fun reportingSitePrefill(app: Application): List<QuestionnaireResponse.QuestionnaireResponseItemComponent> {
-        val formatter = com.icl.surveillance.utils.FormatterClass()
-        fun pref(key: String) = formatter.getSharedPref(key, app).orEmpty()
         fun answer(linkId: String, value: String) =
             QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
                 this.linkId = linkId
                 answerFirstRep.value = StringType(value)
             }
-        val role = com.icl.surveillance.models.UserRole.fromAny(pref("practitionerRole"))
         val group = QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
             linkId = FormFields.ReportingSite.GROUP
             text = "Reporting Site"
         }
-        when (role?.scope) {
-            com.icl.surveillance.models.LocationLevel.COUNTY -> {
-                group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "COUNTY_DISEASE_SURVEILLANCE_OFFICER"))
-                group.addItem(answer(FormFields.ReportingSite.USER_COUNTY, pref("county")))
-            }
-
-            com.icl.surveillance.models.LocationLevel.SUB_COUNTY,
-            com.icl.surveillance.models.LocationLevel.WARD -> {
-                group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "SUBCOUNTY_DISEASE_SURVEILLANCE_OFFICER"))
-                group.addItem(answer(FormFields.ReportingSite.USER_COUNTY, pref("county")))
-                group.addItem(answer(FormFields.ReportingSite.USER_SUB_COUNTY, pref("subCounty")))
-            }
-
-            com.icl.surveillance.models.LocationLevel.FACILITY -> {
-                group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "VACCINATOR"))
-                group.addItem(answer(FormFields.ReportingSite.USER_FACILITY, pref("facility")))
-                group.addItem(answer(FormFields.ReportingSite.USER_WARD, pref("ward")))
-                group.addItem(answer(FormFields.ReportingSite.USER_SUB_COUNTY, pref("subCounty")))
-                group.addItem(answer(FormFields.ReportingSite.USER_COUNTY, pref("county")))
-            }
-
-            else -> group.addItem(answer(FormFields.ReportingSite.USER_ROLE, "ADMINISTRATOR"))
-        }
+        // Same answers as the bulk upload (fhir/forms/ReportingSitePrefill).
+        com.icl.surveillance.fhir.forms.ReportingSitePrefill.hiddenAnswers(app)
+            .forEach { (linkId, value) -> group.addItem(answer(linkId, value)) }
         return listOf(group)
     }
 

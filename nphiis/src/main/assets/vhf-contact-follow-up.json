@@ -106,6 +106,193 @@
           ]
         },
         {
+          "linkId": "vhf-follow-up-symptoms",
+          "text": "Symptoms (tick all that apply)",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "malaise",
+                "display": "Malaise"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "muscle-pain",
+                "display": "Muscle pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "headache",
+                "display": "Headache"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "fatigue",
+                "display": "Weakness/Fatigue"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "sore-throat",
+                "display": "Sore throat"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "vomiting",
+                "display": "Vomiting"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diarrhea",
+                "display": "Diarrhoea"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rash",
+                "display": "Rash"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Hemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hiccups",
+                "display": "Hiccups"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Others (specify, e.g. chills)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None"
+              },
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-optionExclusive",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "repeats": true,
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-symptomatic",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-bleeding-site",
+          "text": "Hemorrhage (specify site)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "unexplained-bleeding",
+                "display": "Hemorrhage"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-symptoms-other",
+          "text": "Other symptoms (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Others (specify, e.g. chills)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-temperature-am",
+          "text": "Temperature AM (°C)",
+          "type": "decimal",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueDecimal": 30
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDecimal": 45
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g. 37.5"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-temperature-pm",
+          "text": "Temperature PM (°C)",
+          "type": "decimal",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueDecimal": 30
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDecimal": 45
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g. 37.5"
+            }
+          ]
+        },
+        {
           "linkId": "vhf-follow-up-tracer-email",
           "text": "Contact tracer (email address)",
           "type": "string",
