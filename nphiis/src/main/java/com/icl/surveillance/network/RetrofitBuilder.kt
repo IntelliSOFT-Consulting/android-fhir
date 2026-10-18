@@ -46,7 +46,10 @@ object RetrofitBuilder {
             HttpLoggingInterceptor { message ->
                 Log.e("API_RELEASE", message)
             }.apply {
-                level = if (logRequests) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+                // Full bodies only in debug builds: in release they copied every response (sync
+                // bundles, IPRS results) into log strings, and exposed personal data in logcat.
+                level = if (logRequests && BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                else HttpLoggingInterceptor.Level.NONE
                 // Never print credentials (bearer tokens, IPRS Basic auth) to logcat.
                 redactHeader("Authorization")
             }

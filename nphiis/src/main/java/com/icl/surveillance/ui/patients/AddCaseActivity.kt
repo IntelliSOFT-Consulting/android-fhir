@@ -468,8 +468,29 @@ class AddCaseActivity : AppCompatActivity() {
                 return@observe
             }
 
+            closeContactMemberIfDone()
             if (continueConversion()) return@observe
             showSuccessDialog(this@AddCaseActivity)
+        }
+    }
+
+    /**
+     * After a contact monitoring outcome is saved: when the follow-up is over (released, died,
+     * lost, became a case), the contact's membership of its case's contact Group is closed
+     * (period end + inactive). The contact stays listed.
+     */
+    private fun closeContactMemberIfDone() {
+        val formatter = FormatterClass()
+        if (formatter.getSharedPref("questionnaire", this) != FormFields.Vhf.CONTACT_MONITORING_FORM) return
+        val patientId = formatter.getSharedPref("patientIdParent", this) ?: return
+        val encounterId = formatter.getSharedPref("encounterId", this) ?: return
+        val engine = fhirEngine
+        com.icl.surveillance.fhir.FhirApplication.applicationScope().launch {
+            runCatching {
+                val state = VhfContactTracker.load(engine, patientId, encounterId) ?: return@runCatching
+                if (!state.isClosed) return@runCatching
+                com.icl.surveillance.fhir.forms.ContactGroups.closeMember(engine, patientId, java.time.LocalDate.now())
+            }.onFailure { timber.log.Timber.tag(com.icl.surveillance.fhir.forms.ContactGroups.TAG).e(it, "Could not close the contact's membership") }
         }
     }
 

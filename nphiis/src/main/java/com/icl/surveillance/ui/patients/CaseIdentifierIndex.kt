@@ -68,11 +68,19 @@ object CaseIdentifierIndex {
 
     private suspend fun rebuild(engine: FhirEngine): Map<String, Map<String, List<String>>> {
         val started = System.currentTimeMillis()
-        val built = engine.search<Patient> {
-            filter(Patient.ACTIVE, { value = of(true) })
-        }.map { it.resource }
-            .filter { it.hasIdentifier() }
-            .associate { it.logicalId to it.identifiersBySystem() }
+        // Page by page: only the small identifier map is kept, never every Patient at once.
+        val built = HashMap<String, Map<String, List<String>>>()
+        var from = 0
+        while (true) {
+            val page = engine.search<Patient> {
+                filter(Patient.ACTIVE, { value = of(true) })
+                count = REBUILD_PAGE_SIZE
+                this.from = from
+            }.map { it.resource }
+            page.filter { it.hasIdentifier() }.forEach { built[it.logicalId] = it.identifiersBySystem() }
+            if (page.size < REBUILD_PAGE_SIZE) break
+            from += REBUILD_PAGE_SIZE
+        }
         index = built
         indexedCount = activeCount(engine)
         Timber.tag(TAG).d(
@@ -99,4 +107,6 @@ object CaseIdentifierIndex {
     private fun Patient.identifiersBySystem(): Map<String, List<String>> =
         identifier.filter { it.hasSystem() && it.hasValue() }
             .groupBy({ it.system }, { it.value })
+
+    private const val REBUILD_PAGE_SIZE = 500
 }

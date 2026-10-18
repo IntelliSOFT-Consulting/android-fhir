@@ -26,7 +26,7 @@ import timber.log.Timber
 
 /**
  * The contact tree of a VHF case: from the earliest source case on this device down through
- * every contact (Patient.link to its source case) and their contacts. Opened from the case's
+ * every contact (member of its source case's contact Group) and their contacts. Opened from the case's
  * Contacts tab with [EXTRA_PATIENT_ID]; that case is highlighted.
  */
 class ContactTreeActivity : AppCompatActivity() {
@@ -83,7 +83,7 @@ class ContactTreeActivity : AppCompatActivity() {
         binding.selection.text = text
     }
 
-    /** Walks up Patient.link (contact -> source case) to the earliest case on this device. */
+    /** Walks up contact -> source case (contact Groups) to the earliest case on this device. */
     private suspend fun rootOf(patientId: String): String {
         var current = patientId
         val seen = mutableSetOf(current)
@@ -120,13 +120,9 @@ class ContactTreeActivity : AppCompatActivity() {
     private suspend fun patient(id: String): Patient? =
         runCatching { fhirEngine.get<Patient>(id) }.getOrNull()
 
-    /** The source case a contact was registered from (Patient.link, type see-also). */
-    private fun sourceOf(patient: Patient): String? =
-        patient.link
-            .filter { it.type == Patient.LinkType.SEEALSO }
-            .firstNotNullOfOrNull { link ->
-                link.other?.reference?.takeIf { it.startsWith("Patient/") }?.let { IdType(it).idPart }
-            }
+    /** The source case a contact was listed under: its contact Group's index case (or old link). */
+    private suspend fun sourceOf(patient: Patient): String? =
+        com.icl.surveillance.fhir.forms.ContactGroups.sourceOf(fhirEngine, patient)
 
     private suspend fun caseTypeOf(patient: Patient): String {
         val encounterId = patient.identifier.firstOrNull { it.system == CaseSlugs.VHF }?.value

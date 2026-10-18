@@ -114,9 +114,17 @@ object VhfSourceCases {
     fun epidFrom(answer: String?): String? =
         answer?.trim()?.split(Regex("\\s+"))?.firstOrNull()?.takeIf { it.isNotBlank() }
 
-    /** The VHF case on this device with EPID number [epid], if any. */
-    suspend fun findByEpid(fhirEngine: FhirEngine, epid: String): Patient? =
-        fhirEngine.search<Patient> {}
-            .map { it.resource }
-            .firstOrNull { patient -> epidOf(patient).equals(epid, ignoreCase = true) }
+    /**
+     * The VHF case on this device with EPID number [epid], if any. Searched by identifier value
+     * (indexed) instead of loading every patient on the device.
+     */
+    suspend fun findByEpid(fhirEngine: FhirEngine, epid: String): Patient? {
+        val value = epid.trim().takeIf { it.isNotEmpty() } ?: return null
+        val candidates = listOf(value, value.uppercase()).distinct().flatMap { v ->
+            fhirEngine.search<Patient> {
+                filter(Patient.IDENTIFIER, { this.value = of(v) })
+            }.map { it.resource }
+        }
+        return candidates.firstOrNull { patient -> epidOf(patient).equals(value, ignoreCase = true) }
+    }
 }

@@ -54,6 +54,16 @@ object VhfContactActions {
         )
     }
 
+    /** "Checked by" name and email (the logged-in user) and today's date, for the Official section. */
+    private fun officialDetails(context: Context): Map<String, String> {
+        val user = tracerDetails(context)
+        return buildMap {
+            user[FormFields.Vhf.FOLLOW_UP_TRACER_NAME]?.let { put(FormFields.Vhf.CHECKED_BY_NAME, it) }
+            user[FormFields.Vhf.FOLLOW_UP_TRACER_EMAIL]?.let { put(FormFields.Vhf.CHECKED_BY_EMAIL, it) }
+            put(FormFields.Vhf.DATE_CHECKED, LocalDate.now().toString())
+        }
+    }
+
     /** The logged-in user as the volunteer / CHP: name, mobile number and email address. */
     private fun tracerDetails(context: Context): Map<String, String> {
         val formatter = FormatterClass()
@@ -215,7 +225,11 @@ object VhfContactActions {
         title: String,
         prefill: Map<String, String>,
     ) {
-        FormPrefill.stage(context, questionnaireFile, prefill)
+        // Contact monitoring: the Official section is the logged-in user, checking today.
+        val values = if (questionnaireFile == FormFields.Vhf.CONTACT_MONITORING_FORM) {
+            officialDetails(context) + prefill
+        } else prefill
+        FormPrefill.stage(context, questionnaireFile, values)
         FormatterClass().saveSharedPref("questionnaire", questionnaireFile, context)
         FormatterClass().saveSharedPref("title", title, context)
         context.startActivity(

@@ -303,11 +303,12 @@ object VhfContactTracker {
         )
     }
 
-    /** Ids of VHF records registered as contacts of [sourcePatientId] (Patient.link). */
+    /**
+     * Ids of VHF records registered as contacts of [sourcePatientId]: its contact Group's members
+     * (plus contacts still linked the old way until migrated; see [ContactGroups]).
+     */
     suspend fun linkedContactIds(fhirEngine: FhirEngine, sourcePatientId: String): List<String> =
-        fhirEngine.search<Patient> {
-            filter(Patient.LINK, { value = "Patient/$sourcePatientId" })
-        }.map { it.resource.logicalId }
+        ContactGroups.contactIds(fhirEngine, sourcePatientId)
 
     private suspend fun observationsOf(fhirEngine: FhirEngine, encounterId: String) =
         fhirEngine.search<Observation> {

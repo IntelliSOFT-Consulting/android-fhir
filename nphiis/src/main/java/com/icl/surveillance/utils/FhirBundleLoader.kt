@@ -32,7 +32,8 @@ class FhirBundleLoader(private val context: Context) {
     suspend fun parseFhirBundle(json: InputStream): Bundle {
         return withContext(Dispatchers.IO) {
             json.use { stream ->
-                val parser = FhirContext.forR4().newJsonParser()
+                // The app-wide cached context: a new FhirContext rebuilds HAPI's model (tens of MB).
+                val parser = FhirContext.forR4Cached().newJsonParser()
                 parser.parseResource(Bundle::class.java, stream.reader())
             }
         }

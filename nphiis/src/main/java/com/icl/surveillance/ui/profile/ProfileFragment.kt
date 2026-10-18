@@ -244,6 +244,10 @@ class ProfileFragment : Fragment() {
                 ProfileSettingsBottomSheet.ACTION_BULK_UPLOAD -> {
                     startActivity(Intent(requireContext(), com.icl.surveillance.bulk.BulkUploadActivity::class.java))
                 }
+
+                ProfileSettingsBottomSheet.ACTION_MIGRATE_CONTACTS -> {
+                    startActivity(Intent(requireContext(), com.icl.surveillance.bulk.ContactMigrationActivity::class.java))
+                }
             }
         }
     }

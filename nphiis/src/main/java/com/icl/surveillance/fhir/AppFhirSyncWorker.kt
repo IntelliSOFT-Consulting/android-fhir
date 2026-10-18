@@ -55,7 +55,9 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
             "QuestionnaireResponse?_tag=Location/$facilityId&_sort=_lastUpdated",
             "MeasureReport?_tag=Location/$facilityId&_sort=_lastUpdated",
             "Observation?_tag=Location/$facilityId&_sort=_lastUpdated",
-            "Specimen?_tag=Location/$facilityId&_sort=_lastUpdated"
+            "Specimen?_tag=Location/$facilityId&_sort=_lastUpdated",
+            // VHF contact Groups carry their case's facility tag (ContactGroups).
+            "Group?_tag=Location/$facilityId&_sort=_lastUpdated"
         )
     }
 
@@ -159,9 +161,8 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
             }
 
             LocationLevel.NATIONAL -> {
-                val counties = fhirEngine.search<Location> { }
-                val countyIds = counties.map { it.resource.logicalId }
-
+                // National users are not limited to facilities. (This used to load every Location
+                // on the device and discard the result: thousands of resources held for nothing.)
             }
         }
 
@@ -255,7 +256,17 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
     override suspend fun doWork(): ListenableWorker.Result {
         ManagingLocation.repairLocalRecords(applicationContext, getFhirEngine())
         LocalWins.replacePendingUpdates(applicationContext, getFhirEngine())
-        return super.doWork()
+        // VHF contact Groups: put back contacts another device's upload dropped (before the
+        // upload, and again after the download replaced Groups with the server's copy).
+        repairContactGroups()
+        val result = super.doWork()
+        repairContactGroups()
+        return result
+    }
+
+    private suspend fun repairContactGroups() {
+        runCatching { com.icl.surveillance.fhir.forms.ContactGroups.repair(getFhirEngine()) }
+            .onFailure { timber.log.Timber.tag(com.icl.surveillance.fhir.forms.ContactGroups.TAG).e(it, "Contact group repair failed") }
     }
 
     override fun getFhirEngine() = FhirApplication.fhirEngine(applicationContext)

@@ -190,7 +190,8 @@ object ManagingLocation {
             ?.let { ofEncounter(fhirEngine, it) }
         is Observation -> resource.encounter?.reference?.removePrefix("Encounter/")
             ?.let { ofEncounter(fhirEngine, it) }
-        is Patient -> resource.link.firstOrNull()?.other?.reference?.removePrefix("Patient/")
+        // A contact takes the facility of its source case (contact Group, else an old link).
+        is Patient -> ContactGroups.sourceOf(fhirEngine, resource)
             ?.let { runCatching { fhirEngine.get<Patient>(it) }.getOrNull() }
             ?.let { of(it) }
         else -> null

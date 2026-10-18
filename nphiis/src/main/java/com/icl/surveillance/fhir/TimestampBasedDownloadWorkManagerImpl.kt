@@ -51,6 +51,8 @@ class TimestampBasedDownloadWorkManagerImpl(
                 "Patient?_count=$PATIENT_PAGE_SIZE&_sort=_lastUpdated",
                 "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
                 "DiagnosticReport?_count=$REPORT_PAGE_SIZE&_sort=_lastUpdated",
+                // VHF contacts of each case (ContactGroups).
+                "Group?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
@@ -291,5 +293,6 @@ class TimestampBasedDownloadWorkManagerImpl(
         const val PATIENT_PAGE_SIZE = 100
         const val RESPONSE_PAGE_SIZE = 50
         const val REPORT_PAGE_SIZE = 50
+        const val GROUP_PAGE_SIZE = 100
     }
 }

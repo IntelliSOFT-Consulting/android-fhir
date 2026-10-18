@@ -22,6 +22,7 @@ import com.ibm.icu.text.SimpleDateFormat
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.ContactGroups
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.EpidNumber
 import com.icl.surveillance.fhir.forms.FhirSystems
@@ -207,9 +208,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
             }
 
             LocationLevel.NATIONAL -> {
-                val counties = fhirEngine.search<Location> { }
-                val countyIds = counties.map { it.resource.logicalId }
-
+                // National users are not limited to facilities. (This used to load every Location
+                // on the device and discard the result: thousands of resources held for nothing.)
             }
         }
 
@@ -926,17 +926,17 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         fullName = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN),
                         phone = answers.answerOf(FormFields.Vhf.NEXT_OF_KIN_PHONE),
                     )
-                    // Link a contact to its source case: the case it was registered from (Contacts
-                    // tab), else the case named by "Contact Link to Case" if it is on the device.
-                    (FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
-                        ?.takeIf { it.isNotBlank() }
-                        ?: VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID))
-                            ?.let { VhfSourceCases.findByEpid(fhirEngine, it)?.logicalId })
-                        ?.let { sourcePatientId ->
-                            patient.addLink()
-                                .setOther(Reference("Patient/$sourcePatientId"))
-                                .setType(Patient.LinkType.SEEALSO)
-                        }
+                    // A contact joins its source case's contact Group (ContactGroups) once saved:
+                    // the case it was registered from (Contacts tab), else the case named by its
+                    // source EPID if it is on the device. (No Patient.link: that is for records of
+                    // the same person.)
+                    pendingContactSource =
+                        FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
+                            ?.takeIf { it.isNotBlank() }
+                            ?: VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID))
+                                ?.let { VhfSourceCases.findByEpid(fhirEngine, it)?.logicalId }
+                    pendingContactDayZero =
+                        VhfContactTracker.parseDate(answers.answerOf(FormFields.Vhf.CONTACT_DATE))
                     // Trainings: identifier test_xxxx so practice records stay separate.
                     if (VhfTraining.isOn(context)) VhfTraining.mark(patient)
                     val (county, subCounty) = applyResidence(patient, answers, context)
@@ -1123,6 +1123,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
                             patient.addressFirstRep.city, patient.active,
                         )
                     }
+                    // VHF contact: add it to its source case's contact Group.
+                    pendingContactSource?.let { sourceId ->
+                        runCatching {
+                            ContactGroups.addMember(fhirEngine, sourceId, patient.logicalId, pendingContactDayZero)
+                        }.onFailure { Timber.tag(ContactGroups.TAG).e(it, "Could not add %s to the contacts of %s", patient.logicalId, sourceId) }
+                    }
                     lastSavedCase = patientId to encounterId
                     PersistResult.SAVED
                 } catch (e: Exception) {
@@ -1136,6 +1142,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
             }
         } finally {
             activeExtraTags = emptyList()
+            pendingContactSource = null
+            pendingContactDayZero = null
         }
     }
 
@@ -1154,6 +1162,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }
         return failures.isNotEmpty()
     }
+
+    /** VHF contact being saved: its source case (Patient id) and day 0, for its contact Group. */
+    private var pendingContactSource: String? = null
+    private var pendingContactDayZero: java.time.LocalDate? = null
 
     /** Tags added to every resource of the persist call in progress (synthetic data marker). */
     private var activeExtraTags: List<Coding> = emptyList()

@@ -38,6 +38,14 @@ class ProfileSettingsBottomSheet : BottomSheetDialogFragment() {
             dismiss()
         }
 
+        view.findViewById<View>(R.id.actionMigrateContacts).setOnClickListener {
+            parentFragmentManager.setFragmentResult(
+                RESULT_KEY,
+                bundleOf(RESULT_ACTION to ACTION_MIGRATE_CONTACTS)
+            )
+            dismiss()
+        }
+
         view.findViewById<View>(R.id.btnCancelSheet).setOnClickListener {
             dismiss()
         }
@@ -48,6 +56,7 @@ class ProfileSettingsBottomSheet : BottomSheetDialogFragment() {
         const val RESULT_ACTION = "profile_settings_action"
         const val ACTION_RESET_RESOURCE_SYNC = 1
         const val ACTION_BULK_UPLOAD = 2
+        const val ACTION_MIGRATE_CONTACTS = 3
 
         fun show(fragmentManager: FragmentManager) {
             ProfileSettingsBottomSheet().show(

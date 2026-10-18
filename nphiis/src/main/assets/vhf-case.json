@@ -4448,25 +4448,25 @@
             {
               "valueCoding": {
                 "code": "body-fluids",
-                "display": "1 - Touched body fluids of the case (blood, vomit, saliva, urine, feces)"
+                "display": "Touched body fluids of the case (blood, vomit, saliva, urine, feces)"
               }
             },
             {
               "valueCoding": {
                 "code": "physical-contact",
-                "display": "2 - Had direct physical contact with the body of the case (alive or dead)"
+                "display": "Had direct physical contact with the body of the case (alive or dead)"
               }
             },
             {
               "valueCoding": {
                 "code": "linens",
-                "display": "3 - Touched or cleaned the linens, clothes, or dishes of the case"
+                "display": "Touched or cleaned the linens, clothes, or dishes of the case"
               }
             },
             {
               "valueCoding": {
                 "code": "household",
-                "display": "4 - Slept or ate in the same household as the case"
+                "display": "Slept or ate in the same household as the case"
               }
             }
           ],

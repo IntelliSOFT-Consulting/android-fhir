@@ -298,6 +298,10 @@ object FormFields {
         const val HAS_FOLLOW_UPS = "vhf-derived-has-follow-ups"
         const val STATUS_BECAME_CASE_CODE = "became-case"
         const val FINAL_OUTCOME_DATE = "vhf-final-outcome-date"
+        /** Contact monitoring "Official" section: who checked the record, and when. */
+        const val CHECKED_BY_NAME = "vhf-checked-by-name"
+        const val CHECKED_BY_EMAIL = "vhf-checked-by-email"
+        const val DATE_CHECKED = "vhf-date-checked"
         const val CASE_TYPE_SUSPECTED_CODE = "suspected"
 
         /** Case-form fields used to register a contact from its source case. */

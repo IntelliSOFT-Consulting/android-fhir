@@ -1042,9 +1042,12 @@ class ClientDetailsViewModel(
 
         println("Dealing with Patient With ID $patientId")
         val patients: MutableList<ContactResults> = mutableListOf()
-        fhirEngine
-            .search<Patient> {
-                filter(Patient.LINK, { value = "Patient/$patientId" })
+        // Contacts of this case: its contact Group's members, plus records still linked the old
+        // way (Patient.link) until migrated (ContactGroups).
+        com.icl.surveillance.fhir.forms.ContactGroups.contactIds(fhirEngine, patientId)
+            .mapNotNull { id ->
+                runCatching { fhirEngine.get(ResourceType.Patient, id) as Patient }
+                    .getOrNull()?.let { SearchResult(it, null, null) }
             }.map { patient ->
                 var data = ContactResults(
                     parentIdId = patientId,

@@ -27,6 +27,8 @@ class DemoDataStore(private val context: Context) {
                 ResourceType.DiagnosticReport,
                 ResourceType.Condition,
                 ResourceType.Immunization,
+                // VHF contacts of each case (ContactGroups).
+                ResourceType.Group,
             )
 
         val backgroundResettableResourceTypes =

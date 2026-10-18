@@ -38,6 +38,10 @@
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar" />
         <activity
+            android:name=".bulk.ContactMigrationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Surveillance.NoActionBar" />
+        <activity
             android:name=".ui.patients.custom.ContactTreeActivity"
             android:exported="false"
             android:theme="@style/Theme.Surveillance.NoActionBar" />

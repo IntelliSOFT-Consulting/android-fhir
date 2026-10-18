@@ -244,15 +244,20 @@ object VhfSpecimens {
     suspend fun summaryForCase(fhirEngine: FhirEngine, patientId: String, caseEncounterId: String?): Summary? =
         summarize(forCase(fhirEngine, patientId, caseEncounterId))
 
-    /** Patients with at least one specimen with a final positive result. */
-    suspend fun patientsWithPositiveSpecimen(fhirEngine: FhirEngine): Set<String> =
-        fhirEngine.search<Specimen> {}
+    /**
+     * Patients with at least one specimen with a final positive result. Reports and results are
+     * loaded for all specimens at once (a few queries) instead of several queries per specimen.
+     */
+    suspend fun patientsWithPositiveSpecimen(fhirEngine: FhirEngine): Set<String> {
+        val specimens = fhirEngine.search<Specimen> {}
             .map { it.resource }
             .filter { it.status != Specimen.SpecimenStatus.ENTEREDINERROR }
-            .filter { toRow(fhirEngine, it).result == Result.POSITIVE }
-            .mapNotNull { specimen -> specimen.subject.reference?.let { IdType(it).idPart } }
+        return rowsFor(fhirEngine, specimens)
+            .filter { (_, row) -> row.result == Result.POSITIVE }
+            .mapNotNull { (specimen, _) -> specimen.subject.reference?.let { IdType(it).idPart } }
             .filter { it.isNotBlank() }
             .toSet()
+    }
 
     /** Specimen result from its test results (see the class comment). */
     fun resultOf(specimen: Specimen, tests: List<TestResult>): Result {
@@ -362,7 +367,16 @@ object VhfSpecimens {
             }.map { it.resource }
         }
         if (specimens.isEmpty()) return Batch(emptyMap())
+        val byPatient = rowsFor(fhirEngine, specimens).mapNotNull { pair ->
+            val patientId = pair.first.subject.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
+            patientId to pair
+        }.groupBy({ it.first }, { it.second })
+        return Batch(byPatient)
+    }
 
+    /** Rows of [specimens] with their reports and results loaded in a few queries. */
+    private suspend fun rowsFor(fhirEngine: FhirEngine, specimens: List<Specimen>): List<Pair<Specimen, Row>> {
+        if (specimens.isEmpty()) return emptyList()
         val reports = specimens.map { "Specimen/${it.idElement.idPart}" }.chunked(BATCH_CHUNK).flatMap { chunk ->
             fhirEngine.search<DiagnosticReport> {
                 filter(DiagnosticReport.SPECIMEN, *references(chunk))
@@ -385,12 +399,10 @@ object VhfSpecimens {
             }.map { it.resource }
         }.associateBy { it.idElement.idPart }
 
-        val byPatient = specimens.mapNotNull { specimen ->
-            val patientId = specimen.subject.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
+        return specimens.map { specimen ->
             val tests = testsFrom(reportsBySpecimen[specimen.idElement.idPart].orEmpty(), observations)
-            patientId to (specimen to rowOf(specimen, tests))
-        }.groupBy({ it.first }, { it.second })
-        return Batch(byPatient)
+            specimen to rowOf(specimen, tests)
+        }
     }
 
     private fun references(values: List<String>) =

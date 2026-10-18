@@ -53,7 +53,9 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
         super.onCreate()
         instance = this
         hydrateAccessTokenCache()
-        Timber.plant(Timber.DebugTree())
+        // Logs only in debug builds: in release every log line is built (often whole resources
+        // or HTTP bodies) for nobody to read, costing memory and CPU on users' phones.
+        if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
         FhirEngineProvider.init(
             FhirEngineConfiguration(
                 enableEncryptionIfSupported = false,
@@ -63,7 +65,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                     httpLogger =
                         HttpLogger(
                             HttpLogger.Configuration(
-                                HttpLogger.Level.BASIC,
+                                if (BuildConfig.DEBUG) HttpLogger.Level.BASIC else HttpLogger.Level.NONE,
                             ),
                         ) { line ->
                             Timber.tag("App-HttpLog").e(line)
@@ -138,6 +140,9 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
             (context.applicationContext as FhirApplication).fhirEngine
 
         fun dataStore(context: Context) = (context.applicationContext as FhirApplication).dataStore
+
+        /** Background work that must finish even if the screen that started it closes. */
+        fun applicationScope(): CoroutineScope = instance.appScope
     }
 
     override fun getDataCaptureConfig(): DataCaptureConfig =

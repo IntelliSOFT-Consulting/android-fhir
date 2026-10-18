@@ -10,6 +10,7 @@ import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValid
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.ContactGroups
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.ReportingSitePrefill
@@ -278,16 +279,15 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
     }
 
     /**
-     * After a contact is saved: makes sure its Patient links to the source case (adding the link
-     * if the save did not), then checks the case's Contacts tab will find it (the same search).
+     * After a contact is saved: makes sure it is a member of the source case's contact Group
+     * (adding it if the save did not), then checks the case's Contacts tab will find it.
      */
     suspend fun ensureLinked(patientId: String, sourceId: String): LinkCheck {
-        val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull() ?: return LinkCheck.NOT_FOUND
-        val wasLinked = patient.link.any { it.other?.referenceElement?.idPart == sourceId }
+        runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull() ?: return LinkCheck.NOT_FOUND
+        val group = ContactGroups.groupOf(fhirEngine, sourceId)
+        val wasLinked = group?.member.orEmpty().any { it.entity?.referenceElement?.idPart == patientId }
         if (!wasLinked) {
-            patient.addLink().setOther(Reference("Patient/$sourceId")).setType(Patient.LinkType.SEEALSO)
-            LocalWins.update(fhirEngine, patient)
-            CaseIdentifierIndex.put(patient)
+            ContactGroups.addMember(fhirEngine, sourceId, patientId, ContactGroups.dayZeroOf(fhirEngine, patientId))
         }
         val visible = patientId in VhfContactTracker.linkedContactIds(fhirEngine, sourceId)
         return when {

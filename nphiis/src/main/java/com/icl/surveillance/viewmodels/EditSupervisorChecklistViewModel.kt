@@ -292,16 +292,16 @@ class EditSupervisorChecklistViewModel(
         }
     }
 
-    /** A VHF contact named its source case by EPID number: link it, if not linked already. */
+    /** A VHF contact named its source case by EPID number: add it to that case's contact Group. */
     private suspend fun linkVhfSourceCase(patientId: String, answers: List<QuestionnaireAnswer>) {
         val epid = VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID)) ?: return
         val source = VhfSourceCases.findByEpid(fhirEngine, epid) ?: return
         val sourceId = source.idElement.idPart
         if (sourceId == patientId) return
-        val patient = fhirEngine.get<Patient>(patientId)
-        if (patient.link.any { it.other?.referenceElement?.idPart == sourceId }) return
-        patient.addLink().setOther(Reference("Patient/$sourceId")).setType(Patient.LinkType.SEEALSO)
-        LocalWins.update(fhirEngine, patient)
+        com.icl.surveillance.fhir.forms.ContactGroups.addMember(
+            fhirEngine, sourceId, patientId,
+            com.icl.surveillance.fhir.forms.VhfContactTracker.parseDate(answers.answerOf(FormFields.Vhf.CONTACT_DATE)),
+        )
     }
 
     /** Name / sex / date of birth, using each form's own questions and name order. */

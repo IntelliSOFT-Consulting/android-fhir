@@ -223,7 +223,13 @@
     <string name="sync_data">Sync Data</string>
     <string name="reset_sync">Reset Sync</string>
     <string name="bulk_upload_title">Bulk Upload</string>
-    <string name="bulk_upload_description">Add VHF contacts to cases from an Excel file laid out like the case form (CIF).</string>
+    <string name="bulk_upload_description">Add VHF contacts to cases from an Excel file laid out like the Contact Listing Form.</string>
+    <string name="contact_migration_title">Migrate contacts</string>
+    <string name="contact_migration_description">Move contacts linked the old way into their case\'s contact group.</string>
+    <string name="contact_migration_intro">VHF contacts are now listed under their source case in a contact group (FHIR Group) instead of a link on the person\'s record. This moves contacts saved the old way on this device. Sync before and after. It is safe to run again.</string>
+    <string name="contact_migration_checking">Checking contacts…</string>
+    <string name="contact_migration_action">Migrate contacts</string>
+    <string name="contact_migration_save_log">Save log (CSV)</string>
     <string name="reset_sync_confirm">Download all records again from the start?\n\nRecords already on this device are kept. The next sync re-downloads cases, results and forms from the server, which can take a while on a slow connection.</string>
     <string name="reset_resource_sync_title">Reset Resource Sync</string>
     <string name="reset_resource_sync_description">Reset the stored last sync timestamps in the background. The next sync will download the supported resources again.</string>
