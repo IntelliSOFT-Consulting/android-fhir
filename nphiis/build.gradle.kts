@@ -71,13 +71,9 @@ android {
     }
     buildTypes {
         release {
-            // R8: removes unused code (FHIR versions other than R4, unused library classes) and
-            // resources. Required by Google Play for apps with over 10 MB of DEX, and lowers the
-            // memory the app's code takes on the device. Rules: proguard-rules.pro.
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
+                getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
         }

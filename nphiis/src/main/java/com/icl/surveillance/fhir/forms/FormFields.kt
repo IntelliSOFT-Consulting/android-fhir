@@ -410,6 +410,19 @@ object FormFields {
         const val SIGNS = "alert-signs"
         const val FACILITY = "alert-facility"
         const val DESCRIPTION = "alert-description"
+        /** 719 Call Centre Log (the alert / rumour log). */
+        const val AGENT_ID = "alert-agent-id"
+        const val CALLING_ABOUT = "alert-calling-about"
+        const val CALL_PATHWAY = "alert-call-pathway"
+        const val PATHWAY_ASSESSMENT = "assessment"
+        const val PATHWAY_GENERAL_ADVICE = "general-advice"
+        const val CLASSIFICATION = "alert-classification"
+        const val ROUTED_ACTION = "alert-routed-action"
+        const val ACTION_STATUS = "alert-action-status"
+        const val CALL_END = "alert-call-end"
+        const val SYMPTOMS = "alert-symptoms"
+        const val EXPOSURES = "alert-exposures"
+        const val CALLING_ABOUT_SELF = "self"
     }
 
     object Geo {

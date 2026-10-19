@@ -959,10 +959,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 }
 
                 CaseSlugs.ALERT_LOG -> {
-                    // The person affected, when known (name is optional on an alert).
+                    // The person affected, when known (name is optional on an alert); a caller
+                    // reporting their own symptoms is that person.
+                    val callingAboutSelf = answers.answerOf(FormFields.AlertLog.CALLING_ABOUT)
+                        ?.startsWith("Self", ignoreCase = true) == true
                     PatientMapper.applyName(
                         patient,
-                        first = answers.answerOf(FormFields.Person.FIRST_NAME),
+                        first = answers.answerOf(FormFields.Person.FIRST_NAME)
+                            ?: answers.answerOf(FormFields.AlertLog.REPORTER_NAME)?.takeIf { callingAboutSelf },
                         middle = null,
                         surname = answers.answerOf(FormFields.Person.SURNAME),
                         order = PatientMapper.NameOrder.SURNAME_AS_FAMILY
@@ -971,7 +975,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         patient.nameFirstRep.family = "Alert"
                     }
                     PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
-                    answers.answerOf(FormFields.AlertLog.MOBILE)
+                    (answers.answerOf(FormFields.AlertLog.MOBILE)
+                        ?: answers.answerOf(FormFields.AlertLog.REPORTER_MOBILE)?.takeIf { callingAboutSelf })
                         ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.ALERT_LOG))
@@ -1444,6 +1449,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
             is IntegerType -> value.value?.toString()
             is DateType -> value.valueAsString
             is DateTimeType -> value.valueAsString
+            is org.hl7.fhir.r4.model.TimeType -> value.value
             is BooleanType -> value.booleanValue()?.toString()
             is DecimalType -> value.value?.toString()
             is Coding -> value.display ?: value.code

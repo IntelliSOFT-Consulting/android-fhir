@@ -37,7 +37,13 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val tracker = NPHIISSyncTracker(locationMonitor, locationTarget = 17000)
     private var lastResolvedResourceType: ResourceType? = null
 
-    private val FLOOR_2026 = "2026-01-01T00:00:00Z"
+    /**
+     * Records last changed before this are never downloaded (start of sync: 15 Oct 2026, midnight
+     * Nairobi time = 14 Oct 21:00 UTC; written in UTC because Instant.parse and the URL need "Z").
+     * A resource type's own last-synced time is used when later. Locations are exempt on the
+     * first sync (the full list is needed).
+     */
+    private val SYNC_START = "2026-10-14T21:00:00Z"
 
     private val LOCATION_URL = "Location?_count=950&_sort=_lastUpdated"
 
@@ -51,7 +57,7 @@ class TimestampBasedDownloadWorkManagerImpl(
                 "Patient?_count=$PATIENT_PAGE_SIZE&_sort=_lastUpdated",
                 "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
                 "DiagnosticReport?_count=$REPORT_PAGE_SIZE&_sort=_lastUpdated",
-               "Group?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
+                "Group?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
@@ -214,9 +220,9 @@ class TimestampBasedDownloadWorkManagerImpl(
         }
 
         val lowerBound = if (lastUpdated.isNullOrBlank()) {
-            FLOOR_2026
+            SYNC_START
         } else {
-            maxIsoInstant(FLOOR_2026, normalizeToInstant(lastUpdated))
+            maxIsoInstant(SYNC_START, normalizeToInstant(lastUpdated))
         }
 
         return if (isEverything) {

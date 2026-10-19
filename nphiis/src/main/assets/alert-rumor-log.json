@@ -187,7 +187,7 @@
       "valueCode": "prior-edit"
     }
   ],
-  "title": "Alert Rumor Log",
+  "title": "Call Centre Log (Alert / Rumour)",
   "status": "draft",
   "item": [
     {
@@ -953,100 +953,61 @@
     },
     {
       "linkId": "alert-details",
+      "text": "1. Call and caller details",
       "type": "group",
-      "text": "Alert details",
       "item": [
         {
           "linkId": "alert-date",
-          "text": "Date of alert",
-          "type": "date",
+          "text": "Date and time the call was received",
+          "type": "dateTime",
           "required": true,
           "extension": [
             {
-              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Cannot be a date in the future"
-            },
-            {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "yyyy-mm-dd"
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
-              "valueDate": {
-                "extension": [
-                  {
-                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
-                    "valueExpression": {
-                      "language": "text/fhirpath",
-                      "expression": "today()"
-                    }
-                  }
-                ]
-              }
+              "valueString": "Filled automatically. Change it only if you are entering an earlier call."
             }
           ]
         },
         {
-          "linkId": "alert-name-display",
-          "type": "display",
-          "text": "Person affected (if known)"
-        },
-        {
-          "linkId": "486402457213",
-          "text": "Family name (surname)",
+          "linkId": "alert-agent-id",
+          "text": "Call-centre agent ID",
           "type": "string",
-          "required": false
-        },
-        {
-          "linkId": "873240407472",
-          "text": "Given names",
-          "type": "string",
-          "required": false
-        },
-        {
-          "linkId": "alert-mobile",
-          "text": "Mobile number",
-          "type": "string",
-          "required": false,
+          "required": true,
           "extension": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "phone-number",
-                    "display": "Phone Number"
-                  }
-                ]
-              }
-            },
-            {
-              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid mobile number (07xxxxxxxx)"
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^\\d{10,10}$"
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Your staff name or the ID used for 719 call-centre reporting"
             }
           ]
         },
         {
-          "linkId": "alert-home-country",
-          "text": "Home country",
+          "linkId": "alert-reporter-name",
+          "text": "Caller's name",
           "type": "string",
-          "required": false,
-          "initial": [
+          "required": true,
+          "extension": [
             {
-              "valueString": "Kenya"
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Ask the caller: \"Please tell me your name.\""
             }
           ]
         },
         {
-          "linkId": "929966324957",
-          "text": "Sex",
+          "linkId": "alert-reporter-mobile",
+          "text": "Caller's phone number",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Ask: \"What phone number can we use to call you back?\" Include the country code when needed."
+            }
+          ]
+        },
+        {
+          "linkId": "alert-calling-about",
+          "text": "Who are you calling about?",
           "type": "choice",
-          "required": false,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -1061,139 +1022,59 @@
               }
             },
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
-              "valueCode": "horizontal"
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Select Self if the caller is describing their own symptoms or exposure."
             }
           ],
           "answerOption": [
             {
               "valueCoding": {
-                "code": "male",
-                "display": "Male"
+                "code": "self",
+                "display": "Self — calling about my own symptoms or exposure"
               }
             },
             {
               "valueCoding": {
-                "code": "female",
-                "display": "Female"
-              }
-            }
-          ]
-        },
-        {
-          "linkId": "492731638700",
-          "text": "Age (years)",
-          "type": "integer",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
-              "valueInteger": 120
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "linkId": "alert-source",
-      "type": "group",
-      "text": "Source of the alert / rumour",
-      "item": [
-        {
-          "linkId": "a4-county",
-          "text": "County where the event is",
-          "type": "reference",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof=Location/0&_sort=name"
+                "code": "family",
+                "display": "Family member"
               }
             },
             {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "linkId": "a3-sub-county",
-          "text": "Sub County where the event is",
-          "type": "reference",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%patientCountyName}}&_sort=name"
+              "valueCoding": {
+                "code": "chp",
+                "display": "Community health promoter or volunteer"
               }
             },
             {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "linkId": "a2-ward",
-          "text": "Ward",
-          "type": "reference",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%patientSubCountyName}}&_sort=name"
+              "valueCoding": {
+                "code": "hcw",
+                "display": "Healthcare worker"
               }
             },
             {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
+              "valueCoding": {
+                "code": "chief",
+                "display": "Chief, village elder, or local administrator"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Another person"
+              }
             }
           ]
         },
         {
-          "linkId": "alert-location",
-          "text": "Location / sub-location",
+          "linkId": "alert-reporter-designation",
+          "text": "Caller's designation (e.g. CHP, nurse, chief)",
           "type": "string",
-          "required": false
-        },
-        {
-          "linkId": "alert-village",
-          "text": "Village / estate",
-          "type": "string",
-          "required": false
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
         },
         {
           "linkId": "alert-source-type",
@@ -1255,6 +1136,14 @@
                 "display": "Other (specify)"
               }
             }
+          ],
+          "initial": [
+            {
+              "valueCoding": {
+                "code": "hotline",
+                "display": "Hotline"
+              }
+            }
           ]
         },
         {
@@ -1272,18 +1161,281 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "linkId": "alert-source",
+      "text": "Location of the person being reported",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "alert-location-note",
+          "type": "display",
+          "text": "Select the county first, followed by the sub-county and ward."
         },
         {
-          "linkId": "alert-reporter-name",
-          "text": "Name of reporter",
-          "type": "string",
-          "required": true
-        },
-        {
-          "linkId": "alert-reporter-mobile",
-          "text": "Reporter's mobile number",
-          "type": "string",
+          "linkId": "a4-county",
+          "text": "Which county is the person currently in?",
+          "type": "reference",
           "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a3-sub-county",
+          "text": "Which sub-county are they in?",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a2-ward",
+          "text": "Which ward are they in?",
+          "type": "reference",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "alert-location",
+          "text": "Location / sub-location",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "alert-village",
+          "text": "Village / estate",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "alert-pathway",
+      "text": "2. Select the call pathway",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "alert-call-pathway",
+          "text": "Agent use only — select the call pathway",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Do not ask the caller another question here. Based on the reason already given for the call, select General advice only or Symptoms/exposure assessment."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "general-advice",
+                "display": "General advice only"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "assessment",
+                "display": "Symptoms or exposure assessment"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "alert-person",
+      "text": "3. Person being reported (if different from caller)",
+      "type": "group",
+      "enableWhen": [
+        {
+          "question": "alert-call-pathway",
+          "operator": "=",
+          "answerCoding": {
+            "code": "assessment",
+            "display": "Symptoms or exposure assessment"
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "873240407472",
+          "text": "What is the person's name?",
+          "type": "string",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Ask for the name of the person whose symptoms or exposure are being reported."
+            }
+          ]
+        },
+        {
+          "linkId": "492731638700",
+          "text": "How old is the person?",
+          "type": "integer",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Age in years. If the exact age is not known, enter the caller's best estimate."
+            }
+          ]
+        },
+        {
+          "linkId": "929966324957",
+          "text": "What is the person's sex?",
+          "type": "choice",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Select the answer given by the caller. Use Not specified if it is not provided."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "not-specified",
+                "display": "Not specified"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "female",
+                "display": "Female"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-name-display",
+          "type": "display",
+          "text": "Person affected (if known)",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "486402457213",
+          "text": "Family name (surname)",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "alert-mobile",
+          "text": "Mobile number",
+          "type": "string",
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -1304,27 +1456,161 @@
             {
               "url": "http://hl7.org/fhir/StructureDefinition/regex",
               "valueString": "^\\d{10,10}$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
             }
           ]
         },
         {
-          "linkId": "alert-reporter-designation",
-          "text": "Reporter's designation (e.g. CHP, nurse, chief)",
+          "linkId": "alert-home-country",
+          "text": "Home country",
           "type": "string",
-          "required": false
+          "initial": [
+            {
+              "valueString": "Kenya"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
         }
       ]
     },
     {
       "linkId": "alert-event",
+      "text": "4. Reported symptoms",
       "type": "group",
-      "text": "Event",
+      "enableWhen": [
+        {
+          "question": "alert-call-pathway",
+          "operator": "=",
+          "answerCoding": {
+            "code": "assessment",
+            "display": "Symptoms or exposure assessment"
+          }
+        }
+      ],
       "item": [
+        {
+          "linkId": "alert-symptoms",
+          "text": "Which symptoms did the caller report?",
+          "type": "choice",
+          "repeats": true,
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Select all symptoms the caller mentioned. If no symptom was mentioned, select None reported."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "bleeding",
+                "display": "Unexplained bleeding or bruising"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "vomiting",
+                "display": "Vomiting"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diarrhoea",
+                "display": "Diarrhoea"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "severe-headache",
+                "display": "Severe headache"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "muscle-joint-pain",
+                "display": "Muscle or joint pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "severe-weakness",
+                "display": "Severe weakness or unusual tiredness"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "sore-throat",
+                "display": "Sore throat"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hiccups",
+                "display": "Persistent hiccups"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rash",
+                "display": "Rash"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "red-eyes",
+                "display": "Red or bloodshot eyes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "difficulty-breathing",
+                "display": "Difficulty breathing"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None reported"
+              },
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-optionExclusive",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
         {
           "linkId": "alert-suspected",
           "type": "choice",
           "text": "Suspected of",
-          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -1341,6 +1627,10 @@
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
               "valueCode": "horizontal"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
             }
           ],
           "answerOption": [
@@ -1422,15 +1712,10 @@
           "linkId": "alert-suspected-other",
           "text": "Other (specify)",
           "type": "string",
-          "required": true,
-          "enableWhen": [
+          "extension": [
             {
-              "question": "alert-suspected",
-              "operator": "=",
-              "answerCoding": {
-                "code": "other",
-                "display": "Other (specify)"
-              }
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
             }
           ]
         },
@@ -1439,7 +1724,6 @@
           "type": "choice",
           "text": "Signs and symptoms (tick all that apply)",
           "repeats": true,
-          "required": false,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -1452,6 +1736,10 @@
                   }
                 ]
               }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
             }
           ],
           "answerOption": [
@@ -1515,10 +1803,186 @@
           "linkId": "alert-signs-other",
           "text": "Other (specify)",
           "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "alert-cases",
+          "type": "integer",
+          "text": "Number of people affected",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "alert-deaths",
+          "type": "integer",
+          "text": "Number of deaths",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "alert-exposure",
+      "text": "5. Exposure history (last 21 days)",
+      "type": "group",
+      "enableWhen": [
+        {
+          "question": "alert-call-pathway",
+          "operator": "=",
+          "answerCoding": {
+            "code": "assessment",
+            "display": "Symptoms or exposure assessment"
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "alert-exposures",
+          "text": "Which possible exposures did the caller report?",
+          "type": "choice",
+          "repeats": true,
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Select all exposures mentioned. If none was mentioned, select None reported."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "confirmed-case-contact",
+                "display": "Contact with a confirmed or probable Ebola case"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unexplained-illness-contact",
+                "display": "Contact with someone sick or deceased after an unexplained illness"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "funeral",
+                "display": "Attended a funeral or touched a dead body"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "affected-area-travel",
+                "display": "Travel to or from an Ebola-affected area"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "ebola-facility",
+                "display": "Worked in or visited a facility treating Ebola patients"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "animals",
+                "display": "Contact with bats, bushmeat, or wild animals"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "none",
+                "display": "None reported"
+              },
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-optionExclusive",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "alert-outcome",
+      "text": "6. Classification, guidance, and action",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "alert-classification",
+          "text": "Call classification",
+          "type": "choice",
           "required": true,
           "enableWhen": [
             {
-              "question": "alert-signs",
+              "question": "alert-call-pathway",
+              "operator": "=",
+              "answerCoding": {
+                "code": "assessment",
+                "display": "Symptoms or exposure assessment"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "possible",
+                "display": "Possible — needs clinical review"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-classification-other",
+          "text": "Other classification (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-classification",
               "operator": "=",
               "answerCoding": {
                 "code": "other",
@@ -1528,34 +1992,180 @@
           ]
         },
         {
-          "linkId": "alert-cases",
-          "type": "integer",
-          "text": "Number of people affected",
-          "required": false
+          "linkId": "alert-routed-action",
+          "text": "Action to take",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-call-pathway",
+              "operator": "=",
+              "answerCoding": {
+                "code": "assessment",
+                "display": "Symptoms or exposure assessment"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "pheoc-rrt",
+                "display": "Refer to the PHEOC Watcher for Rapid Response Team dispatch"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
         },
         {
-          "linkId": "alert-deaths",
-          "type": "integer",
-          "text": "Number of deaths",
-          "required": false
+          "linkId": "alert-routed-action-other",
+          "text": "Other action (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-routed-action",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
         },
         {
           "linkId": "alert-facility",
-          "text": "Health facility attending (if any)",
+          "text": "Nearest health facility receiving the person",
           "type": "string",
-          "required": false
+          "required": false,
+          "enableWhen": [
+            {
+              "question": "alert-call-pathway",
+              "operator": "=",
+              "answerCoding": {
+                "code": "assessment",
+                "display": "Symptoms or exposure assessment"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Ask for or confirm the nearest appropriate health facility receiving the referral."
+            }
+          ]
+        },
+        {
+          "linkId": "alert-action-status",
+          "text": "What is the status of this action?",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-call-pathway",
+              "operator": "=",
+              "answerCoding": {
+                "code": "assessment",
+                "display": "Symptoms or exposure assessment"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Record whether the routed action is pending, completed, or escalated."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "pending",
+                "display": "Pending"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "completed",
+                "display": "Completed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "escalated",
+                "display": "Escalated"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-moh-note",
+          "type": "display",
+          "text": "This form provides decision support for the 719 call-centre agent. Follow the current Ministry of Health escalation procedure for all alerts and referrals."
         },
         {
           "linkId": "alert-description",
           "type": "text",
-          "text": "Description of the event",
-          "required": true
+          "text": "Additional information from the caller",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Important details, directions, travel history, exposure details, or follow-up instructions not captured above."
+            }
+          ]
         },
         {
           "linkId": "alert-action",
           "type": "text",
-          "text": "Action taken",
-          "required": false
+          "text": "Action taken (notes)",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+              "valueBoolean": true
+            }
+          ]
+        },
+        {
+          "linkId": "alert-call-end",
+          "text": "What time did the call end?",
+          "type": "time",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "The time the conversation with the caller ended"
+            }
+          ]
         }
       ]
     }

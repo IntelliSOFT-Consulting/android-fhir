@@ -1092,9 +1092,18 @@ class PatientListViewModel(
                                 // The row shows what the alert is suspected of; no lab or classification.
                                 val suspected = obs.valueOf(FormFields.AlertLog.SUSPECTED)
                                 val other = obs.valueOf(FormFields.AlertLog.SUSPECTED_OTHER)
+                                val pathway = obs.valueOf(FormFields.AlertLog.CALL_PATHWAY)
+                                val classification = obs.valueOf(FormFields.AlertLog.CLASSIFICATION)
                                 data = data.copy(
-                                    labResults = if (suspected.startsWith("Other") && other.isNotBlank()) other
-                                    else suspected,
+                                    labResults = when {
+                                        // 719 call log: the call's classification.
+                                        classification.isNotBlank() -> classification
+                                        suspected.startsWith("Other") && other.isNotBlank() -> other
+                                        suspected.isNotBlank() -> suspected
+                                        // 719 call log: an advice-only call has no suspected disease.
+                                        pathway.startsWith("General", ignoreCase = true) -> "General advice"
+                                        else -> suspected
+                                    },
                                     status = "",
                                 )
                             }
@@ -1152,7 +1161,8 @@ class PatientListViewModel(
                             subCounty = " $subCounty",
                             caseOnsetDate = onset.ifBlank {
                                 // Alerts have no onset date: the date of the alert instead.
-                                if (nameQuery == CaseSlugs.ALERT_LOG) obs.valueOf(FormFields.AlertLog.DATE) else onset
+                                // The call's date (the question now records date and time).
+                                if (nameQuery == CaseSlugs.ALERT_LOG) obs.valueOf(FormFields.AlertLog.DATE).take(10) else onset
                             },
                             encounterQuestionnaire = encounterQuestionnaire,
                             isSummary = isSummary,
@@ -1922,6 +1932,8 @@ class PatientListViewModel(
             FormFields.AlertLog.DATE,
             FormFields.AlertLog.SUSPECTED,
             FormFields.AlertLog.SUSPECTED_OTHER,
+            FormFields.AlertLog.CALL_PATHWAY,
+            FormFields.AlertLog.CLASSIFICATION,
         ) + VhfContactTracker.CASE_ANSWER_CODES).distinct()
         private const val PATIENT_LOAD_CHUNK = 200
         private const val RUMOR_PAGE_SIZE = 200

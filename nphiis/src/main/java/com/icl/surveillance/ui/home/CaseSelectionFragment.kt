@@ -577,6 +577,23 @@ class CaseSelectionFragment : Fragment() {
                             showPermissionErrorDialog(requireContext())
                             return@CaseOptionsAdapter
                         }
+                        // 719 Call Centre Log: the call's date and time (now) and the agent (the
+                        // logged-in user) are filled in; both can be changed.
+                        run {
+                            val formatter = FormatterClass()
+                            fun pref(key: String) = formatter.getSharedPref(key, requireContext())?.trim()
+                                ?.takeIf { it.isNotBlank() && !it.equals("null", true) && it != "N/A" }
+                            val agent = pref("fullNames")
+                                ?: listOfNotNull(pref("firstName"), pref("lastName")).joinToString(" ").takeIf { it.isNotBlank() }
+                            val now = java.time.OffsetDateTime.now().withNano(0).toString()
+                            com.icl.surveillance.fhir.forms.FormPrefill.stage(
+                                requireContext(), FormFields.AlertLog.FORM,
+                                buildMap {
+                                    put(FormFields.AlertLog.DATE, now)
+                                    agent?.let { put(FormFields.AlertLog.AGENT_ID, it) }
+                                },
+                            )
+                        }
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.AlertLog.FORM)

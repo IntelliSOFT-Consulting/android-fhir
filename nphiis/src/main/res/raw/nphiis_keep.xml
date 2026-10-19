@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Resource shrinking (release): keep resources looked up by name at runtime.
-     Home screen icons are named in its JSON config (HomeConfigRepository) and questionnaire
-     item styles are named in the forms (datacapture MoreQuestionItemStyle). -->
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/*,@style/*,@raw/*" />

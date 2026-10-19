@@ -116,6 +116,21 @@ class EditSupervisorChecklistViewModel(
         }
 
         // Questions changed from a date to a date and time keep their saved date.
+        // Alert / rumour log reorganised as the 719 Call Centre Log: answers saved before sit in
+        // other groups; put them where the form now has them (else the form refuses the record).
+        if (this.questionnaire == FormFields.AlertLog.FORM) {
+            regroupToForm(questionnaire, questionnaireResponse)
+            // Earlier alerts recorded what was suspected: they were assessments.
+            val flat = questionnaireResponse.item.flatMap { listOf(it) + it.item }
+            if (flat.none { it.linkId == FormFields.AlertLog.CALL_PATHWAY && it.hasAnswer() } &&
+                flat.any { it.linkId == FormFields.AlertLog.SUSPECTED && it.hasAnswer() }
+            ) {
+                FormPrefill.applyTo(
+                    questionnaire, questionnaireResponse,
+                    mapOf(FormFields.AlertLog.CALL_PATHWAY to FormFields.AlertLog.PATHWAY_ASSESSMENT),
+                )
+            }
+        }
         FormPrefill.upgradeDateAnswers(questionnaire, questionnaireResponse)
         // Questions changed from typed text to a list (e.g. travel origin country).
         FormPrefill.upgradeTextToChoiceAnswers(questionnaire, questionnaireResponse)
@@ -290,6 +305,43 @@ class EditSupervisorChecklistViewModel(
                 }.onFailure { Timber.e(it, "Failed to update the specimen after editing") }
             }
         }
+    }
+
+    /**
+     * Rebuilds [response]'s items in [questionnaire]'s group structure, each answer moved to
+     * where its question now is (by linkId). Answers to questions no longer in the form are kept
+     * out of the edit (their saved observations stay).
+     */
+    private fun regroupToForm(questionnaire: Questionnaire, response: QuestionnaireResponse) {
+        val answers = HashMap<String, QuestionnaireResponse.QuestionnaireResponseItemComponent>()
+        fun collect(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                if (item.hasAnswer()) answers.putIfAbsent(item.linkId, item)
+                collect(item.item)
+                item.answer.forEach { collect(it.item) }
+            }
+        }
+        collect(response.item)
+        fun build(items: List<Questionnaire.QuestionnaireItemComponent>):
+            List<QuestionnaireResponse.QuestionnaireResponseItemComponent> =
+            items.mapNotNull { q ->
+                if (q.type == Questionnaire.QuestionnaireItemType.GROUP) {
+                    val children = build(q.item)
+                    if (children.isEmpty()) null
+                    else QuestionnaireResponse.QuestionnaireResponseItemComponent().setLinkId(q.linkId)
+                        .setText(q.text).also { it.item = children.toMutableList() }
+                } else {
+                    answers[q.linkId]?.let { saved ->
+                        QuestionnaireResponse.QuestionnaireResponseItemComponent().setLinkId(q.linkId)
+                            .setText(q.text).also { item ->
+                                item.answer = saved.answer.map { a ->
+                                    QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().setValue(a.value)
+                                }.toMutableList()
+                            }
+                    }
+                }
+            }
+        response.item = build(questionnaire.item).toMutableList()
     }
 
     /** A VHF contact named its source case by EPID number: add it to that case's contact Group. */
@@ -493,6 +545,7 @@ class EditSupervisorChecklistViewModel(
             is IntegerType -> value.value?.toString()
             is DateType -> value.valueAsString
             is DateTimeType -> value.valueAsString
+            is org.hl7.fhir.r4.model.TimeType -> value.value
             is BooleanType -> value.booleanValue()?.toString()
             is DecimalType -> value.value?.toString()
             is Coding -> value.display ?: value.code
