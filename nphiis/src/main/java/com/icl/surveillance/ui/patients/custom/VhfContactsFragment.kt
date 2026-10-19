@@ -19,6 +19,7 @@ import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.ContactFollowUpState
+import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
@@ -48,6 +49,8 @@ class VhfContactsFragment : Fragment() {
         val name: String,
         val epid: String,
         val state: ContactFollowUpState?,
+        /** When the contact was registered (sortable text), for newest-first order. */
+        val registeredAt: String,
     )
 
     private var _binding: FragmentVlLabBinding? = null
@@ -143,14 +146,27 @@ class VhfContactsFragment : Fragment() {
             val patient = runCatching { fhirEngine.get<Patient>(id) }.getOrNull() ?: return@mapNotNull null
             val encounterId = patient.identifier.firstOrNull { it.system == CaseSlugs.VHF }?.value
                 ?: return@mapNotNull null
+            val encounter = runCatching { fhirEngine.get<org.hl7.fhir.r4.model.Encounter>(encounterId) }.getOrNull()
             ContactRow(
                 patientId = id,
                 encounterId = encounterId,
                 name = patient.nameFirstRep.nameAsSingleString.ifBlank { "Unnamed contact" },
                 epid = patient.identifier.firstOrNull { it.type.codingFirstRep.code == "EPID" }?.value.orEmpty(),
                 state = VhfContactTracker.load(fhirEngine, id, encounterId),
+                registeredAt = registeredAt(encounter, patient),
             )
         }
+
+    /**
+     * When the contact was registered: its case record's creation time ("yyyy-MM-dd HH:mm:ss"),
+     * else when the record or the Patient was last saved (same format, so they sort together).
+     */
+    private fun registeredAt(encounter: org.hl7.fhir.r4.model.Encounter?, patient: Patient): String {
+        encounter?.identifier?.firstOrNull { it.system == FhirSystems.SYSTEM_CREATION }?.value
+            ?.takeIf { it.isNotBlank() }?.let { return it }
+        val saved = encounter?.meta?.lastUpdated ?: patient.meta?.lastUpdated ?: return ""
+        return java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(saved)
+    }
 
     private fun render(rows: List<ContactRow>, source: SourceCase) {
         // Opened from "Add contacts" after the case was saved: start registering one right away.
@@ -236,7 +252,8 @@ class VhfContactsFragment : Fragment() {
                 parent, "Contacts (${rows.size})", "Register contact", R.drawable.ic_vhf_person_add
             ) { registerContact(source) }
         )
-        rows.sortedWith(compareBy({ priority(it.state) }, { it.name })).forEach { row ->
+        // Most recently registered first.
+        rows.sortedWith(compareByDescending<ContactRow> { it.registeredAt }.thenBy { it.name }).forEach { row ->
             val state = row.state
             val (status, tone) = when {
                 state == null -> "Suspected converted to case" to CardTone.NEUTRAL
@@ -253,15 +270,6 @@ class VhfContactsFragment : Fragment() {
         }
     }
 
-    /** Symptomatic first, then due today, then the rest; closed and converted contacts last. */
-    private fun priority(state: ContactFollowUpState?): Int = when {
-        state == null -> 5
-        !state.isContact -> 4
-        state.isClosed -> 3
-        state.deathVisit != null || state.firstSymptomaticVisit != null -> 0
-        state.isDueToday -> 1
-        else -> 2
-    }
 
     private fun openContact(row: ContactRow) {
         val context = requireContext()

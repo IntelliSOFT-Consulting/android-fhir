@@ -2271,7 +2271,7 @@
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/minValue",
-              "valueDecimal": 0.5
+              "valueDecimal": 20
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/maxValue",

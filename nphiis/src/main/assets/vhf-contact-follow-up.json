@@ -719,8 +719,14 @@
       "type": "group",
       "item": [
         {
-          "linkId": "vhf-follow-up-village",
-          "text": "Village",
+          "linkId": "vhf-follow-up-county",
+          "text": "County",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-follow-up-sub-county",
+          "text": "Sub County",
           "type": "string",
           "required": true
         },
@@ -736,14 +742,8 @@
           "type": "string"
         },
         {
-          "linkId": "vhf-follow-up-sub-county",
-          "text": "Sub County",
-          "type": "string",
-          "required": true
-        },
-        {
-          "linkId": "vhf-follow-up-county",
-          "text": "County",
+          "linkId": "vhf-follow-up-village",
+          "text": "Village",
           "type": "string",
           "required": true
         }
