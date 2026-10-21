@@ -457,7 +457,7 @@ class CaseListingActivity : AppCompatActivity() {
         // VHF: Suspected Cases and Contacts are separate lists (VhfListMode).
         val vhfMode = vhfListMode()
         if (vhfMode != VhfListMode.NONE) {
-            filtered = filtered.filter { VhfListMode.matches(vhfMode, it.caseType) }
+            filtered = filtered.filter { VhfListMode.matches(vhfMode, it.caseType, it.contactId) }
         }
         if (currentRole?.isNational == true && selectedCounties.isNotEmpty()) {
             filtered = filtered.filter { hasSelection(it.county, selectedCounties) }
@@ -507,7 +507,7 @@ class CaseListingActivity : AppCompatActivity() {
                 item.caseOnsetDate
             )
 
-            else -> listOf(item.epid, item.name)
+            else -> listOf(item.epid, item.name, item.contactId)
         }
 
         return candidates.any { it.contains(query, ignoreCase = true) }

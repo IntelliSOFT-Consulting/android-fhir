@@ -167,9 +167,19 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         // Answers from the integrated screening system are shown read-only; only the questions
         // left empty can be filled in. (AddParentCaseActivity locks only questions that actually
         // received an answer, so nothing is left empty and blocked.)
-        FormPrefill.stage(this, form, loaded.prefill, locked = loaded.prefill.keys)
+        // The reporting site is the investigating user's (filled from their role and facility),
+        // not the screening point's: the screening record's reporting-site answers are left out.
+        val prefill = loaded.prefill.filterKeys { key -> REPORTING_SITE_IDS.none { key.startsWith(it) } }
+        // Only answers the form accepts are locked: one that breaks a rule (phone format,
+        // minimum weight, …) stays editable, else the form could never be completed.
+        val invalid = runCatching { failingRules(form, prefill) }.getOrDefault(emptySet())
+        if (invalid.isNotEmpty()) Timber.tag("SCREENED_SAVE").w("Left editable (fails the form's rules): %s", invalid)
+        // Date of investigation is only a suggestion: the screening date may not be the day the
+        // investigation happens, so it stays editable.
+        val editable = invalid + FormFields.Vhf.INVESTIGATION_DATE
+        FormPrefill.stage(this, form, prefill, locked = prefill.keys - editable)
         Timber.tag("SCREENED_SAVE").d(
-            "Investigating screened %s with %d pre-filled answers", patientId, loaded.prefill.size
+            "Investigating screened %s with %d pre-filled answers", patientId, prefill.size
         )
         ResidenceLocation.clear(this)
         val next = if (ResidencePickerActivity.ENABLED) {
@@ -184,6 +194,55 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * linkIds of [values] that break their question's rules in [form]: the regex (e.g. phone
+     * number), minValue / maxValue (e.g. weight) or maxLength.
+     */
+    private fun failingRules(form: String, values: Map<String, String>): Set<String> {
+        val root = org.json.JSONObject(assets.open(form).bufferedReader().use { it.readText() })
+        val failing = HashSet<String>()
+        fun numberOf(obj: org.json.JSONObject?): Double? = obj?.let {
+            listOf("valueInteger", "valueDecimal").firstNotNullOfOrNull { key ->
+                if (it.has(key)) it.optDouble(key) else null
+            }
+        }
+        fun visit(items: org.json.JSONArray?) {
+            if (items == null) return
+            for (i in 0 until items.length()) {
+                val item = items.optJSONObject(i) ?: continue
+                val linkId = item.optString("linkId")
+                val value = values[linkId]?.trim()
+                if (value != null) {
+                    val ext = item.optJSONArray("extension")
+                    for (j in 0 until (ext?.length() ?: 0)) {
+                        val e = ext!!.optJSONObject(j) ?: continue
+                        val url = e.optString("url")
+                        when {
+                            url.endsWith("/regex") -> {
+                                val pattern = e.optString("valueString")
+                                if (pattern.isNotBlank() &&
+                                    runCatching { !Regex(pattern).matches(value) }.getOrDefault(false)
+                                ) failing += linkId
+                            }
+                            url.endsWith("/minValue") -> {
+                                val min = numberOf(e); val v = value.toDoubleOrNull()
+                                if (min != null && v != null && v < min) failing += linkId
+                            }
+                            url.endsWith("/maxValue") -> {
+                                val max = numberOf(e); val v = value.toDoubleOrNull()
+                                if (max != null && v != null && v > max) failing += linkId
+                            }
+                        }
+                    }
+                    if (item.has("maxLength") && value.length > item.optInt("maxLength")) failing += linkId
+                }
+                visit(item.optJSONArray("item"))
+            }
+        }
+        visit(root.optJSONArray("item"))
+        return failing
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
             finish()
@@ -196,5 +255,10 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         const val EXTRA_PATIENT_ID = "screenedPatientId"
         const val EXTRA_MOVED_NAME = "screenedMovedName"
         const val PREF_SCREENED_SOURCE = VhfScreened.PREF_SOURCE
+
+        /** Reporting site questions (all role levels) of the case form, by linkId prefix. */
+        private val REPORTING_SITE_IDS = listOf(
+            "user_", "294367770999", "819946803642", "819943434", "819946803677", "438862163919",
+        )
     }
 }

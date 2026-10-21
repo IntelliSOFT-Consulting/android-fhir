@@ -28,6 +28,7 @@ import com.icl.surveillance.fhir.forms.EpidNumber
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.LocalWins
+import com.icl.surveillance.fhir.forms.VhfListMode
 import com.icl.surveillance.fhir.forms.PatientMapper
 import com.icl.surveillance.fhir.forms.ResidenceLocation
 import com.icl.surveillance.fhir.forms.VhfContactTracker
@@ -99,7 +100,6 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
     /** Why the last persistPatientData call failed (exception message), or null. */
     var lastSaveError: String? = null
-        private set
 
     // Parsed once: re-parsing the form JSON on every save was a large source of allocations.
     private val questionnaire: Questionnaire by lazy {
@@ -572,9 +572,15 @@ class AddClientViewModel(application: Application, private val state: SavedState
         questionnaireResponse: QuestionnaireResponse, context: Context
     ) {
         viewModelScope.launch {
-            val result = persistPatientData(questionnaireResponse, context)
-            // Same UI contract as before: only a validation failure reports "not saved".
-            isPatientSaved.value = result != PersistResult.INVALID
+            val result = runCatching { persistPatientData(questionnaireResponse, context) }
+                .getOrElse { e ->
+                    lastSaveError = e.message ?: e.javaClass.simpleName
+                    Timber.tag("CASE_SAVE").e(e, "Saving the case failed")
+                    PersistResult.FAILED
+                }
+            // A failed save is reported as not saved (with the reason), never as success.
+            if (result != PersistResult.FAILED) lastSaveError = null
+            isPatientSaved.value = result == PersistResult.SAVED
         }
     }
 
@@ -608,6 +614,40 @@ class AddClientViewModel(application: Application, private val state: SavedState
      * The screened person's identifiers plus the new case's. The screened marker is renamed to
      * the screening number, so the person leaves the screened list; duplicates are dropped.
      */
+    /**
+     * The screened person's Patient [screened] updated with the case's details [case] (built from
+     * the investigation form): name, sex, birth date, residence, next of kin, practitioner and
+     * facility come from the case when it has them; phone numbers and identifiers are merged;
+     * anything else already on the screened record is kept.
+     */
+    private fun updateScreenedPatient(screened: Patient, case: Patient): Patient {
+        val updated = screened.copy()
+        updated.active = true
+        if (case.hasName()) updated.name = case.name.map { it.copy() }.toMutableList()
+        if (case.hasGender()) updated.gender = case.gender
+        if (case.hasBirthDate()) updated.birthDateElement = case.birthDateElement.copy()
+        if (case.hasAddress()) updated.address = case.address.map { it.copy() }.toMutableList()
+        if (case.hasContact()) updated.contact = case.contact.map { it.copy() }.toMutableList()
+        if (case.hasGeneralPractitioner()) {
+            updated.generalPractitioner = case.generalPractitioner.map { it.copy() }.toMutableList()
+        }
+        updated.telecom = (case.telecom + screened.telecom)
+            .distinctBy { "${it.system}|${it.value?.filter { c -> c.isDigit() }}" }
+            .map { it.copy() }.toMutableList()
+        // Identifiers and links were already merged into the case's Patient.
+        updated.identifier = case.identifier.map { it.copy() }.toMutableList()
+        updated.link = case.link.map { it.copy() }.toMutableList()
+        // The facility (managing location) is the case's; other extensions and tags are kept.
+        fun isFacility(url: String?) = url?.endsWith(FhirSystems.MANAGING_LOCATION_SUFFIX) == true
+        updated.extension = (screened.extension.filterNot { isFacility(it.url) } +
+            case.extension.filter { isFacility(it.url) || screened.extension.none { e -> e.url == it.url } })
+            .map { it.copy() }.toMutableList()
+        updated.meta.tag = (screened.meta.tag.filterNot { isFacility(it.system) } + case.meta.tag)
+            .distinctBy { "${it.system}|${it.code}" }
+            .map { it.copy() }.toMutableList()
+        return updated
+    }
+
     private fun mergeIdentifiers(old: List<Identifier>, new: List<Identifier>): MutableList<Identifier> =
         (old.map { identifier ->
             if (identifier.system in FormFields.Vhf.SCREENED_SYSTEMS) {
@@ -674,6 +714,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
             // already answers of the form (hidden residence-map-* questions); here it is also
             // added to the Patient's address (geolocation) and the response (extension).
             val residence = if (caseOverride == null) ResidenceLocation.take(context) else null
+            // Location answers are named by the Location picked (not a copied-in display).
+            runCatching { com.icl.surveillance.fhir.forms.LocationDisplays.fix(fhirEngine, questionnaireResponse) }
             val extractedAnswers = extractStructuredAnswers(questionnaireResponse, "")
 
 
@@ -940,6 +982,18 @@ class AddClientViewModel(application: Application, private val state: SavedState
                                 ?.let { VhfSourceCases.findByEpid(fhirEngine, it)?.logicalId }
                     pendingContactDayZero =
                         VhfContactTracker.parseDate(answers.answerOf(FormFields.Vhf.CONTACT_DATE))
+                    // A contact gets its contact number (CONTACT_ID) like the HIE's, e.g.
+                    // "KEN-BUS-BUN-2026-VHF-001-C128": the source case's EPID number + "-C". The
+                    // device holds that prefix; the server adds the sequence number (as for EPID).
+                    if (VhfListMode.isContact(answers.answerOf(FormFields.Vhf.CASE_TYPE)) &&
+                        VhfListMode.contactIdOf(patient) == null
+                    ) {
+                        val sourceEpid = pendingContactSource
+                            ?.let { id -> runCatching { fhirEngine.get(ResourceType.Patient, id) as Patient }.getOrNull() }
+                            ?.let { VhfSourceCases.epidOrPartialOf(it) }
+                            ?: VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID))
+                        sourceEpid?.let { patient.addIdentifier(VhfListMode.contactIdentifier(VhfListMode.contactIdPrefix(it))) }
+                    }
                     // Trainings: identifier test_xxxx so practice records stay separate.
                     if (VhfTraining.isOn(context)) VhfTraining.mark(patient)
                     val (county, subCounty) = applyResidence(patient, answers, context)
@@ -1008,6 +1062,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
             withMetaTags(questionnaireResponse)
             return withContext(Dispatchers.IO) {
                 try {
+                    // All of the case is written in one transaction: if any step fails, nothing
+                    // is kept (no half-saved case, and a flagged person stays flagged with their
+                    // screening record intact) and the user is told it was not saved.
+                    fhirEngine.withTransaction {
                     val identifierSystem = Identifier()
                     val typeCodeableConcept = CodeableConcept()
                     val codingList = ArrayList<Coding>()
@@ -1050,9 +1108,12 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         )
                     }
                     if (screeningResponse != null) {
-                        // The screening response becomes the case's response.
+                        // The screening response becomes the case's response. Saved as a full
+                        // replacement (LocalWins): an edit uploaded as a JSON diff of the screening
+                        // form into the case form names paths the server copy lacks (HTTP 400
+                        // HAPI-1272) or an older version (409), and fails the whole upload.
                         questionnaireResponse.id = screeningResponse.logicalId
-                        fhirEngine.update(FhirConformance.ensureRequired(questionnaireResponse))
+                        LocalWins.save(fhirEngine, FhirConformance.ensureRequired(questionnaireResponse))
                     } else {
                         questionnaireResponse.id = generateUuid()
                         fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
@@ -1132,14 +1193,19 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         // Saved as a full replacement (LocalWins): the screening system's copy on
                         // the server may be newer, and a version-checked PATCH would be refused,
                         // leaving the server (and the next download) with the screened marker.
-                        LocalWins.update(fhirEngine, patient)
-                        CaseIdentifierIndex.put(patient)
+                        // The screened person's Patient is updated with the case's details: what
+                        // the investigation recorded replaces the screening details, and
+                        // everything else on the record (other identifiers, phone numbers,
+                        // tags, links) is kept.
+                        val updated = updateScreenedPatient(screened, patient)
+                        LocalWins.update(fhirEngine, updated)
+                        CaseIdentifierIndex.put(updated)
                         FormatterClass().deleteSharedPref(VhfScreened.PREF_SOURCE, context)
                         Timber.tag(SCREENED_LOG).d(
                             "Patient %s is now a VHF case: encounter=%s identifiers=%s county=%s active=%s",
-                            patient.logicalId, encounterId,
-                            patient.identifier.map { "${it.system}=${it.value}" },
-                            patient.addressFirstRep.city, patient.active,
+                            updated.logicalId, encounterId,
+                            updated.identifier.map { "${it.system}=${it.value}" },
+                            updated.addressFirstRep.city, updated.active,
                         )
                     }
                     // VHF contact: add it to its source case's contact Group.
@@ -1147,6 +1213,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         runCatching {
                             ContactGroups.addMember(fhirEngine, sourceId, patient.logicalId, pendingContactDayZero)
                         }.onFailure { Timber.tag(ContactGroups.TAG).e(it, "Could not add %s to the contacts of %s", patient.logicalId, sourceId) }
+                    }
                     }
                     lastSavedCase = patientId to encounterId
                     PersistResult.SAVED
@@ -1205,10 +1272,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
     ): Extension {
         // Resolve facility info asynchronously
         val info = resolveFacilityInfo(context, extractedAnswers)
-            ?: FacilityInfo(
-                name = "Unknown Facility",
-                code = "unknown"
-            )
+            ?: userFallbackFacility(context)
 
         // Build and return Extension with correct data
         return Extension().apply {
@@ -1245,6 +1309,18 @@ class AddClientViewModel(application: Application, private val state: SavedState
         val facilityEntry = extractedAnswers.find { it.linkId == facilityLink }
             ?: return null
 
+        // A facility user reporting from their own facility: its id is known from the login, so
+        // the record is tagged with exactly that facility (no lookup by name).
+        if (userRole?.scope == LocationLevel.FACILITY) {
+            fun pref(key: String) = formatter.getSharedPref(key, context)
+                ?.trim()?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) }
+            val ownId = pref("facility")
+            val ownName = pref("facilityName")
+            if (ownId != null && (ownName == null || ownName.equals(facilityEntry.answer.trim(), ignoreCase = true))) {
+                return FacilityInfo(name = ownName ?: facilityEntry.answer, code = ownId)
+            }
+        }
+
         val cacheKey = "$facilityLink|${facilityEntry.answer}"
         if (facilityInfoCache.containsKey(cacheKey)) return facilityInfoCache[cacheKey]
         val info = lookupFacilityInfo(facilityEntry)
@@ -1261,11 +1337,30 @@ class AddClientViewModel(application: Application, private val state: SavedState
         }
 
         if (results.isEmpty()) return null
-
+        // Several facilities can contain the same words ("Kilifi County Hospital" and
+        // "Kilifi County Hospital Annex"): the one with exactly this name wins.
+        val exact = results.firstOrNull { it.resource.name.equals(facilityEntry.answer.trim(), ignoreCase = true) }
+        if (exact == null && results.size > 1) {
+            Timber.tag("CASE_SAVE").w(
+                "Reporting facility '%s' matches %d facilities and none exactly; using '%s'",
+                facilityEntry.answer, results.size, results.first().resource.name,
+            )
+        }
         return FacilityInfo(
             name = facilityEntry.answer,
-            code = results.first().resource.idPart
+            code = (exact ?: results.first()).resource.idPart
         )
+    }
+
+    /**
+     * When the record's reporting facility cannot be found: the user's own facility (else ward,
+     * sub county, county). Never "Location/unknown": the server refuses the whole upload (404).
+     */
+    private fun userFallbackFacility(context: Context): FacilityInfo {
+        val place = com.icl.surveillance.fhir.forms.ManagingLocation.fallbackFor(context)
+        Timber.tag("CASE_SAVE").w("Reporting facility not found in the answers; using %s", place ?: "none")
+        return place?.let { FacilityInfo(name = it.name ?: "Unknown Facility", code = it.id) }
+            ?: FacilityInfo(name = "Unknown Facility", code = "unknown")
     }
 
     private suspend fun sourceMetaTag(
@@ -1276,10 +1371,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
         ): Coding {
         val info = resolveFacilityInfo(context, extractedAnswers)
-            ?: FacilityInfo(
-                name = "Unknown Facility",
-                code = "unknown"
-            )
+            ?: userFallbackFacility(context)
         return Coding().apply {
             system = FhirSystems.managingLocation(resource)
             code = "Location/${info.code}"

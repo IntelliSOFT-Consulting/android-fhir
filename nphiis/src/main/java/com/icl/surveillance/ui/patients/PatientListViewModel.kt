@@ -1,5 +1,7 @@
 package com.icl.surveillance.ui.patients
 
+import com.icl.surveillance.fhir.forms.latestValueOf
+import com.icl.surveillance.fhir.forms.answerText
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -25,6 +27,7 @@ import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.VhfListMode
 import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
@@ -1087,7 +1090,8 @@ class PatientListViewModel(
                                 data = (batches?.vhfRow(data, logicalId, obs)
                                     ?: processVhfCase(fhirEngine, childEncounter, data, logicalId))
                                     .copy(
-                                        caseType = obs.valueOf(FormFields.Vhf.CASE_TYPE),
+                                        caseType = obs.latestValueOf(FormFields.Vhf.CASE_TYPE),
+                                        contactId = VhfListMode.contactIdOf(fhirPatient.resource).orEmpty(),
                                         contactDate = obs.valueOf(FormFields.Vhf.CONTACT_DATE).take(10),
                                     )
                             }
@@ -1388,7 +1392,7 @@ class PatientListViewModel(
 
                 val county = try {
                     countyLinkIds.firstNotNullOfOrNull { id ->
-                        obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.asStringValue()
+                        obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.answerText()
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -1396,7 +1400,7 @@ class PatientListViewModel(
                 }
                 val subCounty = try {
                     subCountyLinkIds.firstNotNullOfOrNull { id ->
-                        obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.asStringValue()
+                        obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.answerText()
                     }
 
                 } catch (e: Exception) {
@@ -1531,7 +1535,7 @@ class PatientListViewModel(
         val caseType = fhirEngine.search<Observation> {
             filter(Observation.ENCOUNTER, { value = "Encounter/$caseEncounterId" })
             filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.CASE_TYPE }) })
-        }.valueOf(FormFields.Vhf.CASE_TYPE)
+        }.latestValueOf(FormFields.Vhf.CASE_TYPE)
         Timber.tag("VHF_LIST").d("  caseType='%s' -> status='%s'", caseType, result.status)
         if (!caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return result
         val contact = VhfContactTracker.load(fhirEngine, data.resourceId, caseEncounterId)
@@ -1592,7 +1596,7 @@ class PatientListViewModel(
         }
 
         val measlesIgm = obs1.getValue("measles-igm", "Pending")
-        val maxDays = "yes"// obsMap["308128177300"]?.resource?.value?.asStringValue().orEmpty()
+        val maxDays = "yes"// obsMap["308128177300"]?.resource?.value?.answerText().orEmpty()
 
         val classification = when (measlesIgm.lowercase()) {
             "positive" -> if (maxDays.lowercase() == "yes") "Pending" else "Confirmed by lab"
@@ -1609,7 +1613,7 @@ class PatientListViewModel(
     private fun List<SearchResult<Observation>>.getValue(
         code: String, default: String = "Pending"
     ): String {
-        return this.firstOrNull { it.resource.code.codingFirstRep.code == code }?.resource?.value?.asStringValue()
+        return this.firstOrNull { it.resource.code.codingFirstRep.code == code }?.resource?.value?.answerText()
             ?: default
     }
 
@@ -1879,7 +1883,7 @@ class PatientListViewModel(
     private fun findObservationValue(
         observations: List<SearchResult<Observation>>, code: String
     ): String? {
-        return observations.firstOrNull { it.resource.code.codingFirstRep.code == code }?.resource?.value?.asStringValue()
+        return observations.firstOrNull { it.resource.code.codingFirstRep.code == code }?.resource?.value?.answerText()
     }
 
     private fun findFirstAnswer(
@@ -1997,6 +2001,8 @@ class PatientListViewModel(
         val respondentAge: String = "",
         /** VHF: "Type of case" answer (suspected / probable / confirmed / contact). */
         val caseType: String = "",
+        /** VHF contact number assigned by the HIE (identifier CONTACT_ID), when given. */
+        val contactId: String = "",
         /** VHF contacts (Contact List): as captured on the contact form. */
         val contactDate: String = "",
     ) {
@@ -2454,7 +2460,7 @@ class PatientListViewModel(
 
             val contactCases = observations
                 .filterValues { answers ->
-                    answers.valueOf(FormFields.Vhf.CASE_TYPE).equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)
+                    answers.latestValueOf(FormFields.Vhf.CASE_TYPE).equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)
                 }
                 .keys.filter { it.isNotBlank() }
             if (contactCases.isEmpty()) {
@@ -2500,7 +2506,7 @@ class PatientListViewModel(
             specimens?.summaryForCase(data.resourceId, caseEncounterId)?.let { summary ->
                 result = result.copy(labResults = summary.labResults, status = summary.classification)
             }
-            val caseType = caseAnswers.valueOf(FormFields.Vhf.CASE_TYPE)
+            val caseType = caseAnswers.latestValueOf(FormFields.Vhf.CASE_TYPE)
             if (!caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) return result
             val contact = contactStates[caseEncounterId] ?: return result
             return result.copy(status = contact.summary)

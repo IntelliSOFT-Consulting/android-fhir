@@ -197,7 +197,16 @@ object VhfContactTracker {
         val childAnswers = recordsToRead(children).associate { child ->
             child.id to observationsOf(fhirEngine, child.id).map { it.resource }
         }
-        return assemble(caseAnswers, registeredOn(caseEncounter, today), children, childAnswers, today)
+        val state = assemble(caseAnswers, registeredOn(caseEncounter, today), children, childAnswers, today)
+        // No Type of case answer (e.g. a contact registered by the HIE): a record with an HIE
+        // contact number (CONTACT_ID) is a contact.
+        if (state.caseType.isBlank()) {
+            val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull()
+            if (patient != null && VhfListMode.contactIdOf(patient) != null) {
+                return state.copy(caseType = FormFields.Vhf.CASE_TYPE_CONTACT)
+            }
+        }
+        return state
     }
 
     const val LOG_TAG = "CONTACT_FOLLOW_UP"
@@ -259,11 +268,21 @@ object VhfContactTracker {
         }
         if (ownCaseEncounter(hint)) return hint!!
         val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull()
-        val named = patient?.identifier?.firstOrNull { it.system == CaseSlugs.VHF }?.value
-        if (ownCaseEncounter(named)) return named!!
+        // A patient can carry more than one VHF case identifier (e.g. one from the screening
+        // system and the case's own): the newest one that is this patient's record wins.
+        val namedIds = patient?.identifier?.filter { it.system == CaseSlugs.VHF }?.mapNotNull { it.value }.orEmpty()
+        namedIds.asReversed().firstOrNull { ownCaseEncounter(it) }?.let { return it }
+        val named = namedIds.lastOrNull()
         val topLevel = fhirEngine.search<Encounter> {
             filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
-        }.map { it.resource }.firstOrNull { !it.hasPartOf() }?.logicalId
+        }.map { it.resource }
+            .filter { !it.hasPartOf() }
+            .sortedWith(
+                // The VHF case record first, newest first.
+                compareByDescending<Encounter> { it.reasonTitle() == CaseTypes.VHF }
+                    .thenByDescending { it.meta.lastUpdated?.time ?: 0L }
+            )
+            .firstOrNull()?.logicalId
         val resolved = topLevel ?: named ?: hint.orEmpty()
         timber.log.Timber.tag(LOG_TAG).w(
             "Encounter %s not found for patient %s; using %s", hint, patientId, resolved
@@ -371,7 +390,7 @@ object VhfContactTracker {
             .orEmpty()
 
         return ContactFollowUpState(
-            caseType = caseAnswers.valueOf(FormFields.Vhf.CASE_TYPE),
+            caseType = caseAnswers.latestValueOf(FormFields.Vhf.CASE_TYPE),
             exposureDate = exposureDate,
             dayZero = dayZero,
             daysSinceExposure = ChronoUnit.DAYS.between(dayZero, today).toInt(),

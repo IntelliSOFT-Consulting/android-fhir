@@ -189,7 +189,9 @@ data class Notification(
 data class CaseOption(
     val title: String,
     val showCount: Boolean = false,
-    val count: Int = 0
+    val count: Int = 0,
+    /** Icon of the option; null keeps the default. */
+    @androidx.annotation.DrawableRes val icon: Int? = null,
 )
 
 data class SpecimenConfig(

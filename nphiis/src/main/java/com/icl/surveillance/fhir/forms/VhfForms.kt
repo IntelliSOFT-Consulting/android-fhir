@@ -15,8 +15,10 @@ object VhfForms {
      */
     fun stamp(response: QuestionnaireResponse, formFile: String?) {
         if (!FormFields.Vhf.isRegistrationForm(formFile)) return
-        response.meta.tag.removeAll { it.system == FORM_TAG_SYSTEM }
-        response.meta.addTag(Coding().setSystem(FORM_TAG_SYSTEM).setCode(formFile))
+        // Meta.tag may be an immutable listOf(...) (set when the record is tagged with its
+        // facility): always build a new list instead of changing it in place.
+        response.meta.tag = (response.meta.tag.filterNot { it.system == FORM_TAG_SYSTEM } +
+            Coding().setSystem(FORM_TAG_SYSTEM).setCode(formFile)).toMutableList()
     }
 
     fun isStamped(response: QuestionnaireResponse): Boolean =

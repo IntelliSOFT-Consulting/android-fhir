@@ -27,12 +27,31 @@ object ManagingLocation {
     /** Outcome of a repair pass: records checked and corrected, or the error that stopped it. */
     data class RepairResult(val scanned: Int, val fixed: Int, val error: Throwable? = null)
 
-    private const val REPAIR_DONE_PREF = "managingLocationRepairV6"
+    // V7: also "Location/unknown" and "Location/null" (the server answers 404 -> HTTP 500).
+    private const val REPAIR_DONE_PREF = "managingLocationRepairV7"
+
+    /** Placeholder ids that are not Locations on the server. */
+    private val NOT_IDS = setOf("unknown", "null", "undefined")
 
     /** The Location id in "Location/{id}", or null when it is missing or not a plain id. */
     fun idOf(reference: String?): String? =
         reference?.trim()?.removePrefix("Location/")
-            ?.takeIf { it.isNotBlank() && '/' !in it && '?' !in it }
+            ?.takeIf { it.isNotBlank() && '/' !in it && '?' !in it && it.lowercase() !in NOT_IDS }
+
+    /**
+     * Where a record of this user belongs when its reporting facility cannot be found: the user's
+     * facility, else their ward, sub county or county (all real Locations on the server).
+     */
+    fun fallbackFor(context: Context): Place? {
+        val formatter = FormatterClass()
+        fun place(idKey: String, nameKey: String): Place? =
+            idOf(formatter.getSharedPref(idKey, context))?.let { id ->
+                Place(id, formatter.getSharedPref(nameKey, context)
+                    ?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) })
+            }
+        return place("facility", "facilityName") ?: place("ward", "wardName")
+            ?: place("subCounty", "subCountyName") ?: place("county", "countyName")
+    }
 
     /** The user's own facility, when the user has one. */
     fun ofUser(context: Context): Place? {
@@ -142,7 +161,7 @@ object ManagingLocation {
             Log.i(TAG, "Found ${broken.size} record(s) with an empty Location: " +
                 broken.groupingBy { it.resourceType.name }.eachCount())
             broken.forEach { resource ->
-                val place = placeFor(fhirEngine, resource)
+                val place = placeFor(fhirEngine, resource) ?: fallbackFor(context)
                 if (fix(fhirEngine, resource, place)) {
                     fixed++
                     Log.i(TAG, "${resource.resourceType}/${resource.logicalId} -> " +
@@ -199,6 +218,7 @@ object ManagingLocation {
 
     /** An empty Location reference as it appears in a record's JSON. */
     private const val EMPTY_LOCATION_JSON = "\"Location/\""
+    private val PLACEHOLDER_LOCATION_JSON = listOf("\"Location/unknown\"", "\"Location/null\"")
 
     /** The record's pending creation (never uploaded yet), if any. */
     private suspend fun pendingInsert(fhirEngine: FhirEngine, resource: DomainResource): LocalChange? =
@@ -208,7 +228,9 @@ object ManagingLocation {
     /** Broken in the stored copy, or in the version waiting to be uploaded. */
     private suspend fun needsRepair(fhirEngine: FhirEngine, resource: DomainResource): Boolean =
         isBroken(resource) ||
-            pendingInsert(fhirEngine, resource)?.payload?.contains(EMPTY_LOCATION_JSON) == true
+            pendingInsert(fhirEngine, resource)?.payload?.let { payload ->
+                payload.contains(EMPTY_LOCATION_JSON) || PLACEHOLDER_LOCATION_JSON.any { payload.contains(it) }
+            } == true
 
     /**
      * Repairs [resource] and saves it so the correction is uploaded. The SDK does not record

@@ -57,7 +57,12 @@ object LocalWins {
     private suspend fun canReplace(fhirEngine: FhirEngine, resource: Resource): Boolean {
         if (resource !is Patient) return true
         val hasEpid = resource.identifier.any { it.type.codingFirstRep.code == FhirSystems.EPID }
-        if (!hasEpid || VhfSourceCases.epidOf(resource) != null) return true
+        val epidPending = hasEpid && VhfSourceCases.epidOf(resource) == null
+        // Same for a contact number (CONTACT_ID) the server has not completed yet.
+        val contactIdPending = resource.identifier.any {
+            it.system == FhirSystems.CONTACT_ID_SYSTEM && VhfListMode.isIncompleteContactId(it.value)
+        }
+        if (!epidPending && !contactIdPending) return true
         return fhirEngine.getLocalChanges(resource.resourceType, resource.logicalId)
             .any { it.type == LocalChange.Type.INSERT }
     }

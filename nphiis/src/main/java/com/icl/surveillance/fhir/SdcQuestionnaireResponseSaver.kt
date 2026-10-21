@@ -237,6 +237,8 @@ class SdcQuestionnaireResponseSaver(
         extractedAnswers: List<QuestionnaireAnswer>
     ): Coding {
         val info = resolveManagedLocationInfo(extractedAnswers, fallbackFacilityId)
+            ?: com.icl.surveillance.fhir.forms.ManagingLocation.fallbackFor(context)
+                ?.let { FacilityInfo(name = it.name ?: "Unknown Facility", code = it.id) }
             ?: FacilityInfo(name = "Unknown Facility", code = "unknown")
         return Coding().apply {
             system = "http://example.org/fhir/StructureDefinition/$resource-managingLocation"
@@ -250,6 +252,8 @@ class SdcQuestionnaireResponseSaver(
         extractedAnswers: List<QuestionnaireAnswer>
     ): Extension {
         val info = resolveManagedLocationInfo(extractedAnswers, null)
+            ?: com.icl.surveillance.fhir.forms.ManagingLocation.fallbackFor(context)
+                ?.let { FacilityInfo(name = it.name ?: "Unknown Facility", code = it.id) }
             ?: FacilityInfo(name = "Unknown Facility", code = "unknown")
         return Extension().apply {
             url = "http://example.org/fhir/StructureDefinition/$resource-managingLocation"

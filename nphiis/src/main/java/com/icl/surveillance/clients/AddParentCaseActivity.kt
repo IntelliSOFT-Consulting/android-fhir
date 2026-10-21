@@ -465,9 +465,19 @@ class AddParentCaseActivity : AppCompatActivity() {
         label: String
     ): QuestionnaireResponse.QuestionnaireResponseItemComponent {
 
+        // A location missing from the user's profile is saved at login as "null": leave the
+        // question empty for the user to pick, rather than pre-fill a broken "Location/null".
+        val missing = ref.isBlank() || ref.equals("null", ignoreCase = true)
+        if (missing) {
+            Timber.tag(TAG).w("Reporting site %s: no %s on the user's profile", id, label)
+            return QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
+                linkId = id
+                text = label
+            }
+        }
         val reference = Reference().apply {
             reference = "Location/$ref"
-            display = dis
+            display = dis.takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) }
         }
 
         return QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
@@ -745,6 +755,16 @@ class AddParentCaseActivity : AppCompatActivity() {
             // 3. Prepare questionnaire JSON (if it’s very large)
             val questionnaireJson = viewModel.questionnaireJson
 
+            // The form screen crashes on answers it does not accept (e.g. a screening record's
+            // answers carried into the case form): fit them to the form first (FormResponseFit).
+            runCatching {
+                val form = jsonParser.parseResource(Questionnaire::class.java, questionnaireJson)
+                val response = jsonParser.parseResource(QuestionnaireResponse::class.java, questionnaireResponseJson)
+                if (com.icl.surveillance.fhir.forms.FormResponseFit.fit(form, response, "New ${formatter.getSharedPref("questionnaire", this@AddParentCaseActivity)}")) {
+                    questionnaireResponseJson = jsonParser.encodeResourceToString(response)
+                }
+            }.onFailure { Timber.tag(com.icl.surveillance.fhir.forms.FormResponseFit.TAG).e(it, "Could not check the starting answers") }
+
             // 4. Return to main thread for fragment transaction
             withContext(Dispatchers.Main) {
 
@@ -801,7 +821,17 @@ class AddParentCaseActivity : AppCompatActivity() {
             ProgressDialogManager.dismiss()
 
             if (!it) {
-                Toast.makeText(this, "Please Enter all Required Fields.", Toast.LENGTH_SHORT).show()
+                val error = viewModel.lastSaveError
+                if (error != null) {
+                    // The save itself failed (nothing was kept): say so, the form stays open.
+                    AlertDialog.Builder(this)
+                        .setTitle("Not saved")
+                        .setMessage("The case could not be saved, and nothing was recorded. Please try again.\n\nDetails: $error")
+                        .setPositiveButton("OK", null)
+                        .show()
+                } else {
+                    Toast.makeText(this, "Please Enter all Required Fields.", Toast.LENGTH_SHORT).show()
+                }
                 return@observe
             }
             showSuccessDialog(this@AddParentCaseActivity)

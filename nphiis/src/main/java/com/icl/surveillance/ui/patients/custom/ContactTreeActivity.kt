@@ -1,5 +1,6 @@
 package com.icl.surveillance.ui.patients.custom
 
+import com.icl.surveillance.fhir.forms.latestValueOf
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -130,7 +131,7 @@ class ContactTreeActivity : AppCompatActivity() {
         return fhirEngine.search<Observation> {
             filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
             filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.CASE_TYPE }) })
-        }.valueOf(FormFields.Vhf.CASE_TYPE)
+        }.latestValueOf(FormFields.Vhf.CASE_TYPE)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

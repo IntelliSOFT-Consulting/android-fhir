@@ -1044,11 +1044,11 @@
             },
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid mobile number (07xxxxxxxx or +2547xxxxxxxx)"
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^(\\+254[17]\\d{8}|0[17]\\d{8})$"
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
             }
           ],
           "linkId": "760016167922",
@@ -1586,11 +1586,11 @@
             },
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid mobile number (07xxxxxxxx or +2547xxxxxxxx)"
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^(\\+254[17]\\d{8}|0[17]\\d{8})$"
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
             }
           ],
           "item": [

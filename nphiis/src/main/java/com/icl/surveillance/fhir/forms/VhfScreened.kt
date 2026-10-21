@@ -136,7 +136,33 @@ object VhfScreened {
                 .filterValues { it.isNotBlank() }
         }.orEmpty()
 
-        return Details(patient.toRow(), sections, patientPrefill(patient) + fromResponse)
+        return Details(patient.toRow(), sections, checkResidence(engine, patientPrefill(patient) + fromResponse))
+    }
+
+    /**
+     * Residence answers carried in from the screening record must form a chain: the sub county
+     * inside the county, the ward inside the sub county. One that does not (e.g. the county put
+     * in the sub-county answer) is left out, for the investigator to pick.
+     */
+    private suspend fun checkResidence(engine: FhirEngine, values: Map<String, String>): Map<String, String> {
+        fun idOf(key: String) = values[key]?.takeIf { it.startsWith("Location/") }
+            ?.substringAfter("Location/")?.substringBefore("|")?.takeIf { it.isNotBlank() }
+        suspend fun parentOf(id: String) = runCatching {
+            engine.get<org.hl7.fhir.r4.model.Location>(id).partOf?.referenceElement?.idPart
+        }.getOrNull()
+        val result = values.toMutableMap()
+        val county = idOf(FormFields.Residence.COUNTY)
+        val subCounty = idOf(FormFields.Residence.SUB_COUNTY)
+        val ward = idOf(FormFields.Residence.WARD)
+        if (subCounty != null && (subCounty == county || (county != null && parentOf(subCounty) != county))) {
+            Timber.tag("SCREENED_SAVE").w("Screening sub county %s is not in county %s: left for the investigator", subCounty, county)
+            result.remove(FormFields.Residence.SUB_COUNTY)
+            result.remove(FormFields.Residence.WARD)
+        } else if (ward != null && (ward == subCounty || (subCounty != null && parentOf(ward) != subCounty))) {
+            Timber.tag("SCREENED_SAVE").w("Screening ward %s is not in sub county %s: left for the investigator", ward, subCounty)
+            result.remove(FormFields.Residence.WARD)
+        }
+        return result
     }
 
     /**

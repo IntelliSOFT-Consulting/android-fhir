@@ -136,7 +136,9 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
         // VHF Contact List: the columns of the contact form instead of the case columns.
         val isContactList = listingTitle.contains(CONTACT_LIST_TITLE)
         if (isContactList) {
-            this.tvEpidLabel.text = "Contact EPID"
+            // The HIE's contact number (CONTACT_ID), else the EPID number until it arrives.
+            this.tvEpidLabel.text = "Contact ID"
+            this.epid.text = patientItem.contactId.ifBlank { patientItem.epid }
             this.tvDateLabel.text = "Date of Last Contact"
             this.dateReported.text = patientItem.contactDate.ifBlank { "-" }
             // No lab or source-case column on a contact row.

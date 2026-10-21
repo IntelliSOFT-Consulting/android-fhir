@@ -11,6 +11,7 @@ import com.icl.surveillance.utils.FormatterClass
 object VhfListMode {
     const val CASES = "cases"
     const val CONTACTS = "contacts"
+    const val CONFIRMED = "confirmed"
     const val NONE = ""
     private const val PREF = "vhfListMode"
 
@@ -18,13 +19,53 @@ object VhfListMode {
 
     fun get(context: Context): String = FormatterClass().getSharedPref(PREF, context).orEmpty()
 
+    /** The contact number the HIE assigned to [patient] (identifier CONTACT_ID), or null. */
+    fun contactIdOf(patient: org.hl7.fhir.r4.model.Patient): String? =
+        patient.identifier.firstOrNull { identifier ->
+            identifier.system == FhirSystems.CONTACT_ID_SYSTEM ||
+                identifier.type?.coding?.any { it.code == FhirSystems.CONTACT_ID } == true
+        }?.value?.trim()?.takeIf { it.isNotBlank() }
+
+    /** "<source case EPID>-C": the contact number before the server adds the sequence. */
+    fun contactIdPrefix(sourceEpid: String): String = sourceEpid.trim().trimEnd('-') + "-C"
+
+    /** True for a contact number the server has not completed yet (ends with "-C"). */
+    fun isIncompleteContactId(value: String?): Boolean = value?.trim()?.endsWith("-C") == true
+
+    /** A CONTACT_ID identifier as the HIE writes it (use official, type and system CONTACT_ID). */
+    fun contactIdentifier(value: String): org.hl7.fhir.r4.model.Identifier =
+        org.hl7.fhir.r4.model.Identifier().apply {
+            use = org.hl7.fhir.r4.model.Identifier.IdentifierUse.OFFICIAL
+            type = org.hl7.fhir.r4.model.CodeableConcept().addCoding(
+                org.hl7.fhir.r4.model.Coding(FhirSystems.CONTACT_ID_SYSTEM, FhirSystems.CONTACT_ID, "Contact ID")
+            )
+            system = FhirSystems.CONTACT_ID_SYSTEM
+            this.value = value
+        }
+
+    /**
+     * A contact: "Type of case" = Contact. A record with no Type of case answer (e.g. not synced
+     * yet) counts as a contact when the HIE gave it a contact number.
+     */
+    fun isContact(caseType: String?, contactId: String?): Boolean =
+        if (caseType.isNullOrBlank()) !contactId.isNullOrBlank() else isContact(caseType)
+
     fun isContact(caseType: String?): Boolean =
         caseType?.trim().equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)
 
     /** Whether a row of "Type of case" [caseType] belongs in the list [mode]. */
-    fun matches(mode: String, caseType: String?): Boolean = when (mode) {
-        CASES -> !isContact(caseType)
-        CONTACTS -> isContact(caseType)
+    /** "Type of case" = Confirmed. */
+    fun isConfirmed(caseType: String?): Boolean =
+        caseType?.trim().equals(FormFields.Vhf.CASE_TYPE_CONFIRMED, ignoreCase = true)
+
+    /**
+     * VHF lists by Type of case: Suspected (suspected, probable, or not set), Confirmed, and
+     * Contacts. Each record is in exactly one of them.
+     */
+    fun matches(mode: String, caseType: String?, contactId: String? = null): Boolean = when (mode) {
+        CASES -> !isContact(caseType, contactId) && !isConfirmed(caseType)
+        CONFIRMED -> !isContact(caseType, contactId) && isConfirmed(caseType)
+        CONTACTS -> isContact(caseType, contactId)
         else -> true
     }
 }

@@ -58,6 +58,12 @@ class TimestampBasedDownloadWorkManagerImpl(
                 "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
                 "DiagnosticReport?_count=$REPORT_PAGE_SIZE&_sort=_lastUpdated",
                 "Group?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
+                // Records the server creates or changes without touching their Patient (e.g. a
+                // contact registered by the HIE: new Encounter + answers on an existing Patient)
+                // never come through Patient/$everything, which only runs for changed Patients.
+                "Encounter?_count=$ENCOUNTER_PAGE_SIZE&_sort=_lastUpdated",
+                "Observation?_count=$OBSERVATION_PAGE_SIZE&_sort=_lastUpdated",
+                "Specimen?_count=$ENCOUNTER_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
@@ -70,6 +76,8 @@ class TimestampBasedDownloadWorkManagerImpl(
     private var shouldMarkLocationSeedDone = false
 
     private val enqueuedEverythingPatients = mutableSetOf<String>()
+    private val everythingPages = mutableSetOf<String>()
+    private var currentIsEverything = false
     private val seenUrls = mutableSetOf<String>()
 
     private suspend fun seedUrlsIfNeeded() {
@@ -78,6 +86,13 @@ class TimestampBasedDownloadWorkManagerImpl(
         urls.clear()
         tracker.startRun()
         lastResolvedResourceType = null
+
+        // Their own downloads are new: start them from SYNC_START once. (Timestamps saved earlier
+        // for these types came from Patient/$everything and would skip records it never returned.)
+        if (FormatterClass().getSharedPref(TYPE_SYNC_RESET_PREF, context) != "true") {
+            dataStore.clearTimestamps(listOf(ResourceType.Encounter, ResourceType.Observation, ResourceType.Specimen))
+            FormatterClass().saveSharedPref(TYPE_SYNC_RESET_PREF, "true", context)
+        }
 
         val isFirstTimeForLocation = !FormatterClass().isSyncDone(context)
         if (isFirstTimeForLocation) {
@@ -116,6 +131,10 @@ class TimestampBasedDownloadWorkManagerImpl(
                 url = affixLastUpdatedTimestamp(url, it, resourceTypeToDownload)
             }
 
+            // Pages of a Patient/$everything download do not move the per-type timestamps:
+            // they hold only that patient's records, so a later timestamp from them would make
+            // the type's own download skip other records.
+            currentIsEverything = url.contains("\$everything") || url in everythingPages
             return DownloadRequest.of(url)
         }
     }
@@ -175,6 +194,7 @@ class TimestampBasedDownloadWorkManagerImpl(
             }
             val nextUrl = response.link.firstOrNull { it.relation == "next" }?.url
             if (nextUrl != null) {
+                if (currentIsEverything) everythingPages.add(nextUrl)
                 urls.add(nextUrl)
             }
         }
@@ -184,7 +204,7 @@ class TimestampBasedDownloadWorkManagerImpl(
             bundleCollection =
                 response.entry
                     .mapNotNull { it.resource }
-                    .also { extractAndSaveLastUpdateTimestampToFetchFutureUpdates(it) }
+                    .also { if (!currentIsEverything) extractAndSaveLastUpdateTimestampToFetchFutureUpdates(it) }
         }
 
         return bundleCollection
@@ -299,5 +319,10 @@ class TimestampBasedDownloadWorkManagerImpl(
         const val RESPONSE_PAGE_SIZE = 50
         const val REPORT_PAGE_SIZE = 50
         const val GROUP_PAGE_SIZE = 100
+        const val ENCOUNTER_PAGE_SIZE = 100
+        const val OBSERVATION_PAGE_SIZE = 200
+
+        /** Set once the Encounter / Observation / Specimen downloads have started from SYNC_START. */
+        private const val TYPE_SYNC_RESET_PREF = "typeDownloadsResetV1"
     }
 }

@@ -575,11 +575,11 @@
             },
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid mobile number (07xxxxxxxx or +2547xxxxxxxx)"
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^(\\+254[17]\\d{8}|0[17]\\d{8})$"
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
             }
           ]
         },
@@ -710,154 +710,6 @@
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "linkId": "vhf-follow-up-location",
-      "text": "Where the follow up was done (physical visit)",
-      "type": "group",
-      "item": [
-        {
-          "linkId": "vhf-follow-up-county-location",
-          "text": "County",
-          "type": "reference",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof=Location/0&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "linkId": "vhf-follow-up-sub-county-location",
-          "text": "Sub County",
-          "type": "reference",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%followUpCounty}}&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "linkId": "vhf-follow-up-ward-location",
-          "text": "Ward",
-          "type": "reference",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
-              "valueExpression": {
-                "language": "application/x-fhir-query",
-                "expression": "Location?partof={{%followUpSubCounty}}&_sort=name"
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
-              "extension": [
-                {
-                  "url": "path",
-                  "valueString": "name"
-                },
-                {
-                  "url": "forDisplay",
-                  "valueBoolean": true
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "linkId": "vhf-follow-up-town",
-          "text": "Town",
-          "type": "string"
-        },
-        {
-          "linkId": "vhf-follow-up-village",
-          "text": "Village",
-          "type": "string",
-          "required": true
-        },
-        {
-          "linkId": "vhf-follow-up-county",
-          "text": "County",
-          "type": "string",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "vhf-follow-up-sub-county",
-          "text": "Sub County",
-          "type": "string",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "vhf-follow-up-ward",
-          "text": "Ward",
-          "type": "string",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        }
-      ],
-      "enableWhen": [
-        {
-          "question": "vhf-follow-up-approach",
-          "operator": "=",
-          "answerCoding": {
-            "code": "physical-visit",
-            "display": "Physical visit"
-          }
         }
       ]
     }

@@ -86,6 +86,14 @@ object FhirSystems {
     const val EPID = "EPID"
     const val EPID_DISPLAY = "EPID No"
 
+    /**
+     * VHF contact number assigned by the HIE (server), e.g. "KEN-BUS-BUN-2026-VHF-001-C128":
+     * the source case's EPID number plus the contact's sequence. Patient.identifier with this
+     * system (type code CONTACT_ID).
+     */
+    const val CONTACT_ID_SYSTEM = "http://hie.org/identifiers/CONTACT_ID"
+    const val CONTACT_ID = "CONTACT_ID"
+
     private const val STRUCTURE_DEFINITION_BASE = "http://example.org/fhir/StructureDefinition/"
     const val MANAGING_LOCATION_SUFFIX = "-managingLocation"
 
@@ -244,6 +252,7 @@ object FormFields {
         // ---- Contact follow-up. A contact is a VHF record whose "Type of case" is Contact; it is
         // followed for 21 days from the date of contact (day 0), per the CIF / data dictionary.
         const val CASE_TYPE_CONTACT = "Contact"
+        const val CASE_TYPE_CONFIRMED = "Confirmed"
         const val FOLLOW_UP_WINDOW_DAYS = 21
 
         /** Daily follow-up (dictionary contact_follow_up, repeatable: one record per day 0-21). */

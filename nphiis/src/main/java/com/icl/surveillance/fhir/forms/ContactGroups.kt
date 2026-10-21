@@ -151,7 +151,7 @@ object ContactGroups {
         if (answers.isEmpty()) return 0
         val epidByContact = answers.mapNotNull { obs ->
             val contactId = obs.subject?.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
-            val epid = VhfSourceCases.epidFrom(obs.value?.asStringValue()) ?: return@mapNotNull null
+            val epid = VhfSourceCases.epidFrom(obs.value?.answerText()) ?: return@mapNotNull null
             contactId to epid
         }.toMap()
         val sourceByEpid = HashMap<String, String?>()
@@ -175,7 +175,7 @@ object ContactGroups {
             filter(Observation.SUBJECT, { value = "Patient/$contactId" })
             filter(Observation.CODE, { value = of(FormFields.Vhf.CONTACT_DATE) })
         }.map { it.resource }
-            .firstNotNullOfOrNull { obs -> VhfContactTracker.parseDate(obs.value?.asStringValue()) }
+            .firstNotNullOfOrNull { obs -> VhfContactTracker.parseDate(obs.value?.answerText()) }
 
     // ---- Old links (Patient.link, type see-also), read until migrated.
 

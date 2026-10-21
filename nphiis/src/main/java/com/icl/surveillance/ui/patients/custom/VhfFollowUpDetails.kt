@@ -1,5 +1,6 @@
 package com.icl.surveillance.ui.patients.custom
 
+import com.icl.surveillance.fhir.forms.answerText
 import android.content.Context
 import android.graphics.Typeface
 import android.view.ViewGroup
@@ -56,7 +57,7 @@ object VhfFollowUpDetails {
             .filter { it.status != Observation.ObservationStatus.ENTEREDINERROR }
             .groupBy { it.code.codingFirstRep.code.orEmpty() }
             .mapValues { (_, list) ->
-                list.mapNotNull { it.value?.asStringValue()?.trim()?.takeIf(String::isNotBlank) }.distinct()
+                list.mapNotNull { it.value?.answerText()?.trim()?.takeIf(String::isNotBlank) }.distinct()
             }
             .filterValues { it.isNotEmpty() }
 

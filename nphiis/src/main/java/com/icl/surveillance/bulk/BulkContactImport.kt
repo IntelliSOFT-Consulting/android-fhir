@@ -1,5 +1,6 @@
 package com.icl.surveillance.bulk
 
+import com.icl.surveillance.fhir.forms.latestValueOf
 import android.content.Context
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
@@ -322,7 +323,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
         return fhirEngine.search<Observation> {
             filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
             filter(Observation.CODE, { value = of(Coding().apply { code = FormFields.Vhf.CASE_TYPE }) })
-        }.valueOf(FormFields.Vhf.CASE_TYPE)
+        }.latestValueOf(FormFields.Vhf.CASE_TYPE)
     }
 
     /** The source case's disease answer (Ebola, Marburg...), as a choice of the form. */

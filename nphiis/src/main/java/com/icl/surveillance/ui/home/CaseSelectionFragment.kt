@@ -252,30 +252,33 @@ class CaseSelectionFragment : Fragment() {
             }
         val caseOptions =
             mutableListOf(CaseOption(add), CaseOption(view, showCount = true, count = 0))
-        // VHF: adding a suspected case is hidden here until confirmed; it lives in the ⋮ menu
-        // of the Suspected Cases list instead (CaseListingActivity).
-        if (title == "VHF") caseOptions.removeAt(0)
-        val viewIndex = caseOptions.indexOfFirst { it.title == view }
-        // VHF only: contacts are listed on their own, apart from the suspected cases.
-        val contactsIndex = if (title == "VHF") {
-            caseOptions.add(CaseOption(VHF_CONTACTS, showCount = true, count = 0))
-            caseOptions.lastIndex
-        } else -1
-        // VHF only: people screened at points of entry etc., waiting for a case investigation.
-        val screenedIndex = if (title == "VHF") {
-            caseOptions.add(CaseOption(SCREENED_CASES, showCount = true, count = 0))
-            caseOptions.lastIndex
-        } else -1
+        // VHF: a 2-column grid of the lists by Type of case: Suspected, Confirmed, Contacts and
+        // Flagged (screened people awaiting investigation). Adding a suspected case is in the
+        // ⋮ menu (hidden here until confirmed).
+        val isVhf = title == "VHF"
+        if (isVhf) {
+            caseOptions.clear()
+            caseOptions += CaseOption(VHF_LIST, showCount = true, icon = R.drawable.ic_vhf_warning)
+            caseOptions += CaseOption(VHF_CONFIRMED, showCount = true, icon = R.drawable.ic_vhf_check_circle)
+            caseOptions += CaseOption(VHF_CONTACTS, showCount = true, icon = R.drawable.people)
+            caseOptions += CaseOption(SCREENED_CASES, showCount = true, icon = R.drawable.ic_vhf_info)
+        }
+        val viewIndex = caseOptions.indexOfFirst { it.title == (if (isVhf) VHF_LIST else view) }
+        val confirmedIndex = caseOptions.indexOfFirst { it.title == VHF_CONFIRMED }
+        val contactsIndex = caseOptions.indexOfFirst { it.title == VHF_CONTACTS }
+        val screenedIndex = caseOptions.indexOfFirst { it.title == SCREENED_CASES }
 
         // VHF and VHF Training share the VHF workflow; the mode decides which records are listed
         // and whether new ones are marked as training (test_xxxx).
         if (title == "VHF" || title == "VHF Training") VhfTraining.setOn(requireContext(), title == "VHF Training")
 
         val recyclerView = requireView().findViewById<RecyclerView>(R.id.sdcLayoutsRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.layoutManager =
+            if (isVhf) androidx.recyclerview.widget.GridLayoutManager(requireContext(), 2)
+            else LinearLayoutManager(requireContext())
         FormatterClass().deleteSharedPref("selected_option", requireContext())
         recyclerView.adapter =
-            CaseOptionsAdapter(caseOptions) { option ->
+            CaseOptionsAdapter(caseOptions, asTiles = isVhf) { option ->
                 when (option.title) {
                     "Add New Team Record" -> {
                         val currentCase = "Mpox - Tally Sheet"
@@ -627,13 +630,24 @@ class CaseSelectionFragment : Fragment() {
                         )
                     }
 
-                    VHF_LIST, VHF_CONTACTS -> {
+                    VHF_LIST, VHF_CONFIRMED, VHF_CONTACTS -> {
                         VhfTraining.setOn(requireContext(), false)
                         VhfListMode.set(
                             requireContext(),
-                            if (option.title == VHF_CONTACTS) VhfListMode.CONTACTS else VhfListMode.CASES,
+                            when (option.title) {
+                                VHF_CONTACTS -> VhfListMode.CONTACTS
+                                VHF_CONFIRMED -> VhfListMode.CONFIRMED
+                                else -> VhfListMode.CASES
+                            },
                         )
-                        FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
+                        // The list screens keep their full titles (the Contact List columns
+                        // depend on "Contact List").
+                        val listingTitle = when (option.title) {
+                            VHF_CONTACTS -> "Contact List"
+                            VHF_CONFIRMED -> "Confirmed Cases"
+                            else -> "Suspected Cases"
+                        }
+                        FormatterClass().saveSharedPref("listingTitle", " $listingTitle", requireContext())
                         FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
                         startActivity(Intent(requireContext(), CaseListingActivity::class.java))
                     }
@@ -896,12 +910,15 @@ class CaseSelectionFragment : Fragment() {
                                     roleScope, storedCounty, storedSubCounty
                                 )
                                 if (contactsIndex >= 0 && contactsIndex < caseOptions.size) {
-                                    // VHF: suspected cases and contacts are counted apart.
-                                    val (contacts, suspected) = cases.partition { case ->
-                                        VhfListMode.isContact(case.caseType)
+                                    // VHF: suspected, confirmed and contacts are counted apart.
+                                    fun count(mode: String) = scoped(cases.filter { case ->
+                                        VhfListMode.matches(mode, case.caseType, case.contactId)
+                                    })
+                                    caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = count(VhfListMode.CASES))
+                                    if (confirmedIndex >= 0) {
+                                        caseOptions[confirmedIndex] = caseOptions[confirmedIndex].copy(count = count(VhfListMode.CONFIRMED))
                                     }
-                                    caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = scoped(suspected))
-                                    caseOptions[contactsIndex] = caseOptions[contactsIndex].copy(count = scoped(contacts))
+                                    caseOptions[contactsIndex] = caseOptions[contactsIndex].copy(count = count(VhfListMode.CONTACTS))
                                 } else {
                                     caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = scoped(cases))
                                 }
@@ -1071,11 +1088,13 @@ class CaseSelectionFragment : Fragment() {
         private const val ALERT_LOG_TITLE = "Alert Log"
         private const val ADD_ALERT = "Add New Alert"
         private const val ALERT_LOG_LIST = "Alert Log List"
-        private const val SCREENED_CASES = "Flagged Cases"
+        private const val SCREENED_CASES = "Flagged"
         /** VHF module options (meeting 20 Oct 2026: VHF cases are listed as Suspected Cases). */
         private const val VHF_ADD = "Add New Suspected Case"
-        private const val VHF_LIST = "Suspected Cases"
-        private const val VHF_CONTACTS = "Contact List"
+        // VHF module tiles (meeting 21 Oct 2026): Suspected, Confirmed, Contacts, Flagged.
+        private const val VHF_LIST = "Suspected"
+        private const val VHF_CONFIRMED = "Confirmed"
+        private const val VHF_CONTACTS = "Contacts"
 
         /**
          * Use this factory method to create a new instance of this fragment using the provided

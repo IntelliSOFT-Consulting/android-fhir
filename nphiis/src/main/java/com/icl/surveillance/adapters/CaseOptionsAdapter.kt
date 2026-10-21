@@ -12,6 +12,8 @@ import com.icl.surveillance.models.CaseOption
 
 class CaseOptionsAdapter(
     private val items: List<CaseOption>,
+    /** Tiles for a grid (e.g. the VHF module's 2 columns) instead of full-width rows. */
+    private val asTiles: Boolean = false,
     private val onItemClick: (CaseOption) -> Unit
 ) : RecyclerView.Adapter<CaseOptionsAdapter.ViewHolder>() {
     private var lastPosition = -1
@@ -27,9 +29,10 @@ class CaseOptionsAdapter(
             if (item.showCount) {
                 countContainer.visibility = View.VISIBLE
                 countText.text = item.count.toString()
-                iconImage.setImageResource(R.drawable.received)
+                iconImage.setImageResource(item.icon ?: R.drawable.received)
             } else {
                 countContainer.visibility = View.GONE
+                item.icon?.let { iconImage.setImageResource(it) }
             }
 
             itemView.setOnClickListener {
@@ -40,7 +43,7 @@ class CaseOptionsAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_case_option, parent, false)
+            .inflate(if (asTiles) R.layout.item_case_option_tile else R.layout.item_case_option, parent, false)
         return ViewHolder(view)
     }
 

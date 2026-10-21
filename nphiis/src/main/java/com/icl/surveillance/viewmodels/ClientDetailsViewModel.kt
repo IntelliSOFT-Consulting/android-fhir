@@ -1,5 +1,6 @@
 package com.icl.surveillance.viewmodels
 
+import com.icl.surveillance.fhir.forms.latestValueOf
 import android.app.Application
 import android.content.res.Resources
 import android.icu.text.DateFormat
@@ -308,7 +309,12 @@ class ClientDetailsViewModel(
                         runCatching {
                             CaseResponse.find(fhirEngine, patientId, caseEncounterId)
                         }.getOrNull()?.let { response ->
-                            val fromForm = answersOf(response.item)
+                            val fromForm = answersOf(response.item).toMutableMap()
+                            // Type of case can be updated as an Observation only (e.g. Confirmed
+                            // set by the HIE / lab without changing the form): the newest
+                            // Observation wins over the form for it.
+                            val observedType = obs.latestValueOf(FormFields.Vhf.CASE_TYPE)
+                            if (observedType.isNotBlank()) fromForm[FormFields.Vhf.CASE_TYPE] = observedType
                             observations.removeAll { it.code in fromForm.keys }
                             fromForm.forEach { (code, value) ->
                                 observations.add(

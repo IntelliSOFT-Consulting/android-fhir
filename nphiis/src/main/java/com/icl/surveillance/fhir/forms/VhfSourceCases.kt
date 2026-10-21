@@ -83,7 +83,7 @@ object VhfSourceCases {
             .groupBy { obs -> obs.subject.reference?.let { IdType(it).idPart } }
             .mapNotNull { (patientId, answers) ->
                 val latest = answers.maxByOrNull { maxOf(it.issued?.time ?: 0L, it.meta.lastUpdated?.time ?: 0L) }
-                val type = latest?.value?.asStringValue()?.trim().orEmpty()
+                val type = latest?.value?.answerText()?.trim().orEmpty()
                 if (patientId.isNullOrBlank() || type.lowercase() !in SOURCE_CASE_TYPES) null
                 else patientId to type.replaceFirstChar { it.uppercase() }
             }

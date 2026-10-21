@@ -139,6 +139,10 @@ class EditSupervisorChecklistViewModel(
         FormPrefill.upgradeDateAnswers(questionnaire, questionnaireResponse)
         // Questions changed from typed text to a list (e.g. travel origin country).
         FormPrefill.upgradeTextToChoiceAnswers(questionnaire, questionnaireResponse)
+        // Saved answers the form would refuse (crash on) are fitted to it first.
+        runCatching {
+            com.icl.surveillance.fhir.forms.FormResponseFit.fit(questionnaire, questionnaireResponse, "Edit ${this.questionnaire}")
+        }.onFailure { Timber.tag(com.icl.surveillance.fhir.forms.FormResponseFit.TAG).e(it, "Could not check the saved answers") }
 
         // Convert the existing QuestionnaireResponse to JSON string
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
@@ -246,6 +250,13 @@ class EditSupervisorChecklistViewModel(
             }
             questionnaireResponse.id = responseId
             keepRecordLinks(from = original, to = questionnaireResponse)
+            // Location answers are named by the Location picked (not a copied-in display).
+            val renamed = runCatching {
+                com.icl.surveillance.fhir.forms.LocationDisplays.fix(fhirEngine, questionnaireResponse)
+            }.getOrDefault(0)
+            val responseString = if (renamed > 0) {
+                FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().encodeResourceToString(questionnaireResponse)
+            } else questionnaireResponseString
             // VHF: the form it is now saved with (e.g. a contact converted in the case form).
             com.icl.surveillance.fhir.forms.VhfForms.stamp(questionnaireResponse, questionnaire)
             // Full replacement, not a PATCH: a JSON diff of an edited response (pages shown or
@@ -263,7 +274,7 @@ class EditSupervisorChecklistViewModel(
                         val patientId = original.subject.referenceElement.idPart ?: return@runCatching
                         updateAnswerObservations(
                             original, patientId,
-                            extractStructuredAnswers(questionnaireResponse, questionnaireResponseString),
+                            extractStructuredAnswers(questionnaireResponse, responseString),
                             questionnaire!!,
                         )
                         // Converted contact: its follow up as a contact ends today.
@@ -280,7 +291,7 @@ class EditSupervisorChecklistViewModel(
             isResourcesSaved.value = true
             if (isCaseForm && questionnaire != null) {
                 startBackgroundProcessing(
-                    original, questionnaireResponse, questionnaireResponseString, questionnaire,
+                    original, questionnaireResponse, responseString, questionnaire,
                     answersDone = answersFirst,
                 )
             }

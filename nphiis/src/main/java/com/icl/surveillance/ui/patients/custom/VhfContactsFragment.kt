@@ -152,7 +152,9 @@ class VhfContactsFragment : Fragment() {
                 patientId = id,
                 encounterId = encounterId,
                 name = patient.nameFirstRep.nameAsSingleString.ifBlank { "Unnamed contact" },
-                epid = patient.identifier.firstOrNull { it.type.codingFirstRep.code == "EPID" }?.value.orEmpty(),
+                // The HIE's contact number (CONTACT_ID), else the EPID number until it arrives.
+                epid = com.icl.surveillance.fhir.forms.VhfListMode.contactIdOf(patient)
+                    ?: patient.identifier.firstOrNull { it.type.codingFirstRep.code == "EPID" }?.value.orEmpty(),
                 state = VhfContactTracker.load(fhirEngine, id, encounterId),
                 registeredAt = registeredAt(encounter, patient),
             )
