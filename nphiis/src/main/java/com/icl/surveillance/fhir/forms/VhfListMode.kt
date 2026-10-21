@@ -4,7 +4,7 @@ import android.content.Context
 import com.icl.surveillance.utils.FormatterClass
 
 /**
- * VHF module lists: "Suspected Cases" (suspected / probable / confirmed) and "Contacts" are
+ * VHF module lists: "Suspected Cases" (suspected / probable / confirmed) and "Contact List" are
  * listed separately so contacts are not mixed in with cases. Set when a list is opened from the
  * VHF menu; VHF Training lists show everything (no split).
  */

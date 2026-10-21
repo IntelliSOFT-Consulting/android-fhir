@@ -1075,7 +1075,7 @@ class CaseSelectionFragment : Fragment() {
         /** VHF module options (meeting 20 Oct 2026: VHF cases are listed as Suspected Cases). */
         private const val VHF_ADD = "Add New Suspected Case"
         private const val VHF_LIST = "Suspected Cases"
-        private const val VHF_CONTACTS = "Contacts"
+        private const val VHF_CONTACTS = "Contact List"
 
         /**
          * Use this factory method to create a new instance of this fragment using the provided

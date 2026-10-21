@@ -175,17 +175,100 @@ object VhfContactTracker {
         caseEncounterId: String,
         today: LocalDate = LocalDate.now(),
     ): ContactFollowUpState? {
-        val caseEncounter = runCatching { fhirEngine.get<Encounter>(caseEncounterId) }.getOrNull()
-            ?: return null
-        val caseAnswers = observationsOf(fhirEngine, caseEncounterId).map { it.resource }
+        val encounterId = resolveCaseEncounterId(fhirEngine, patientId, caseEncounterId)
+        val caseEncounter = runCatching { fhirEngine.get<Encounter>(encounterId) }.getOrNull()
+        val caseAnswers = observationsOf(fhirEngine, encounterId).map { it.resource }
+        if (caseEncounter == null && caseAnswers.isEmpty()) {
+            timber.log.Timber.tag(LOG_TAG).w(
+                "No case record on this device for patient %s (encounter %s): not synced yet?",
+                patientId, caseEncounterId,
+            )
+            return null
+        }
+        if (caseEncounter == null) {
+            // The answers are here but the Encounter itself is not (e.g. not downloaded yet):
+            // the schedule is built from the answers, counting from the date of contact.
+            timber.log.Timber.tag(LOG_TAG).w("Encounter %s missing; using its answers only", encounterId)
+        }
         val children = fhirEngine.search<Encounter> {
             filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
-            filter(Encounter.PART_OF, { value = "Encounter/$caseEncounterId" })
+            filter(Encounter.PART_OF, { value = "Encounter/$encounterId" })
         }.map { ChildRecord(it.resource.logicalId, it.resource.reasonTitle(), it.resource.createdAt()) }
         val childAnswers = recordsToRead(children).associate { child ->
             child.id to observationsOf(fhirEngine, child.id).map { it.resource }
         }
         return assemble(caseAnswers, registeredOn(caseEncounter, today), children, childAnswers, today)
+    }
+
+    const val LOG_TAG = "CONTACT_FOLLOW_UP"
+
+    /**
+     * Data check (Logcat tag CONTACT_FOLLOW_UP): how [patientId]'s record is stored on this
+     * phone, to tell a wrong link from unclean data. Lists the Patient's identifiers, every
+     * Encounter of the patient (partOf, reason, answer count), what [encounterId] points to and
+     * whose answers sit on it.
+     */
+    suspend fun logRecord(fhirEngine: FhirEngine, patientId: String, encounterId: String?) {
+        val log = timber.log.Timber.tag(LOG_TAG)
+        val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull()
+        log.i("== Record check: patient %s (%s)", patientId, patient?.nameFirstRep?.nameAsSingleString ?: "NOT ON DEVICE")
+        patient?.identifier?.forEach { log.i("   identifier %s = %s", it.system ?: it.type?.codingFirstRep?.code, it.value) }
+        fhirEngine.search<Encounter> { filter(Encounter.SUBJECT, { value = "Patient/$patientId" }) }
+            .map { it.resource }.forEach { e ->
+                val answers = observationsOf(fhirEngine, e.logicalId).size
+                log.i(
+                    "   encounter %s reason=%s partOf=%s answers=%d",
+                    e.logicalId, e.reasonTitle(), e.partOf?.reference ?: "-", answers,
+                )
+            }
+        if (!encounterId.isNullOrBlank()) {
+            val opened = runCatching { fhirEngine.get<Encounter>(encounterId) }.getOrNull()
+            log.i(
+                "   opened encounter %s -> %s", encounterId,
+                opened?.let { "subject=${it.subject?.reference} partOf=${it.partOf?.reference ?: "-"} reason=${it.reasonTitle()}" }
+                    ?: "NOT ON DEVICE",
+            )
+            val subjects = observationsOf(fhirEngine, encounterId).map { it.resource.subject?.reference }
+                .groupingBy { it }.eachCount()
+            log.i("   answers on it, by patient: %s", subjects)
+        }
+        val source = patient?.let { runCatching { ContactGroups.sourceOf(fhirEngine, it) }.getOrNull() }
+        log.i("   source case (contact Group): %s", source ?: "-")
+    }
+
+    /**
+     * The contact's case Encounter id: [hint] (the record that was opened) when it exists on the
+     * device, else the one named on the Patient (VHF case identifier), else the patient's
+     * top-level Encounter. Guards against a stale or wrong "encounterId" preference.
+     */
+    suspend fun resolveCaseEncounterId(fhirEngine: FhirEngine, patientId: String, hint: String?): String {
+        // Only this patient's own registration Encounter will do: one of another record (e.g.
+        // the source case's) or a follow-up visit (partOf another Encounter) is the wrong one.
+        suspend fun ownCaseEncounter(id: String?): Boolean {
+            if (id.isNullOrBlank()) return false
+            val encounter = runCatching { fhirEngine.get<Encounter>(id) }.getOrNull() ?: return false
+            val subject = encounter.subject?.referenceElement?.idPart
+            val ok = subject == patientId && !encounter.hasPartOf()
+            if (!ok) {
+                timber.log.Timber.tag(LOG_TAG).w(
+                    "Encounter %s is not patient %s's case record (subject %s, partOf %s)",
+                    id, patientId, subject, encounter.partOf?.reference,
+                )
+            }
+            return ok
+        }
+        if (ownCaseEncounter(hint)) return hint!!
+        val patient = runCatching { fhirEngine.get<Patient>(patientId) }.getOrNull()
+        val named = patient?.identifier?.firstOrNull { it.system == CaseSlugs.VHF }?.value
+        if (ownCaseEncounter(named)) return named!!
+        val topLevel = fhirEngine.search<Encounter> {
+            filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
+        }.map { it.resource }.firstOrNull { !it.hasPartOf() }?.logicalId
+        val resolved = topLevel ?: named ?: hint.orEmpty()
+        timber.log.Timber.tag(LOG_TAG).w(
+            "Encounter %s not found for patient %s; using %s", hint, patientId, resolved
+        )
+        return resolved
     }
 
     /** A follow-up or monitoring record of a contact (a child Encounter of its case encounter). */
@@ -295,10 +378,9 @@ object VhfContactTracker {
             visits = visits,
             monitoringStatus = monitoringStatus,
             residence = mapOf(
+                // County / sub county / ward are location picks, pre-filled from the contact's
+                // record when the form opens (VhfContactActions.residenceLocations).
                 FormFields.Vhf.FOLLOW_UP_VILLAGE to caseAnswers.valueOf(FormFields.Vhf.VILLAGE),
-                FormFields.Vhf.FOLLOW_UP_WARD to caseAnswers.valueOf(FormFields.Residence.WARD),
-                FormFields.Vhf.FOLLOW_UP_SUB_COUNTY to caseAnswers.valueOf(FormFields.Residence.SUB_COUNTY),
-                FormFields.Vhf.FOLLOW_UP_COUNTY to caseAnswers.valueOf(FormFields.Residence.COUNTY),
             ).filterValues { it.isNotBlank() && !it.startsWith("Location/") },
         )
     }

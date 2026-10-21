@@ -274,6 +274,11 @@ object FormFields {
         const val FOLLOW_UP_WARD = "vhf-follow-up-ward"
         const val FOLLOW_UP_SUB_COUNTY = "vhf-follow-up-sub-county"
         const val FOLLOW_UP_COUNTY = "vhf-follow-up-county"
+        /** Where the follow up was done, picked from the location lists (county > sub county > ward).
+         *  The text versions above are kept hidden for follow ups saved before. */
+        const val FOLLOW_UP_COUNTY_LOCATION = "vhf-follow-up-county-location"
+        const val FOLLOW_UP_SUB_COUNTY_LOCATION = "vhf-follow-up-sub-county-location"
+        const val FOLLOW_UP_WARD_LOCATION = "vhf-follow-up-ward-location"
         /** Paper form: a temperature at or above this (°C) is fever, so the day is marked X. */
         const val FEVER_THRESHOLD_C = 38.0
         const val STATUS_DIED_CODE = "died"
@@ -303,6 +308,8 @@ object FormFields {
         const val CHECKED_BY_EMAIL = "vhf-checked-by-email"
         const val DATE_CHECKED = "vhf-date-checked"
         const val CASE_TYPE_SUSPECTED_CODE = "suspected"
+        /** Case form: date of investigation (contact form: date of listing). */
+        const val INVESTIGATION_DATE = "vhf-investigation-date"
 
         /** Case-form fields used to register a contact from its source case. */
         const val EXPOSURE_TYPE = "vhf-exposure-type"

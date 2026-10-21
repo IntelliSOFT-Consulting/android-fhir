@@ -39,19 +39,62 @@ object VhfContactActions {
         // Demo mode dates every follow up today (the form does not accept future dates).
         val date = if (day == state.daysSinceExposure || VhfDemoMode.enabled) LocalDate.now()
         else state.dateOfDay(day)
-        openChildForm(
-            context,
-            FormFields.Vhf.CONTACT_FOLLOW_UP_FORM,
-            FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE,
-            buildMap {
-                put(FormFields.Vhf.FOLLOW_UP_DAY, day.toString())
-                put(FormFields.Vhf.FOLLOW_UP_DATE, date.toString())
-                // Paper form header: the volunteer / CHP (the logged-in user) and where the
-                // follow up was done (the contact's residence); both can be corrected.
-                putAll(tracerDetails(context))
-                putAll(state.residence)
+        val values = buildMap {
+            put(FormFields.Vhf.FOLLOW_UP_DAY, day.toString())
+            put(FormFields.Vhf.FOLLOW_UP_DATE, date.toString())
+            // Paper form header: the volunteer / CHP (the logged-in user) and where the
+            // follow up was done (the contact's residence); both can be corrected.
+            putAll(tracerDetails(context))
+            putAll(state.residence)
+        }
+        val scope = lifecycleOwnerOf(context)?.lifecycleScope
+        if (scope == null) {
+            openChildForm(context, FormFields.Vhf.CONTACT_FOLLOW_UP_FORM, FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE, values)
+            return
+        }
+        scope.launch {
+            val locations = withContext(Dispatchers.IO) {
+                runCatching { residenceLocations(context) }.getOrDefault(emptyMap())
             }
+            openChildForm(
+                context,
+                FormFields.Vhf.CONTACT_FOLLOW_UP_FORM,
+                FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE,
+                values + locations,
+            )
+        }
+    }
+
+    /**
+     * The contact's residence county, sub county and ward as picked on its registration form
+     * (location references), for the follow-up form's location lists.
+     */
+    private suspend fun residenceLocations(context: Context): Map<String, String> {
+        val formatter = FormatterClass()
+        val patientId = formatter.getSharedPref("patientIdParent", context)?.takeIf { it.isNotBlank() }
+            ?: return emptyMap()
+        val encounterId = formatter.getSharedPref("encounterId", context)
+        val response = CaseResponse.find(FhirApplication.fhirEngine(context), patientId, encounterId)
+            ?: return emptyMap()
+        val targets = mapOf(
+            FormFields.Residence.COUNTY to FormFields.Vhf.FOLLOW_UP_COUNTY_LOCATION,
+            FormFields.Residence.SUB_COUNTY to FormFields.Vhf.FOLLOW_UP_SUB_COUNTY_LOCATION,
+            FormFields.Residence.WARD to FormFields.Vhf.FOLLOW_UP_WARD_LOCATION,
         )
+        val result = HashMap<String, String>()
+        fun visit(items: List<org.hl7.fhir.r4.model.QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                targets[item.linkId]?.let { target ->
+                    val ref = item.answer.firstOrNull()?.value as? org.hl7.fhir.r4.model.Reference
+                    val id = ref?.referenceElement?.idPart
+                    if (!id.isNullOrBlank()) result[target] = FormPrefill.locationReference(id, ref.display)
+                }
+                visit(item.item)
+                item.answer.forEach { visit(it.item) }
+            }
+        }
+        visit(response.item)
+        return result
     }
 
     /** "Checked by" name and email (the logged-in user) and today's date, for the Official section. */

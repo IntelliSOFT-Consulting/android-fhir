@@ -133,9 +133,21 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
             }
         }
 
+        // VHF Contact List: the columns of the contact form instead of the case columns.
+        val isContactList = listingTitle.contains(CONTACT_LIST_TITLE)
+        if (isContactList) {
+            this.tvEpidLabel.text = "Contact EPID"
+            this.tvDateLabel.text = "Date of Last Contact"
+            this.dateReported.text = patientItem.contactDate.ifBlank { "-" }
+            // No lab or source-case column on a contact row.
+            this.tvLabLabel.visibility = View.GONE
+            this.labResults.visibility = View.GONE
+            this.tvFinalClassificationLabel.text = "Follow-up Status"
+        }
+
         var final = patientItem.status
 
-        if (patientItem.caseList.trim() != "Case") {
+        if (!isContactList && patientItem.caseList.trim() != "Case") {
             this.tvLabLabel.visibility = View.INVISIBLE
             this.labResults.visibility = View.INVISIBLE
             final = "Confirmed by EPI Linkage"
@@ -188,6 +200,11 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
             println("Invalid date format: ${e.message}")
             ""
         }
+    }
+
+    companion object {
+        /** Listing title of the VHF contacts list (CaseSelectionFragment). */
+        const val CONTACT_LIST_TITLE = "Contact List"
     }
 
     /** The new ui just shows shortened id with just last 3 characters. */

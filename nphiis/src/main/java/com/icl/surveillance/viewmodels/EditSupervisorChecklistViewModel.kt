@@ -32,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateTimeType
@@ -89,7 +90,11 @@ class EditSupervisorChecklistViewModel(
             if (this.questionnaire == FormFields.Vhf.CASE_FORM) {
                 FormPrefill.applyTo(
                     questionnaire, questionnaireResponse,
-                    mapOf(FormFields.Vhf.CASE_TYPE to FormFields.Vhf.CASE_TYPE_SUSPECTED_CODE),
+                    mapOf(
+                        FormFields.Vhf.CASE_TYPE to FormFields.Vhf.CASE_TYPE_SUSPECTED_CODE,
+                        // The case investigation starts now (the contact form held the listing date).
+                        FormFields.Vhf.INVESTIGATION_DATE to java.time.LocalDate.now().toString(),
+                    ),
                     overwrite = true,
                 )
                 // Clinical information starts with what the follow up recorded (empty answers only).
@@ -241,15 +246,43 @@ class EditSupervisorChecklistViewModel(
             }
             questionnaireResponse.id = responseId
             keepRecordLinks(from = original, to = questionnaireResponse)
+            // VHF: the form it is now saved with (e.g. a contact converted in the case form).
+            com.icl.surveillance.fhir.forms.VhfForms.stamp(questionnaireResponse, questionnaire)
             // Full replacement, not a PATCH: a JSON diff of an edited response (pages shown or
             // hidden, items reordered) can name paths the server copy lacks -> HTTP 400 HAPI-1272.
             LocalWins.save(fhirEngine, questionnaireResponse)
-            isResourcesSaved.value = true
 
             // Case forms (response linked to a patient): update the patient and stored answers.
             val isCaseForm = original.subject?.referenceElement?.resourceType == "Patient"
+            // VHF: the stored answers decide the lists and the summary tabs (e.g. a contact just
+            // converted to a suspected case), so they are updated before the screen closes.
+            val answersFirst = isCaseForm && FormFields.Vhf.isRegistrationForm(questionnaire)
+            if (answersFirst) {
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        val patientId = original.subject.referenceElement.idPart ?: return@runCatching
+                        updateAnswerObservations(
+                            original, patientId,
+                            extractStructuredAnswers(questionnaireResponse, questionnaireResponseString),
+                            questionnaire!!,
+                        )
+                        // Converted contact: its follow up as a contact ends today.
+                        if (caseTypeOf(original).equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true) &&
+                            !caseTypeOf(questionnaireResponse).equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)
+                        ) {
+                            com.icl.surveillance.fhir.forms.ContactGroups.closeMember(
+                                fhirEngine, patientId, java.time.LocalDate.now()
+                            )
+                        }
+                    }.onFailure { Timber.e(it, "Failed to update the answers after editing %s", questionnaire) }
+                }
+            }
+            isResourcesSaved.value = true
             if (isCaseForm && questionnaire != null) {
-                startBackgroundProcessing(original, questionnaireResponse, questionnaireResponseString, questionnaire)
+                startBackgroundProcessing(
+                    original, questionnaireResponse, questionnaireResponseString, questionnaire,
+                    answersDone = answersFirst,
+                )
             }
         }
     }
@@ -276,14 +309,17 @@ class EditSupervisorChecklistViewModel(
         edited: QuestionnaireResponse,
         editedJson: String,
         questionnaire: String,
+        answersDone: Boolean = false,
     ) {
         backgroundProcessingScope.launch {
             val patientId = original.subject.referenceElement.idPart ?: return@launch
             val answers = extractStructuredAnswers(edited, editedJson)
             // The answers shown on the case summary come first; each step runs on its own so a
             // failure in one (e.g. the patient's name) cannot leave the summary out of date.
-            runCatching { updateAnswerObservations(original, patientId, answers, questionnaire) }
-                .onFailure { Timber.e(it, "Failed to update the answers after editing %s", questionnaire) }
+            if (!answersDone) {
+                runCatching { updateAnswerObservations(original, patientId, answers, questionnaire) }
+                    .onFailure { Timber.e(it, "Failed to update the answers after editing %s", questionnaire) }
+            }
             runCatching { updatePatientDetails(patientId, answers, questionnaire) }
                 .onFailure { Timber.e(it, "Failed to update the patient after editing %s", questionnaire) }
             if (FormFields.Vhf.isRegistrationForm(questionnaire)) {
@@ -342,6 +378,17 @@ class EditSupervisorChecklistViewModel(
                 }
             }
         response.item = build(questionnaire.item).toMutableList()
+    }
+
+    /** "Type of case" code saved in [response] (e.g. "contact"), or empty. */
+    private fun caseTypeOf(response: QuestionnaireResponse): String {
+        fun find(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>): String? =
+            items.firstNotNullOfOrNull { item ->
+                if (item.linkId == FormFields.Vhf.CASE_TYPE) {
+                    (item.answerFirstRep.value as? org.hl7.fhir.r4.model.Coding)?.code
+                } else find(item.item) ?: item.answer.firstNotNullOfOrNull { find(it.item) }
+            }
+        return find(response.item).orEmpty()
     }
 
     /** A VHF contact named its source case by EPID number: add it to that case's contact Group. */
@@ -414,6 +461,7 @@ class EditSupervisorChecklistViewModel(
                 // removed answer is marked entered-in-error rather than deleted: a delete is
                 // version-checked on upload and fails once the server holds a newer version.
                 answer == null && encounterId != null && code in questionIds &&
+                    code !in CONTACT_LISTING_CODES &&
                     observation.status != Observation.ObservationStatus.ENTEREDINERROR -> {
                     observation.status = Observation.ObservationStatus.ENTEREDINERROR
                     observation.value = null
@@ -466,6 +514,19 @@ class EditSupervisorChecklistViewModel(
     )
 
     private companion object {
+        /**
+         * Contact-listing answers (source case, type of contact, head of household, health
+         * worker) are hidden by the case form once a contact becomes a case. They stay on the
+         * record instead of being removed, so the contact history is kept.
+         */
+        val CONTACT_LISTING_CODES = setOf(
+            FormFields.Vhf.SOURCE_CASE_EPID,
+            FormFields.Vhf.CONTACT_CATEGORY,
+            FormFields.Vhf.HEAD_OF_HOUSEHOLD,
+            FormFields.Vhf.CONTACT_HCW,
+            FormFields.Vhf.CONTACT_HCW_FACILITY,
+        )
+
         private val PERSON = PatientFields(
             FormFields.Person.FIRST_NAME, FormFields.Person.MIDDLE_NAME, FormFields.Person.SURNAME,
             FormFields.Person.SEX, PatientMapper.NameOrder.SURNAME_AS_FAMILY,

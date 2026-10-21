@@ -769,6 +769,7 @@ class BulkContactImport(private val context: Context, private val fhirEngine: Fh
             status = QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED
             authored = Date()
             item = build(this@BulkContactImport.questionnaire.item).toMutableList()
+            com.icl.surveillance.fhir.forms.VhfForms.stamp(this, FormFields.Vhf.CONTACT_FORM)
         }
     }
 

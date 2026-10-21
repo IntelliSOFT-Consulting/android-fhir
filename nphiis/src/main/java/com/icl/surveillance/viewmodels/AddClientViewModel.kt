@@ -1038,6 +1038,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     fhirEngine.create(FhirConformance.ensureRequired(enc))
                     questionnaireResponse.subject = subjectReference
                     questionnaireResponse.encounter = encounterReference
+                    // VHF: record which form (case / contact) this was saved with, so the
+                    // details and edit screens open the same form. Bulk rows come pre-marked.
+                    if (!com.icl.surveillance.fhir.forms.VhfForms.isStamped(questionnaireResponse)) {
+                        com.icl.surveillance.fhir.forms.VhfForms.stamp(
+                            questionnaireResponse,
+                            FormatterClass().getSharedPref("questionnaire", context),
+                        )
+                    }
                     if (screeningResponse != null) {
                         // The screening response becomes the case's response.
                         questionnaireResponse.id = screeningResponse.logicalId

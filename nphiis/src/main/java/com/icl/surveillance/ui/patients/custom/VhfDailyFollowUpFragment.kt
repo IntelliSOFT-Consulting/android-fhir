@@ -54,20 +54,30 @@ class VhfDailyFollowUpFragment : Fragment() {
 
     private fun load() {
         val formatter = FormatterClass()
-        val patientId = formatter.getSharedPref("patientIdParent", requireContext())
-        val encounterId = formatter.getSharedPref("encounterId", requireContext())
-        if (patientId == null || encounterId == null) {
+        val context = requireContext()
+        fun pref(key: String) = formatter.getSharedPref(key, context)?.takeIf { it.isNotBlank() }
+        // The record shown by this screen (patientIdParent; patientId as a fallback).
+        val patientId = pref("patientIdParent") ?: pref("patientId")
+        val encounterId = pref("encounterId")
+        if (patientId == null) {
+            timber.log.Timber.tag(VhfContactTracker.LOG_TAG).w("No patient id in prefs")
             showMessage("Unable to load this contact's follow up. Please reopen the record.")
             return
         }
         VhfDemoMode.refresh(requireContext())
         viewLifecycleOwner.lifecycleScope.launch {
             val state = withContext(Dispatchers.IO) {
-                VhfContactTracker.load(fhirEngine, patientId, encounterId)
+                runCatching { VhfContactTracker.logRecord(fhirEngine, patientId, encounterId) }
+                runCatching { VhfContactTracker.load(fhirEngine, patientId, encounterId.orEmpty()) }
+                    .onFailure { timber.log.Timber.tag(VhfContactTracker.LOG_TAG).e(it, "Follow up failed to load") }
+                    .getOrNull()
             }
             if (_binding == null) return@launch
             if (state == null) {
-                showMessage("Unable to load this contact's follow up. Please reopen the record.")
+                showMessage(
+                    "This contact's record is not complete on this phone yet. " +
+                        "Sync, then reopen the record."
+                )
             } else {
                 render(state)
             }
@@ -171,6 +181,14 @@ class VhfDailyFollowUpFragment : Fragment() {
                     onRecord = { VhfContactActions.recordFollowUp(context, state, day) })
             }
             val tap = { message: String -> { toast(message) } }
+            // A recorded day opens what was entered on it.
+            val details = { visit: com.icl.surveillance.fhir.forms.ContactVisit ->
+                {
+                    VhfFollowUpDetails.show(
+                        context, viewLifecycleOwner, visit.encounterId, "Day $day follow up · $date"
+                    )
+                }
+            }
             when {
                 // Paper form marks: X = died or fever and/or bleeding; 0 = neither.
                 visits.any { it.markedX } -> {
@@ -183,20 +201,19 @@ class VhfDailyFollowUpFragment : Fragment() {
                     }
                     ScheduleRow(
                         day, date, "${visit.markReason}$referral", "X", CardTone.ALERT,
-                        onTap = tap("Day $day: X (${visit.markReason})" +
-                            visit.temperature.takeIf { it.isNotBlank() }?.let { ". $it" }.orEmpty())
+                        onTap = details(visit)
                     )
                 }
                 visits.any { it.symptomatic } -> {
                     val visit = visits.first { it.symptomatic }
                     ScheduleRow(
                         day, date, "Symptoms: ${visit.symptoms.ifBlank { "recorded" }}", "0", CardTone.WARNING,
-                        onTap = tap("Day $day: 0 (no fever or bleeding), but symptomatic: ${visit.symptoms}.")
+                        onTap = details(visit)
                     )
                 }
                 visits.isNotEmpty() -> ScheduleRow(
                     day, date, visits.first().temperature.ifBlank { "No fever or bleeding" }, "0", CardTone.SUCCESS,
-                    onTap = tap("Day $day: 0 (no fever or bleeding).")
+                    onTap = details(visits.first())
                 )
                 !canRecord -> ScheduleRow(
                     day, date, "Follow up closed", "Not recorded", CardTone.NEUTRAL,
