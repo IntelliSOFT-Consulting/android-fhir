@@ -698,7 +698,11 @@ class AddParentCaseActivity : AppCompatActivity() {
                 this@AddParentCaseActivity,
                 formatter.getSharedPref("questionnaire", this@AddParentCaseActivity)
             )
-            val prefill = staged.values
+            // New forms also open with today's date on the record-date questions.
+            val prefill = FormPrefill.withTodayDefaults(
+                staged.values,
+                formatter.getSharedPref("questionnaire", this@AddParentCaseActivity),
+            )
             if (prefill.isNotEmpty()) {
                 val questionnaire =
                     jsonParser.parseResource(Questionnaire::class.java, viewModel.questionnaireJson)

@@ -164,8 +164,10 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         formatter.saveSharedPref("questionnaire", form, this)
         // AddClientViewModel continues this person's Patient instead of creating a new one.
         formatter.saveSharedPref(VhfScreened.PREF_SOURCE, patientId, this)
-        // Screening answers are a starting point only: everything stays editable.
-        FormPrefill.stage(this, form, loaded.prefill)
+        // Answers from the integrated screening system are shown read-only; only the questions
+        // left empty can be filled in. (AddParentCaseActivity locks only questions that actually
+        // received an answer, so nothing is left empty and blocked.)
+        FormPrefill.stage(this, form, loaded.prefill, locked = loaded.prefill.keys)
         Timber.tag("SCREENED_SAVE").d(
             "Investigating screened %s with %d pre-filled answers", patientId, loaded.prefill.size
         )

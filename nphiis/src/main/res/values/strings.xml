@@ -308,17 +308,17 @@
     <string name="client_lookup_gender">Gender</string>
     <string name="client_lookup_phone">Phone</string>
     <string name="client_lookup_client_id">Client ID</string>
-    <string name="screened_title">Screened Cases</string>
+    <string name="screened_title">Flagged Cases</string>
     <string name="screened_search_hint">Search by name, phone or ID</string>
-    <string name="screened_empty">No screened people are waiting for a case investigation.</string>
+    <string name="screened_empty">No flagged people are waiting for a case investigation.</string>
     <string name="screened_start_investigation">Start Case Investigation</string>
-    <string name="screened_not_found">This screened record could not be loaded.</string>
+    <string name="screened_not_found">This flagged record could not be loaded.</string>
     <string name="screened_no_answers">No screening answers were recorded for this section.</string>
-    <string name="screened_moved">%1$s moved to the VHF Case List</string>
+    <string name="screened_moved">%1$s moved to Suspected Cases</string>
     <string name="screened_open_list">Open</string>
     <plurals name="screened_summary">
-        <item quantity="one">%d screened person waiting for a case investigation</item>
-        <item quantity="other">%d screened people waiting for a case investigation</item>
+        <item quantity="one">%d flagged person waiting for a case investigation</item>
+        <item quantity="other">%d flagged people waiting for a case investigation</item>
     </plurals>
     <string name="residence_screen_title">Residence location</string>
     <string name="residence_title">Where does this person live?</string>
@@ -333,4 +333,5 @@
     <string name="residence_search_failed">Search is not available right now. Move the map to the home instead.</string>
     <string name="residence_no_key">Map key missing: set nphiis.mapsApiKey in local.properties.</string>
     <string name="residence_location_off">Could not get your current location. Turn on location and try again.</string>
+    <string name="add_suspected_case">Add new suspected case</string>
 </resources>

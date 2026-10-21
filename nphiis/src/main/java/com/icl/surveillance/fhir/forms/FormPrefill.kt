@@ -29,6 +29,25 @@ object FormPrefill {
     /** Separates the answers of a repeating question in one staged value, e.g. several symptoms. */
     const val MULTI = "\u001F"
 
+    /**
+     * Dates of the record itself (case investigation / contact listing, follow-up visit): a new
+     * form opens with today's date, which the user can still change. Clinical dates (onset,
+     * birth, death, exposure, …) are never defaulted.
+     */
+    private val TODAY_DEFAULTS = setOf("vhf-investigation-date", FormFields.Vhf.FOLLOW_UP_DATE)
+
+    /** Per form: further dates that open as today (contact listing: date of last contact). */
+    private val TODAY_DEFAULTS_BY_FORM = mapOf(
+        FormFields.Vhf.CONTACT_FORM to setOf(FormFields.Vhf.CONTACT_DATE),
+    )
+
+    /** [values] plus today's date for the record-date questions of [form] (staged values win). */
+    fun withTodayDefaults(values: Map<String, String>, form: String? = null): Map<String, String> {
+        val today = java.time.LocalDate.now().toString()
+        val ids = TODAY_DEFAULTS + TODAY_DEFAULTS_BY_FORM[form].orEmpty()
+        return ids.associateWith { today } + values
+    }
+
     /** One staged value holding several answers (see [MULTI]). */
     fun multi(values: List<String>): String = values.filter { it.isNotBlank() }.joinToString(MULTI)
 

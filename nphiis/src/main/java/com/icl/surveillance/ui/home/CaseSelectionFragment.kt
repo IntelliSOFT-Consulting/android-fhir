@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +36,7 @@ import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfScreened
+import com.icl.surveillance.fhir.forms.VhfListMode
 import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.models.CaseOption
 import com.icl.surveillance.models.LocationLevel
@@ -235,6 +238,7 @@ class CaseSelectionFragment : Fragment() {
                 "Summary Sheet" -> "Add New Team Record"
                 "Mpox Register" -> "Add New Mpox Register"
                 ALERT_LOG_TITLE -> ADD_ALERT
+                "VHF" -> VHF_ADD
                 else -> "Add New $title Case"
             }
         val view =
@@ -243,10 +247,20 @@ class CaseSelectionFragment : Fragment() {
                 "Social Investigation Form" -> "Social Investigation Reports"
                 "Mpox Register" -> "Mpox Register List"
                 ALERT_LOG_TITLE -> ALERT_LOG_LIST
+                "VHF" -> VHF_LIST
                 else -> "$title Case List"
             }
         val caseOptions =
             mutableListOf(CaseOption(add), CaseOption(view, showCount = true, count = 0))
+        // VHF: adding a suspected case is hidden here until confirmed; it lives in the ⋮ menu
+        // of the Suspected Cases list instead (CaseListingActivity).
+        if (title == "VHF") caseOptions.removeAt(0)
+        val viewIndex = caseOptions.indexOfFirst { it.title == view }
+        // VHF only: contacts are listed on their own, apart from the suspected cases.
+        val contactsIndex = if (title == "VHF") {
+            caseOptions.add(CaseOption(VHF_CONTACTS, showCount = true, count = 0))
+            caseOptions.lastIndex
+        } else -1
         // VHF only: people screened at points of entry etc., waiting for a case investigation.
         val screenedIndex = if (title == "VHF") {
             caseOptions.add(CaseOption(SCREENED_CASES, showCount = true, count = 0))
@@ -520,7 +534,7 @@ class CaseSelectionFragment : Fragment() {
                         addParentCaseLauncher.launch(intent)
                     }
 
-                    "Add New VHF Case" -> {
+                    VHF_ADD -> {
                         VhfTraining.setOn(requireContext(), false)
                         FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
                         FormatterClass().saveSharedPref(
@@ -613,8 +627,12 @@ class CaseSelectionFragment : Fragment() {
                         )
                     }
 
-                    "VHF Case List" -> {
+                    VHF_LIST, VHF_CONTACTS -> {
                         VhfTraining.setOn(requireContext(), false)
+                        VhfListMode.set(
+                            requireContext(),
+                            if (option.title == VHF_CONTACTS) VhfListMode.CONTACTS else VhfListMode.CASES,
+                        )
                         FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
                         FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, requireContext())
                         startActivity(Intent(requireContext(), CaseListingActivity::class.java))
@@ -837,7 +855,7 @@ class CaseSelectionFragment : Fragment() {
 
                                 else -> allPatients.size
                             }
-                            caseOptions[1] = caseOptions[1].copy(count = scopedCount)
+                            caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = scopedCount)
                             recyclerView.adapter?.notifyDataSetChanged()
                         }
                     }
@@ -855,7 +873,7 @@ class CaseSelectionFragment : Fragment() {
                                 cases.map { case -> case.county to case.subCounty },
                                 roleScope, storedCounty, storedSubCounty
                             )
-                            caseOptions[1] = caseOptions[1].copy(count = scopedCount)
+                            caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = scopedCount)
 
                             recyclerView.adapter?.notifyDataSetChanged()
 
@@ -873,19 +891,27 @@ class CaseSelectionFragment : Fragment() {
                                  * */
 
                                 // Same scoping as the case list (CaseListingActivity.applyRoleScope).
-                                val scopedCount = countInScope(
-                                    cases.map { case -> case.county to case.subCounty },
+                                fun scoped(list: List<PatientListViewModel.PatientItem>) = countInScope(
+                                    list.map { case -> case.county to case.subCounty },
                                     roleScope, storedCounty, storedSubCounty
                                 )
-                                caseOptions[1] = caseOptions[1].copy(count = scopedCount)
-
-
+                                if (contactsIndex >= 0 && contactsIndex < caseOptions.size) {
+                                    // VHF: suspected cases and contacts are counted apart.
+                                    val (contacts, suspected) = cases.partition { case ->
+                                        VhfListMode.isContact(case.caseType)
+                                    }
+                                    caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = scoped(suspected))
+                                    caseOptions[contactsIndex] = caseOptions[contactsIndex].copy(count = scoped(contacts))
+                                } else {
+                                    caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = scoped(cases))
+                                }
 
                                 recyclerView.adapter?.notifyDataSetChanged()
                             }
                         }
-                        if (roleScope == LocationLevel.COUNTY || roleScope == LocationLevel.SUB_COUNTY) {
-                            // County names are needed to scope the count: load the list.
+                        if (contactsIndex >= 0 || roleScope == LocationLevel.COUNTY || roleScope == LocationLevel.SUB_COUNTY) {
+                            // County names (or, for VHF, the type of case) are needed for the
+                            // counts: load the list.
                             loadAndCount()
                         } else {
                             // Everyone else sees all records of the module: count in the database.
@@ -894,7 +920,7 @@ class CaseSelectionFragment : Fragment() {
                                 if (total == null) {
                                     loadAndCount()
                                 } else {
-                                    caseOptions[1] = caseOptions[1].copy(count = total)
+                                    caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = total)
                                     recyclerView.adapter?.notifyDataSetChanged()
                                 }
                             }
@@ -997,8 +1023,38 @@ class CaseSelectionFragment : Fragment() {
         }
     }
 
+    /** VHF: "Add new suspected case" sits in the ⋮ menu, off the main list until confirmed. */
+    @Deprecated("Fragment menu callbacks")
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        // grandTitle holds the module's full name (the VHF form title), not "VHF".
+        if (FormatterClass().getSharedPref("grandTitle", requireContext()) == getString(R.string.vhf_form)) {
+            menu.add(Menu.NONE, MENU_ADD_VHF_CASE, Menu.NONE, R.string.add_suspected_case)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        }
+    }
+
+    private fun addVhfCaseFromMenu() {
+        val context = requireContext()
+        VhfTraining.setOn(context, false)
+        FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, context)
+        FormatterClass().saveSharedPref("AddParentTitle", getString(R.string.vhf_form), context)
+        FormatterClass().saveSharedPref("questionnaire", VHF_QUESTIONNAIRE, context)
+        if (!checkIfUserIsAllowedToAction()) {
+            showPermissionErrorDialog(context)
+            return
+        }
+        val titleName = FormatterClass().getSharedPref("grandTitle", context)
+        openNewVhfCase(" $titleName")
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            MENU_ADD_VHF_CASE -> {
+                addVhfCaseFromMenu()
+                true
+            }
+
             android.R.id.home -> {
                 // Handle the back button in the toolbar
                 requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -1011,10 +1067,15 @@ class CaseSelectionFragment : Fragment() {
 
     companion object {
         private const val VHF_QUESTIONNAIRE = "vhf-case.json"
+        private const val MENU_ADD_VHF_CASE = 9101
         private const val ALERT_LOG_TITLE = "Alert Log"
         private const val ADD_ALERT = "Add New Alert"
         private const val ALERT_LOG_LIST = "Alert Log List"
-        private const val SCREENED_CASES = "Screened Cases"
+        private const val SCREENED_CASES = "Flagged Cases"
+        /** VHF module options (meeting 20 Oct 2026: VHF cases are listed as Suspected Cases). */
+        private const val VHF_ADD = "Add New Suspected Case"
+        private const val VHF_LIST = "Suspected Cases"
+        private const val VHF_CONTACTS = "Contacts"
 
         /**
          * Use this factory method to create a new instance of this fragment using the provided

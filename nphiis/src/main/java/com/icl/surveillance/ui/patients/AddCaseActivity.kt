@@ -350,9 +350,9 @@ class AddCaseActivity : AppCompatActivity() {
 
     private fun addQuestionnaireFragment() {
         // Answers staged by the case summary (e.g. the contact's follow-up day); taken once.
-        val prefill = FormPrefill.take(
-            this, FormatterClass().getSharedPref("questionnaire", this)
-        )
+        // New entries also open with today's date on the record-date questions (e.g. follow-up date).
+        val form = FormatterClass().getSharedPref("questionnaire", this)
+        val prefill = FormPrefill.withTodayDefaults(FormPrefill.take(this, form), form)
         val resourceId = FormatterClass().getSharedPref(
             "resourceId", this@AddCaseActivity
         ) // aka Questionnaire

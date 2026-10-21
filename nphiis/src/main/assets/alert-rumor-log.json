@@ -394,6 +394,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919",
@@ -418,7 +422,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -565,6 +569,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "text": "Type of health facility",
@@ -588,7 +596,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -734,6 +742,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919_county",
@@ -758,7 +770,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -904,6 +916,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919_national",
@@ -928,7 +944,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         }
@@ -1128,20 +1144,13 @@
               "valueCoding": {
                 "code": "hotline",
                 "display": "Hotline"
-              }
+              },
+              "initialSelected": true
             },
             {
               "valueCoding": {
                 "code": "other",
                 "display": "Other (specify)"
-              }
-            }
-          ],
-          "initial": [
-            {
-              "valueCoding": {
-                "code": "hotline",
-                "display": "Hotline"
               }
             }
           ]
@@ -1390,12 +1399,6 @@
             }
           ],
           "answerOption": [
-            {
-              "valueCoding": {
-                "code": "not-specified",
-                "display": "Not specified"
-              }
-            },
             {
               "valueCoding": {
                 "code": "male",

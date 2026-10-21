@@ -20,6 +20,10 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.icl.surveillance.R
 import com.icl.surveillance.adapters.CaseListDataAdapter
+import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
+import com.icl.surveillance.clients.AddParentCaseActivity
+import com.icl.surveillance.clients.ClientLookupActivity
+import com.icl.surveillance.clients.UnfinishedDraftPrompt
 import com.icl.surveillance.adapters.MpoxPatientAdapter
 import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapter
 import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapterRumor
@@ -27,6 +31,9 @@ import com.icl.surveillance.adapters.SocialFormItemRecyclerViewAdapter
 import com.icl.surveillance.databinding.ActivityCaseListingBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.CaseTypes
+import com.icl.surveillance.fhir.forms.VhfListMode
+import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.fhir.forms.toCaseSlug
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
@@ -447,6 +454,11 @@ class CaseListingActivity : AppCompatActivity() {
         if (adapter == null && mpoxAdapter == null) return
 
         var filtered = roleScopedCases
+        // VHF: Suspected Cases and Contacts are separate lists (VhfListMode).
+        val vhfMode = vhfListMode()
+        if (vhfMode != VhfListMode.NONE) {
+            filtered = filtered.filter { VhfListMode.matches(vhfMode, it.caseType) }
+        }
         if (currentRole?.isNational == true && selectedCounties.isNotEmpty()) {
             filtered = filtered.filter { hasSelection(it.county, selectedCounties) }
         }
@@ -617,6 +629,7 @@ class CaseListingActivity : AppCompatActivity() {
             currentRole?.isNational == true || currentRole?.isCounty == true
         filterItem?.subMenu?.findItem(R.id.action_reset_location_filters)?.isVisible =
             selectedCounties.isNotEmpty() || selectedSubCounties.isNotEmpty()
+        menu?.findItem(R.id.action_add_vhf_case)?.isVisible = isVhfSuspectedList()
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -637,13 +650,64 @@ class CaseListingActivity : AppCompatActivity() {
                 true
             }
 
+            R.id.action_add_vhf_case -> {
+                openNewVhfCase()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
 
 
+    /** The VHF list mode (cases / contacts) when this is a live VHF list, else NONE. */
+    private fun vhfListMode(): String =
+        if (FormatterClass().getSharedPref("currentCase", this) == CaseTypes.VHF && !VhfTraining.isOn(this))
+            VhfListMode.get(this)
+        else VhfListMode.NONE
+
+    /** The live (non-training) VHF Suspected Cases list. */
+    private fun isVhfSuspectedList(): Boolean = vhfListMode() == VhfListMode.CASES
+
+    /**
+     * Hidden way to add a VHF suspected case (the option is off the VHF menu until confirmed).
+     * Same flow as the menu option: offer an unfinished draft, else look the client up first.
+     * The list reloads in onResume when the user comes back.
+     */
+    private fun openNewVhfCase() {
+        val formatter = FormatterClass()
+        VhfTraining.setOn(this, false)
+        formatter.saveSharedPref("currentCase", CaseTypes.VHF, this)
+        formatter.saveSharedPref("AddParentTitle", getString(R.string.vhf_form), this)
+        formatter.saveSharedPref("questionnaire", VHF_QUESTIONNAIRE, this)
+        val title = " " + (formatter.getSharedPref("grandTitle", this) ?: "VHF")
+        UnfinishedDraftPrompt.offer(
+            this, VHF_QUESTIONNAIRE,
+            onContinue = {
+                startActivity(
+                    Intent(this, AddParentCaseActivity::class.java)
+                        .putExtra("AddParentTitle", title)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
+                        .putExtra(AddParentCaseActivity.EXTRA_RESUME_DRAFT, true)
+                )
+            },
+            onStartNew = {
+                startActivity(
+                    Intent(this, ClientLookupActivity::class.java)
+                        .putExtra("AddParentTitle", title)
+                        .putExtra(QUESTIONNAIRE_FILE_PATH_KEY, VHF_QUESTIONNAIRE)
+                        .putExtra(AddParentCaseActivity.EXTRA_START_NEW, true)
+                )
+            },
+        )
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed()
         return true
+    }
+
+    private companion object {
+        const val VHF_QUESTIONNAIRE = "vhf-case.json"
     }
 }

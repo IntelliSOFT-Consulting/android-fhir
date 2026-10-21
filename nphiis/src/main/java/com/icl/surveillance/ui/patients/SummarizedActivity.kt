@@ -162,7 +162,7 @@ class SummarizedActivity : AppCompatActivity() {
             checkIfResourceHasQuestionnaireResponse(this, patientId)
             lifecycleScope.launch {
                 val parsedGroups = withContext(Dispatchers.IO) {
-                    parseFromAssets(this@SummarizedActivity, latestEncounter)
+                    parseFromAssets(this@SummarizedActivity, latestEncounter, vhfFormFor(patientId))
                 }.toMutableList()
                 configureTabs(parsedGroups, currentCase, latestEncounter, isCase)
             }
@@ -672,10 +672,29 @@ class SummarizedActivity : AppCompatActivity() {
         }
     }
 
-    fun parseFromAssets(context: Context, latestEncounter: String): List<OutputGroup> {
+    /**
+     * VHF: the form the record was made with. A contact registered with the contact form is
+     * shown with that form's sections and questions, not the case form's. Null for other modules.
+     */
+    private suspend fun vhfFormFor(patientId: String?): String? {
+        if (FormatterClass().getSharedPref("latestEncounter", this) != CaseSlugs.VHF) return null
+        if (patientId.isNullOrBlank()) return null
+        val encounterId = FormatterClass().getSharedPref("encounterId", this)
+        return runCatching {
+            com.icl.surveillance.fhir.forms.VhfForms.formFor(
+                com.icl.surveillance.fhir.forms.CaseResponse.find(fhirEngine, patientId, encounterId)
+            )
+        }.getOrNull()
+    }
+
+    fun parseFromAssets(
+        context: Context,
+        latestEncounter: String,
+        formOverride: String? = null,
+    ): List<OutputGroup> {
         var outputGroups: List<OutputGroup> = emptyList()
 
-        val assets = questionnaireFileFor(latestEncounter)
+        val assets = formOverride ?: questionnaireFileFor(latestEncounter)
         try {
             if (assets.isNotEmpty()) {
                 val jsonContent = context.assets.open(assets)

@@ -394,6 +394,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919",
@@ -418,7 +422,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -565,6 +569,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "text": "Type of health facility",
@@ -588,7 +596,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -734,6 +742,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919_county",
@@ -758,7 +770,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -904,6 +916,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919_national",
@@ -928,7 +944,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -1251,12 +1267,6 @@
               "valueCoding": {
                 "code": "female",
                 "display": "Female"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "other",
-                "display": "Other (specify)"
               }
             }
           ]
@@ -1586,13 +1596,22 @@
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
               "extension": [
-                { "url": "key", "valueId": "national-id-length" },
-                { "url": "severity", "valueCode": "error" },
+                {
+                  "url": "key",
+                  "valueId": "national-id-length"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
                 {
                   "url": "expression",
                   "valueString": "answer.empty() or %resource.repeat(item).where(linkId = 'vhf-id-type' and answer.value.code = 'national-id').exists().not() or answer.value.matches('^[0-9]{7,8}$')"
                 },
-                { "url": "human", "valueString": "National ID must be 7 or 8 digits" }
+                {
+                  "url": "human",
+                  "valueString": "National ID must be 7 or 8 digits"
+                }
               ]
             }
           ]

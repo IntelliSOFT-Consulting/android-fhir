@@ -18,4 +18,10 @@
                 android:title="@string/reset_filters" />
         </menu>
     </item>
+    <!-- VHF only, kept in the overflow (⋮) until adding suspected cases is confirmed. -->
+    <item
+        android:id="@+id/action_add_vhf_case"
+        android:title="@string/add_suspected_case"
+        android:visible="false"
+        app:showAsAction="never" />
 </menu>

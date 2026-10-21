@@ -1084,8 +1084,9 @@ class PatientListViewModel(
                             }
 
                             CaseSlugs.VHF -> {
-                                data = batches?.vhfRow(data, logicalId, obs)
-                                    ?: processVhfCase(fhirEngine, childEncounter, data, logicalId)
+                                data = (batches?.vhfRow(data, logicalId, obs)
+                                    ?: processVhfCase(fhirEngine, childEncounter, data, logicalId))
+                                    .copy(caseType = obs.valueOf(FormFields.Vhf.CASE_TYPE))
                             }
 
                             CaseSlugs.ALERT_LOG -> {
@@ -1934,6 +1935,7 @@ class PatientListViewModel(
             FormFields.AlertLog.SUSPECTED_OTHER,
             FormFields.AlertLog.CALL_PATHWAY,
             FormFields.AlertLog.CLASSIFICATION,
+            FormFields.Vhf.CASE_TYPE, // VHF: Suspected Cases vs Contacts lists
         ) + VhfContactTracker.CASE_ANSWER_CODES).distinct()
         private const val PATIENT_LOAD_CHUNK = 200
         private const val RUMOR_PAGE_SIZE = 200
@@ -1989,6 +1991,8 @@ class PatientListViewModel(
         val facilityType: String = "",
         val village: String = "",
         val respondentAge: String = "",
+        /** VHF: "Type of case" answer (suspected / probable / confirmed / contact). */
+        val caseType: String = "",
     ) {
         override fun toString(): String = name
     }

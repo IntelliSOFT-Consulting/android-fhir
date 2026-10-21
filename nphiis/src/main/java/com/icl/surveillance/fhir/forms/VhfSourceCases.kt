@@ -28,6 +28,14 @@ object VhfSourceCases {
         patient.identifier.firstOrNull { it.type.codingFirstRep.code == FhirSystems.EPID }
             ?.value?.trim()?.takeIf { it.isNotBlank() && !it.endsWith("-") }
 
+    /**
+     * The EPID number of [patient] as it stands, even when not yet complete (e.g. "KEN-NBO-26-"
+     * before the server adds the case number). Used so a contact still carries its source case.
+     */
+    fun epidOrPartialOf(patient: Patient): String? =
+        patient.identifier.firstOrNull { it.type.codingFirstRep.code == FhirSystems.EPID }
+            ?.value?.trim()?.takeIf { it.isNotBlank() }
+
     /** "Type of case" answers that make a record a possible source of contacts. */
     private val SOURCE_CASE_TYPES = setOf("suspected", "probable", "confirmed")
 
@@ -52,10 +60,12 @@ object VhfSourceCases {
             .filter { patient -> training == null || VhfTraining.isTraining(patient) == training }
             .sortedByDescending { it.meta.lastUpdated?.time ?: 0L }
             .mapNotNull { patient ->
-                val epid = epidOf(patient) ?: return@mapNotNull null
+                // For now a case whose EPID number is not complete yet is offered too, as is.
+                val epid = epidOrPartialOf(patient) ?: return@mapNotNull null
+                val label = if (epidOf(patient) == null) "$epid (EPID incomplete)" else epid
                 // Privacy: a source case is offered (and saved on the contact) by its EPID number
                 // only; its name is never shown or stored with the contact.
-                SourceOption(epid, patient.logicalId, epid)
+                SourceOption(epid, patient.logicalId, label)
             }
             .distinctBy { it.epid }
     }
@@ -125,6 +135,11 @@ object VhfSourceCases {
                 filter(Patient.IDENTIFIER, { this.value = of(v) })
             }.map { it.resource }
         }
-        return candidates.firstOrNull { patient -> epidOf(patient).equals(value, ignoreCase = true) }
+        val matches = candidates
+            .filter { patient -> epidOrPartialOf(patient).equals(value, ignoreCase = true) }
+            .distinctBy { it.logicalId }
+        // A complete EPID number is unique. An incomplete one is used only when it names a
+        // single case on the device, so a contact is never linked to the wrong case.
+        return matches.firstOrNull { epidOf(it) != null } ?: matches.singleOrNull()
     }
 }

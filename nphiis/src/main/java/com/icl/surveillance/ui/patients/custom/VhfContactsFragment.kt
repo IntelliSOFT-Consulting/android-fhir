@@ -137,7 +137,8 @@ class VhfContactsFragment : Fragment() {
             name = name,
             disease = answers.valueOf(FormFields.Vhf.DISEASE),
             diseaseOther = answers.valueOf(FormFields.Vhf.DISEASE_OTHER),
-            epid = patient?.let { VhfSourceCases.epidOf(it) },
+            // For now an incomplete EPID number is carried too (the contact still names its case).
+            epid = patient?.let { VhfSourceCases.epidOrPartialOf(it) },
         )
     }
 

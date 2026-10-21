@@ -101,7 +101,8 @@ class ScreenedCasesActivity : AppCompatActivity() {
 
     private fun openCaseList() {
         VhfTraining.setOn(this, false)
-        FormatterClass().saveSharedPref("listingTitle", " VHF Case List", this)
+        FormatterClass().saveSharedPref("listingTitle", " Suspected Cases", this)
+        com.icl.surveillance.fhir.forms.VhfListMode.set(this, com.icl.surveillance.fhir.forms.VhfListMode.CASES)
         FormatterClass().saveSharedPref("currentCase", CaseTypes.VHF, this)
         startActivity(Intent(this, CaseListingActivity::class.java))
     }

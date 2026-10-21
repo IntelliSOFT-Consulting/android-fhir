@@ -411,6 +411,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919",
@@ -435,7 +439,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -582,6 +586,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "text": "Type of health facility",
@@ -605,7 +613,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -751,6 +759,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919_county",
@@ -775,7 +787,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -921,6 +933,10 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
                   "valueCode": "horizontal"
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+                  "valueBoolean": true
                 }
               ],
               "linkId": "438862163919_national",
@@ -945,7 +961,7 @@
                   }
                 }
               ],
-              "required": true
+              "required": false
             }
           ]
         },
@@ -1088,15 +1104,8 @@
               "valueCoding": {
                 "code": "contact",
                 "display": "Contact"
-              }
-            }
-          ],
-          "initial": [
-            {
-              "valueCoding": {
-                "code": "contact",
-                "display": "Contact"
-              }
+              },
+              "initialSelected": true
             }
           ]
         },
@@ -1232,15 +1241,8 @@
               "valueCoding": {
                 "code": "unknown",
                 "display": "Unknown"
-              }
-            }
-          ],
-          "initial": [
-            {
-              "valueCoding": {
-                "code": "unknown",
-                "display": "Unknown"
-              }
+              },
+              "initialSelected": true
             }
           ]
         },
@@ -1542,7 +1544,8 @@
               "valueCoding": {
                 "code": "human",
                 "display": "Human contact"
-              }
+              },
+              "initialSelected": true
             },
             {
               "valueCoding": {
@@ -1560,14 +1563,6 @@
               "valueCoding": {
                 "code": "none",
                 "display": "None"
-              }
-            }
-          ],
-          "initial": [
-            {
-              "valueCoding": {
-                "code": "human",
-                "display": "Human contact"
               }
             }
           ]
