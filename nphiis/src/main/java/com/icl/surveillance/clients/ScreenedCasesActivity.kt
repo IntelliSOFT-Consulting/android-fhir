@@ -61,6 +61,12 @@ class ScreenedCasesActivity : AppCompatActivity() {
         binding.list.layoutManager = LinearLayoutManager(this)
         binding.list.adapter = adapter
         binding.search.doAfterTextChanged { show(filter(it?.toString().orEmpty())) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reloaded every time the list is shown, so a person investigated elsewhere (or a sync)
+        // is reflected, not only after returning from this list's own detail screen.
         load()
     }
 

@@ -226,14 +226,23 @@ class ClientDetailsViewModel(
                 if (epidIdenfifier != null) {
                     epidNo = epidIdenfifier.value
                 }
-                if (matchingIdentifier != null) {
-                    encounterId = matchingIdentifier.value
+                // VHF: the patient's own case record. The identifier can be stale (e.g. a flagged
+                // person investigated as a case keeps identifiers from the screening system), so
+                // it is checked and, if wrong, the patient's VHF case Encounter is used instead.
+                val caseEncounterId: String? = if (slug == CaseSlugs.VHF) {
+                    runCatching {
+                        VhfContactTracker.resolveCaseEncounterId(fhirEngine, logicalId, matchingIdentifier?.value)
+                    }.getOrNull()?.takeIf { it.isNotBlank() }
+                } else matchingIdentifier?.value
+
+                if (caseEncounterId != null) {
+                    encounterId = caseEncounterId
 
 
                     fhirEngine.search<Observation> {
                         filter(
                             Observation.ENCOUNTER,
-                            { value = "Encounter/${matchingIdentifier.value}" })
+                            { value = "Encounter/${caseEncounterId}" })
                     }
                         .map { ob ->
 
@@ -264,7 +273,7 @@ class ClientDetailsViewModel(
                         fhirEngine.search<Observation> {
                             filter(
                                 Observation.ENCOUNTER,
-                                { value = "Encounter/${matchingIdentifier.value}" })
+                                { value = "Encounter/${caseEncounterId}" })
                         }.take(500)
 
                     if (epidNo.isEmpty()) {
@@ -278,7 +287,7 @@ class ClientDetailsViewModel(
                     // after it is converted to a case.
                     if (slug == CaseSlugs.VHF) {
                         val followedUp = runCatching {
-                            VhfContactTracker.load(fhirEngine, patientId, matchingIdentifier.value)
+                            VhfContactTracker.load(fhirEngine, patientId, caseEncounterId)
                                 ?.visits?.isNotEmpty() == true
                         }.getOrDefault(false)
                         if (followedUp) {
@@ -297,7 +306,7 @@ class ClientDetailsViewModel(
                     // without an observation (or with an out-of-date one) are shown from the form.
                     if (slug == CaseSlugs.VHF) {
                         runCatching {
-                            CaseResponse.find(fhirEngine, patientId, matchingIdentifier.value)
+                            CaseResponse.find(fhirEngine, patientId, caseEncounterId)
                         }.getOrNull()?.let { response ->
                             val fromForm = answersOf(response.item)
                             observations.removeAll { it.code in fromForm.keys }

@@ -1044,11 +1044,11 @@
             },
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid mobile number. Strings and special characters aren't allowed"
+              "valueString": "Enter a valid mobile number (07xxxxxxxx or +2547xxxxxxxx)"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^\\d{10,10}$"
+              "valueString": "^(\\+254[17]\\d{8}|0[17]\\d{8})$"
             }
           ],
           "linkId": "760016167922",
@@ -1586,11 +1586,11 @@
             },
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid mobile number. Strings and special characters aren't allowed"
+              "valueString": "Enter a valid mobile number (07xxxxxxxx or +2547xxxxxxxx)"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^\\d{10,10}$"
+              "valueString": "^(\\+254[17]\\d{8}|0[17]\\d{8})$"
             }
           ],
           "item": [

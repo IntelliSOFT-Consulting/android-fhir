@@ -613,7 +613,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
             if (identifier.system in FormFields.Vhf.SCREENED_SYSTEMS) {
                 identifier.copy().setSystem(FormFields.Vhf.SCREENING_NUMBER_SYSTEM)
             } else identifier
-        }.filterNot { it.system == FhirSystems.SYSTEM_CREATION } + new)
+        }.filterNot {
+            // The new case's own creation time and case record identifiers replace earlier ones.
+            it.system == FhirSystems.SYSTEM_CREATION || it.system == CaseSlugs.VHF
+        } + new)
             .distinctBy { "${it.system}|${it.value}" }
             .toMutableList()
 
@@ -1126,7 +1129,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
                     if (screened != null) {
                         // Screened person -> VHF case: switch identity now that the case is saved.
-                        fhirEngine.update(patient)
+                        // Saved as a full replacement (LocalWins): the screening system's copy on
+                        // the server may be newer, and a version-checked PATCH would be refused,
+                        // leaving the server (and the next download) with the screened marker.
+                        LocalWins.update(fhirEngine, patient)
                         CaseIdentifierIndex.put(patient)
                         FormatterClass().deleteSharedPref(VhfScreened.PREF_SOURCE, context)
                         Timber.tag(SCREENED_LOG).d(

@@ -74,8 +74,29 @@ object VhfScreened {
             .mapNotNull { id -> runCatching { engine.get<Patient>(id) }.getOrNull() }
             .filter { isScreened(it) } // investigated people no longer carry the identifier
             .filterNot { VhfTraining.isTraining(it) }
+            // A person already investigated (has a VHF case record) is not flagged any more, even
+            // if the screening marker came back (e.g. the screening system re-sent the person,
+            // or the identity change had not reached the server yet).
+            .filterNot { patient ->
+                hasVhfCaseRecord(engine, patient.logicalId).also { investigated ->
+                    if (investigated) Timber.tag("VHF_SCREENED").w(
+                        "Patient %s still carries the screened marker but is a VHF case: not listed",
+                        patient.logicalId,
+                    )
+                }
+            }
             .map { it.toRow() }
             .sortedByDescending { it.screenedOn?.time ?: 0L }
+
+    /** Whether [patientId] has a VHF case investigation (its case Encounter). */
+    private suspend fun hasVhfCaseRecord(engine: FhirEngine, patientId: String): Boolean =
+        engine.search<org.hl7.fhir.r4.model.Encounter> {
+            filter(org.hl7.fhir.r4.model.Encounter.SUBJECT, { value = "Patient/$patientId" })
+        }.any { result ->
+            val encounter = result.resource
+            !encounter.hasPartOf() &&
+                encounter.reasonCode.any { code -> code.coding.any { it.code == CaseTypes.VHF } }
+        }
 
     suspend fun count(engine: FhirEngine): Int = list(engine).size
 
