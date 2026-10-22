@@ -9,13 +9,16 @@ import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.IdType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.hl7.fhir.r4.model.StringType
 import org.json.JSONArray
 import org.json.JSONObject
 
 /**
  * "Contact Link to Case" on the VHF case form a contact names the
  * case it was in contact with by that case's EPID number. The EPID number is assigned by the server,
- * so only cases already synced to this device can be offered; any other can be typed in.
+ * so only cases already synced to this device can be offered; the case is picked from them (it
+ * cannot be typed in).
  * Suspected, probable and confirmed cases are offered (latest "Type of case"), plus any record
  * confirmed by the lab (latest final result Positive); contacts are not.
  */
@@ -93,12 +96,22 @@ object VhfSourceCases {
     private suspend fun confirmedPatientIds(fhirEngine: FhirEngine): Set<String> =
         VhfSpecimens.patientsWithPositiveSpecimen(fhirEngine)
 
-    /** Sets the choices of the source-case question in [questionnaireJson]. */
-    fun withOptions(questionnaireJson: String, options: List<SourceOption>): String {
-        if (options.isEmpty()) return questionnaireJson
+    /**
+     * Sets the choices of the source-case question in [questionnaireJson]. [keep] are EPID numbers
+     * a record already links to: they stay choices when the case is not on this device, so
+     * editing the record does not drop its link.
+     */
+    fun withOptions(
+        questionnaireJson: String,
+        options: List<SourceOption>,
+        keep: List<String> = emptyList(),
+    ): String {
+        val all = options + keep.filter { epid -> options.none { it.epid == epid } }
+            .map { SourceOption(it, "", it) }
+        if (all.isEmpty()) return questionnaireJson
         val root = JSONObject(questionnaireJson)
         val answers = JSONArray()
-        options.forEach { option ->
+        all.forEach { option ->
             answers.put(JSONObject().put("valueCoding",
                 JSONObject().put("code", option.epid).put("display", option.label)))
         }
@@ -115,6 +128,34 @@ object VhfSourceCases {
         }
         visit(root.optJSONArray("item"))
         return root.toString()
+    }
+
+    /**
+     * The source case is picked from a list (no typed EPID numbers). A number typed on an older
+     * record becomes a choice answer in [response]; returns the EPID numbers [response] links to.
+     */
+    fun toChoiceAnswers(response: QuestionnaireResponse): List<String> {
+        val epids = ArrayList<String>()
+        fun visit(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                if (item.linkId == FormFields.Vhf.SOURCE_CASE_EPID) {
+                    item.answer.forEach { answer ->
+                        val epid = when (val value = answer.value) {
+                            is Coding -> value.code
+                            is StringType -> epidFrom(value.value)?.also {
+                                answer.value = Coding().setCode(it).setDisplay(it)
+                            }
+                            else -> null
+                        }
+                        epid?.let { epids += it }
+                    }
+                }
+                visit(item.item)
+                item.answer.forEach { visit(it.item) }
+            }
+        }
+        visit(response.item)
+        return epids.distinct()
     }
 
     /**

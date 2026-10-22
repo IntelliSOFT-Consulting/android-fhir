@@ -390,8 +390,7 @@
                     }
                   ]
                 }
-              ],
-              "required": true
+              ]
             },
             {
               "type": "choice",
@@ -564,8 +563,7 @@
                     }
                   ]
                 }
-              ],
-              "required": true
+              ]
             },
             {
               "linkId": "438862163919_sub_county",
@@ -738,8 +736,7 @@
                     }
                   ]
                 }
-              ],
-              "required": true
+              ]
             },
             {
               "type": "choice",
@@ -912,8 +909,7 @@
                     }
                   ]
                 }
-              ],
-              "required": true
+              ]
             },
             {
               "type": "choice",
@@ -1120,15 +1116,15 @@
                 "coding": [
                   {
                     "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "open-choice",
-                    "display": "Open Choice"
+                    "code": "drop-down",
+                    "display": "Drop down"
                   }
                 ]
               }
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Pick the case's EPID number, or type it"
+              "valueString": "Pick the case's EPID number"
             }
           ],
           "required": true

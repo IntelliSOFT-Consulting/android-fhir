@@ -136,6 +136,12 @@ class EditSupervisorChecklistViewModel(
                 )
             }
         }
+        // VHF: the source case is picked from a list; a typed EPID number saved before stays linked.
+        val savedSourceEpids = if (FormFields.Vhf.isRegistrationForm(this.questionnaire)) {
+            VhfSourceCases.toChoiceAnswers(questionnaireResponse)
+        } else {
+            emptyList()
+        }
         FormPrefill.upgradeDateAnswers(questionnaire, questionnaireResponse)
         // Questions changed from typed text to a list (e.g. travel origin country).
         FormPrefill.upgradeTextToChoiceAnswers(questionnaire, questionnaireResponse)
@@ -153,7 +159,7 @@ class EditSupervisorChecklistViewModel(
             val training = runCatching { com.icl.surveillance.fhir.forms.VhfTraining.isTraining(fhirEngine.get<Patient>(patientId!!)) }.getOrNull()
             val options = runCatching { VhfSourceCases.options(fhirEngine, excludePatientId = patientId, training = training) }
                 .getOrDefault(emptyList())
-            return VhfSourceCases.withOptions(questionnaireJson, options) to questionnaireResponseJson
+            return VhfSourceCases.withOptions(questionnaireJson, options, keep = savedSourceEpids) to questionnaireResponseJson
         }
 
 
