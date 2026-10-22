@@ -30,6 +30,29 @@ object DisplayFormat {
         }.getOrDefault(raw)
     }
 
+    /**
+     * A multi-answer value, stored as "A, B, C", shown one answer per line. [choices] are the
+     * question's option labels, so an option that itself has a comma ("bats, bushmeat, or wild
+     * animals") stays on one line. Without [choices] the value is shown as [value] does.
+     */
+    @JvmStatic
+    fun answers(raw: String?, choices: List<String>): String? {
+        if (raw.isNullOrBlank() || choices.isEmpty()) return value(raw)
+        val parts = raw.split(", ")
+        val known = choices.toSet()
+        val lines = ArrayList<String>()
+        var i = 0
+        while (i < parts.size) {
+            // The longest run of parts that makes up one option; otherwise the part alone.
+            val end = (parts.size downTo i + 1).firstOrNull { j ->
+                parts.subList(i, j).joinToString(", ") in known
+            } ?: (i + 1)
+            lines += parts.subList(i, end).joinToString(", ").trim()
+            i = end
+        }
+        return lines.filter { it.isNotEmpty() }.joinToString("\n")
+    }
+
     /** Non-null variant for views that take a String. */
     fun text(raw: String): String = value(raw) ?: raw
 }

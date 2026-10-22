@@ -768,7 +768,8 @@ class SummarizedActivity : AppCompatActivity() {
                 enable = enable,
                 parentLink = parentLink,
                 parentResponse = parentResponse,
-                parentOperator = enableOperator
+                parentOperator = enableOperator,
+                choices = if (item.repeats == true) item.answerOption.orEmpty().mapNotNull { it.label } else emptyList(),
             )
 
             listOf(current) + children

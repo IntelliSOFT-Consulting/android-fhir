@@ -320,7 +320,10 @@ class RetrofitCallsAuthentication {
                 if (token != null) {
                     val apiInterface = apiService.getUserInfo("Bearer $token")
                     if (apiInterface.isSuccessful) {
-                        viewModel.setupPeriodicSync()
+                        // First login: the initial sync loads all Locations first; regular sync
+                        // (all other records) starts only once that is complete
+                        // (InitialSyncActivity), so the two never run side by side.
+                        if (formatter.isSyncDone(context)) viewModel.setupPeriodicSync()
                         val statusCode = apiInterface.code()
                         val body = apiInterface.body()
                         if (statusCode == 200 || statusCode == 201) {

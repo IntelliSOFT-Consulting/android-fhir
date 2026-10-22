@@ -16,7 +16,7 @@ class NPHIISSyncTracker(
     }
 
     suspend fun onTypeStart(type: String) {
-        store.setCurrentType(type, "Downloading $type ...")
+        store.setCurrentType(type, "Syncing data…")
     }
 
     /**
@@ -26,7 +26,7 @@ class NPHIISSyncTracker(
         val p = store.progress.first()
         val newTotal = store.addLocationDownloaded(
             delta = countInPage,
-            message = "Location downloaded: ${p.locationDownloaded + countInPage} / ${p.locationTarget}"
+            message = "Syncing data…"
         )
         if (newTotal >= p.locationTarget) {
             store.setLocationDone(true)

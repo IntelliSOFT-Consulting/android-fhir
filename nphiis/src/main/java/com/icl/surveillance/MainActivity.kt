@@ -121,6 +121,17 @@ class MainActivity : AppCompatActivity() {
         applySystemBarTheme()
         fhirEngine = FhirApplication.fhirEngine(this@MainActivity)
 
+        // Sync of everything other than Locations: once the initial (Locations-only) sync is
+        // done, the regular 15-minute sync is set up, and straight after the initial sync a
+        // sync is started now to bring in the other records.
+        if (FormatterClass().isSyncDone(this)) {
+            viewModel.setupPeriodicSync()
+            if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_START_FULL_SYNC, false)) {
+                intent.removeExtra(EXTRA_START_FULL_SYNC)
+                viewModel.triggerOneTimeSync()
+            }
+        }
+
 
         val rootView: View = findViewById(R.id.container) // your root view ID
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
@@ -619,5 +630,10 @@ class MainActivity : AppCompatActivity() {
 
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    companion object {
+        /** Set by the initial sync: start the sync of all other records on opening. */
+        const val EXTRA_START_FULL_SYNC = "startFullSync"
     }
 }

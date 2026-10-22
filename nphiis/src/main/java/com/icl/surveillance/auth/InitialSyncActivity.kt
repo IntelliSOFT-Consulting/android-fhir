@@ -109,6 +109,8 @@ class InitialSyncActivity : AppCompatActivity() {
     private fun completeInitialSync() {
         if (hasNavigatedToMain) return
         hasNavigatedToMain = true
+        // Locations are all in: the initial sync is done. The main page then starts the sync of
+        // all other records (MainActivity, EXTRA_START_FULL_SYNC).
         FormatterClass().setSyncDone(this@InitialSyncActivity)
         binding.syncStatusText.text = getString(R.string.all_data_imported_successfully)
         lifecycleScope.launch {
@@ -122,12 +124,14 @@ class InitialSyncActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 locationMonitor.progress.collect { progress ->
-                    val count = progress.locationDownloaded
-                    val type = progress.currentType
+                    // Plain progress text plus how many records (Locations) have been downloaded so
+                    // far; the record types themselves are not shown.
                     if (!hasNavigatedToMain) {
+                        val count = progress.locationDownloaded
                         binding.syncStatusText.text =
-                            if (type.isBlank()) "Locations synced: $count"
-                            else "$type synced: $count"
+                            if (count > 0) "Syncing data, please wait…\n" +
+                                "${java.text.NumberFormat.getIntegerInstance().format(count)} downloaded"
+                            else "Syncing data, please wait…"
                     }
                 }
             }
@@ -139,6 +143,7 @@ class InitialSyncActivity : AppCompatActivity() {
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra(MainActivity.EXTRA_START_FULL_SYNC, true)
             addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TASK or

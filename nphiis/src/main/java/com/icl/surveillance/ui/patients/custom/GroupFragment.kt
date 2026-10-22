@@ -273,7 +273,7 @@ class GroupFragment : Fragment() {
         // Second TextView (dynamic content)
         val tvEpiLink = TextView(requireContext()).apply {
             id = R.id.tv_epi_link // Set ID if needed for further reference
-            text = DisplayFormat.value(item.value) // Assuming item.text is the dynamic text you want to show
+            text = DisplayFormat.answers(item.value, item.choices)
             textSize = 13f
             textAlignment = TextView.TEXT_ALIGNMENT_TEXT_END
             setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_value_text))
@@ -370,7 +370,7 @@ class GroupFragment : Fragment() {
 
         // First TextView (label)
         val label = TextView(requireContext()).apply {
-            text = DisplayFormat.value(item.value)
+            text = DisplayFormat.answers(item.value, item.choices)
             textSize = 12f
             setTextColor(ContextCompat.getColor(requireContext(), R.color.summary_page_value_text))
             typeface = ResourcesCompat.getFont(requireContext(), R.font.inter)

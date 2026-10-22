@@ -27,6 +27,8 @@ data class OutputItem(
     val enable: Boolean = true,
     val parentLink: String? = null,
     val parentResponse: String? = null,
+    /** Labels of a multi-answer question's options; empty for single-answer questions. */
+    val choices: List<String> = emptyList(),
 )
 
 @Serializable
@@ -53,8 +55,17 @@ data class ChildItem(
     val text: String,
     val type: String,
     val item: List<ChildItem>? = null,
-    val enableWhen: List<EnableWhen>? = null
+    val enableWhen: List<EnableWhen>? = null,
+    val repeats: Boolean? = null,
+    val answerOption: List<AnswerOption>? = null,
 )
+
+data class AnswerOption(
+    val valueCoding: AnswerCoding? = null,
+    val valueString: String? = null,
+) {
+    val label: String? get() = valueCoding?.let { it.display ?: it.code } ?: valueString
+}
 
 data class EnableWhen(
     val question: String,

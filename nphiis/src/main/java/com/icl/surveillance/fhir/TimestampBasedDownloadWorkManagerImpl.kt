@@ -43,9 +43,9 @@ class TimestampBasedDownloadWorkManagerImpl(
      * A resource type's own last-synced time is used when later. Locations are exempt on the
      * first sync (the full list is needed).
      */
-    private val SYNC_START = "2026-10-14T21:00:00Z"
+    private val SYNC_START = "2026-01-01T21:00:00Z"
 
-    private val LOCATION_URL = "Location?_count=950&_sort=_lastUpdated"
+    private val LOCATION_URL = "Location?_count=$LOCATION_PAGE_SIZE&_sort=_lastUpdated"
 
     // NOTE: keep your intended behavior; this is just as you had it.
     // Page sizes are kept small for clinical resources: a single QuestionnaireResponse can carry
@@ -68,7 +68,7 @@ class TimestampBasedDownloadWorkManagerImpl(
             )
         } else {
             listOf(
-                "Location?_count=950&_sort=_lastUpdated",
+                "Location?_count=$LOCATION_PAGE_SIZE&_sort=_lastUpdated",
             )
         }
 
@@ -101,6 +101,12 @@ class TimestampBasedDownloadWorkManagerImpl(
         }
 
         urls.addAll(CORE_URLS)
+        // Logcat "SYNC_PHASE": the first sync downloads Locations only; everything else starts
+        // once they are all in (FormatterClass.isSyncDone).
+        android.util.Log.i(
+            "SYNC_PHASE",
+            if (isFirstTimeForLocation) "Initial sync: Locations only" else "Full sync: ${urls.size} record types",
+        )
         seeded = true
     }
 
@@ -319,6 +325,9 @@ class TimestampBasedDownloadWorkManagerImpl(
         const val RESPONSE_PAGE_SIZE = 50
         const val REPORT_PAGE_SIZE = 50
         const val GROUP_PAGE_SIZE = 100
+        // Smaller pages (were 950, ~0.5 MB each): each reply is quicker, so the server is far
+        // less likely to stall long enough to time out.
+        const val LOCATION_PAGE_SIZE = 400
         const val ENCOUNTER_PAGE_SIZE = 100
         const val OBSERVATION_PAGE_SIZE = 200
 
