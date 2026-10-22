@@ -21,6 +21,7 @@ import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.setSingleClickListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -55,7 +56,7 @@ class LauncherActivity : AppCompatActivity() {
         }
         appUpdateInfoTask.addOnFailureListener { e ->
             // Handle the failure
-            e.printStackTrace()
+            Timber.e(e)
         }
         lifecycleScope.launch {
             delay(3000) // 3 seconds

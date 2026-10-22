@@ -3,7 +3,6 @@ package com.icl.surveillance.viewmodels
 import com.icl.surveillance.fhir.FhirConformance
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -37,6 +36,7 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
 import org.json.JSONObject
 import java.time.LocalDate
+import timber.log.Timber
 
 class ScreenerViewModel(application: Application, private val state: SavedStateHandle) :
     AndroidViewModel(application) {
@@ -275,7 +275,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 }
                 true
             } catch (e: Exception) {
-                Log.e("ScreenerViewModel", "Failed to complete contact assessment", e)
+                Timber.tag("ScreenerViewModel").e(e, "Failed to complete contact assessment")
                 false
             }
 
@@ -380,7 +380,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 }
                 true
             } catch (e: Exception) {
-                Log.e("ScreenerViewModel", "Failed to complete lab assessment", e)
+                Timber.tag("ScreenerViewModel").e(e, "Failed to complete lab assessment")
                 false
             }
 
@@ -408,7 +408,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
         return try {
             formatter.extractStructuredAnswersOnlyFromItems(JSONObject(questionnaireResponseString))
         } catch (e: Exception) {
-            Log.e("ScreenerViewModel", "Failed to parse questionnaire response JSON", e)
+            Timber.tag("ScreenerViewModel").e(e, "Failed to parse questionnaire response JSON")
             emptyList()
         }
     }
@@ -482,9 +482,9 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
             }
             fhirEngine.create(FhirConformance.ensureRequired(obs))
 
-            println("Observation created: ${obs.id}")
+            Timber.d("Observation created: ${obs.id}")
         } catch (e: Exception) {
-            Log.e("SavePatient", "Error saving patient", e)
+            Timber.tag("SavePatient").e(e, "Error saving patient")
         }
     }
 

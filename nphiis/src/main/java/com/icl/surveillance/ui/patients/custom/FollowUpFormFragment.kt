@@ -5,7 +5,6 @@ import com.icl.surveillance.utils.DisplayFormat
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -50,6 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Encounter
+import timber.log.Timber
 
 
 /**
@@ -97,7 +97,7 @@ class FollowUpFormFragment : Fragment() {
                 )
             }
         } catch (e: Exception) {
-            println(e.message)
+            Timber.d(e.message)
         }
     }
 
@@ -403,8 +403,8 @@ class FollowUpFormFragment : Fragment() {
 
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("TAG", "File Error ${e.message}")
+            Timber.e(e)
+            Timber.tag("TAG").e("File Error ${e.message}")
         }
         return outputGroups
 

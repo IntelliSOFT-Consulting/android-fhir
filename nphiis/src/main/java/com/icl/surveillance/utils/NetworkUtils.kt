@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import timber.log.Timber
 
 object NetworkUtils {
 
@@ -42,7 +43,7 @@ object NetworkUtils {
                 networkInfo != null && networkInfo.isConnected
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             false
         }
     }
@@ -83,7 +84,7 @@ object NetworkUtils {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             "Unknown"
         }
     }
@@ -108,7 +109,7 @@ object NetworkUtils {
                 networkInfo?.type == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             false
         }
     }
@@ -133,7 +134,7 @@ object NetworkUtils {
                 networkInfo?.type == ConnectivityManager.TYPE_MOBILE && networkInfo.isConnected
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             false
         }
     }
@@ -213,7 +214,7 @@ object NetworkUtils {
                 networkInfo?.type == ConnectivityManager.TYPE_MOBILE
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             false
         }
     }

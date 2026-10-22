@@ -71,6 +71,8 @@ android {
     }
     buildTypes {
         release {
+            // The debug bearer token is for local testing only: keep it out of release APKs.
+            buildConfigField("String", "DEBUG_TOKEN", "\"\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android.txt"),

@@ -3,7 +3,6 @@ package com.icl.surveillance.viewmodels
 import com.icl.surveillance.fhir.FhirConformance
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -557,7 +556,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
 
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Timber.e(e)
                 }
             }
             LocalWins.update(fhirEngine, questionnaireResponse, measureReport)

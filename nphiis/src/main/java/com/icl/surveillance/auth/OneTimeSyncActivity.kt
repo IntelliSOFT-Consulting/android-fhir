@@ -13,6 +13,7 @@ import com.icl.surveillance.databinding.ActivityOneTimeSyncBinding
 import com.icl.surveillance.fhir.LocationDownloadViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class OneTimeSyncActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOneTimeSyncBinding
@@ -63,7 +64,7 @@ class OneTimeSyncActivity : AppCompatActivity() {
             initWorkManager()
 
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 
@@ -92,22 +93,22 @@ class OneTimeSyncActivity : AppCompatActivity() {
                 .observe(this@OneTimeSyncActivity) { workInfo ->
                     when (workInfo?.state) {
                         WorkInfo.State.RUNNING -> {
-                            println("Worker Status running")
+                            Timber.d("Worker Status running")
                         }
 
                         WorkInfo.State.SUCCEEDED -> {
-                            println("Worker Status finished successfully")
+                            Timber.d("Worker Status finished successfully")
                             val wasComplete =
                                 workInfo.outputData.getBoolean("fetch_complete", false)
                             if (wasComplete) {
-                                println("✅ Data fetching complete. Update ViewModel here.")
+                                Timber.d("✅ Data fetching complete. Update ViewModel here.")
                                 viewModel.setFetchingComplete(true)
                             }
                         }
 
-                        WorkInfo.State.FAILED -> println("Worker Status failed")
+                        WorkInfo.State.FAILED -> Timber.d("Worker Status failed")
                         else -> {
-                            println("Worker Status Unknown")
+                            Timber.d("Worker Status Unknown")
 
                         }
                     }

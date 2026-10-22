@@ -14,6 +14,7 @@ import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -65,7 +66,7 @@ class CaseInformationFragment : Fragment() {
             val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
             patientDetailsViewModel.getPatientDiseaseData("Measles Case", "$encounterId", true)
         } catch (e: Exception) {
-            println(e.message)
+            Timber.d(e.message)
         }
     }
 

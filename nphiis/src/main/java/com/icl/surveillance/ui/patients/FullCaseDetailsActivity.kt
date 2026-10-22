@@ -17,6 +17,7 @@ import com.icl.surveillance.ui.patients.data.ViewPagerAdapter
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
+import timber.log.Timber
 
 class FullCaseDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFullCaseDetailsBinding
@@ -41,13 +42,12 @@ class FullCaseDetailsActivity : AppCompatActivity() {
                 ),
             )
                 .get(ClientDetailsViewModel::class.java)
-        println("Started searching for cases *** $currentCase")
+        Timber.d("Started searching for cases *** $currentCase")
         if (currentCase != null) {
             val slug = currentCase.toCaseSlug()
             patientDetailsViewModel.getPatientInfo(slug)
         }
         patientDetailsViewModel.livecaseData.observe(this) {
-            println("Patient Detail Information ${it.name}")
             binding.apply {
                 val adapter = ViewPagerAdapter(this@FullCaseDetailsActivity)
                 viewPager.adapter = adapter

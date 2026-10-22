@@ -33,6 +33,7 @@ import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import timber.log.Timber
 
 class EditChecklistActivity : AppCompatActivity() {
     private lateinit var viewModel: EditSupervisorChecklistViewModel
@@ -68,7 +69,7 @@ class EditChecklistActivity : AppCompatActivity() {
         supportActionBar.apply { title = titleText }
         val questionnaireId =
             FormatterClass().getSharedPref("resourceId", this)
-        println("Selected Questionnaire ID: $questionnaireId")
+        Timber.d("Selected Questionnaire ID: $questionnaireId")
 
         val questionnaire =
             FormatterClass().getSharedPref("questionnaire", this@EditChecklistActivity)

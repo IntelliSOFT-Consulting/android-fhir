@@ -19,6 +19,7 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.databinding.FragmentChildBinding
 import com.icl.surveillance.utils.FormatterClass
 import kotlin.getValue
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -112,7 +113,7 @@ class ChildFragment : Fragment() {
 
     private fun onItemClick(layout: HomeViewModel.Diseases) {
         val title = context?.getString(layout.textId) ?: ""
-        println("Child Clicked ***** ${layout.level}")
+        Timber.d("Child Clicked ***** ${layout.level}")
         when (layout.level) {
             0 -> {
                 val bundle =

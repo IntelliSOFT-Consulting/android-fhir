@@ -10,7 +10,6 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -71,6 +70,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.getValue
 import kotlin.jvm.java
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
     private var retrofitCallsAuthentication = RetrofitCallsAuthentication()
@@ -328,7 +328,7 @@ class MainActivity : AppCompatActivity() {
                             flattened[id]
                         }
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        Timber.e(e)
                         ""
                     }
 
@@ -516,7 +516,7 @@ class MainActivity : AppCompatActivity() {
                                 UPDATE_REQUEST_CODE
                             )
                         } catch (e: IntentSender.SendIntentException) {
-                            Log.e("AppUpdate", "Flexible update error: ${e.message}")
+                            Timber.tag("AppUpdate").e("Flexible update error: ${e.message}")
                         }
                     }
 
@@ -530,19 +530,19 @@ class MainActivity : AppCompatActivity() {
                                 UPDATE_REQUEST_CODE
                             )
                         } catch (e: IntentSender.SendIntentException) {
-                            Log.e("AppUpdate", "Immediate update error: ${e.message}")
+                            Timber.tag("AppUpdate").e("Immediate update error: ${e.message}")
                         }
                     }
 
                     else -> {
-                        Log.d("AppUpdate", "Update available but not allowed")
+                        Timber.tag("AppUpdate").d("Update available but not allowed")
                     }
                 }
             } else {
-                Log.d("AppUpdate", "No update available")
+                Timber.tag("AppUpdate").d("No update available")
             }
         }.addOnFailureListener {
-            Log.e("AppUpdate", "Failed to check for update: ${it.message}")
+            Timber.tag("AppUpdate").e("Failed to check for update: ${it.message}")
         }
     }
 
@@ -550,7 +550,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == UPDATE_REQUEST_CODE) {
             if (resultCode != RESULT_OK) {
-                Log.e("AppUpdate", "Update flow failed! Result code: $resultCode")
+                Timber.tag("AppUpdate").e("Update flow failed! Result code: $resultCode")
                 // Handle retry logic if necessary
             }
         }
@@ -613,7 +613,7 @@ class MainActivity : AppCompatActivity() {
                             .show()
 
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        Timber.e(e)
                     }
                 }
                 true

@@ -1,6 +1,5 @@
 package com.icl.surveillance.network
 
-import android.util.Log
 import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.fhir.FhirApplication
 import java.util.concurrent.TimeUnit
@@ -14,6 +13,7 @@ import okhttp3.TlsVersion
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 
 object RetrofitBuilder {
 
@@ -44,7 +44,7 @@ object RetrofitBuilder {
 
         val interceptor =
             HttpLoggingInterceptor { message ->
-                Log.e("API_RELEASE", message)
+                Timber.tag("API_RELEASE").e(message)
             }.apply {
                 // Full bodies only in debug builds: in release they copied every response (sync
                 // bundles, IPRS results) into log strings, and exposed personal data in logcat.

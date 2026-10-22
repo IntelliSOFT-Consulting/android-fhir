@@ -7,6 +7,7 @@ import com.icl.surveillance.models.Notification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 sealed class NotificationUiState {
     object Loading : NotificationUiState()
@@ -34,7 +35,7 @@ class NotificationViewModel : ViewModel() {
                     _uiState.value = NotificationUiState.Success(data)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Timber.e(e)
                 _uiState.value = NotificationUiState.Error(e.message ?: "An error occurred")
             }
         }

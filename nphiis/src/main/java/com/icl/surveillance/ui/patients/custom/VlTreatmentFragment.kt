@@ -5,7 +5,6 @@ import com.icl.surveillance.utils.DisplayFormat
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,6 +31,7 @@ import com.icl.surveillance.utils.setSingleClickListener
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 import kotlin.collections.forEach
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -87,7 +87,7 @@ class VlTreatmentFragment : Fragment() {
                 )
             }
         } catch (e: Exception) {
-            println(e.message)
+            Timber.d(e.message)
         }
     }
 
@@ -234,8 +234,8 @@ class VlTreatmentFragment : Fragment() {
 
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("TAG", "File Error ${e.message}")
+            Timber.e(e)
+            Timber.tag("TAG").e("File Error ${e.message}")
         }
         return outputGroups
 

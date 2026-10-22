@@ -1,7 +1,6 @@
 package com.icl.surveillance.fhir.forms
 
 import android.content.Context
-import android.util.Log
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.LocalChange
 import com.google.android.fhir.datacapture.extensions.logicalId
@@ -14,6 +13,7 @@ import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
+import timber.log.Timber
 
 /**
  * The facility a record belongs to: its "*-managingLocation" meta tag (code "Location/{id}") and
@@ -145,10 +145,10 @@ object ManagingLocation {
     ): RepairResult? {
         val formatter = FormatterClass()
         if (!force && formatter.getSharedPref(REPAIR_DONE_PREF, context) == "true") {
-            Log.i(TAG, "Repair already done; skipped")
+            Timber.tag(TAG).i("Repair already done; skipped")
             return null
         }
-        Log.i(TAG, "Repair v6 started (force=$force): checking every Encounter, QuestionnaireResponse, Observation and Patient")
+        Timber.tag(TAG).i("Repair v6 started (force=$force): checking every Encounter, QuestionnaireResponse, Observation and Patient")
         var checked = 0
         var fixed = 0
         try {
@@ -158,21 +158,21 @@ object ManagingLocation {
             checked += collectBroken<QuestionnaireResponse>(fhirEngine, broken)
             checked += collectBroken<Observation>(fhirEngine, broken)
             checked += collectBroken<Patient>(fhirEngine, broken)
-            Log.i(TAG, "Found ${broken.size} record(s) with an empty Location: " +
+            Timber.tag(TAG).i("Found ${broken.size} record(s) with an empty Location: " +
                 broken.groupingBy { it.resourceType.name }.eachCount())
             broken.forEach { resource ->
                 val place = placeFor(fhirEngine, resource) ?: fallbackFor(context)
                 if (fix(fhirEngine, resource, place)) {
                     fixed++
-                    Log.i(TAG, "${resource.resourceType}/${resource.logicalId} -> " +
+                    Timber.tag(TAG).i("${resource.resourceType}/${resource.logicalId} -> " +
                         (place?.let { "Location/${it.id}" } ?: "tag removed (no facility found)"))
                 }
             }
             if (fixed == 0) formatter.saveSharedPref(REPAIR_DONE_PREF, "true", context)
-            Log.i(TAG, "Checked $checked record(s); repaired $fixed")
+            Timber.tag(TAG).i("Checked $checked record(s); repaired $fixed")
             return RepairResult(checked, fixed)
         } catch (e: Exception) {
-            Log.e(TAG, "Repair stopped after $checked record(s), $fixed repaired; will retry on next sync", e)
+            Timber.tag(TAG).e(e, "Repair stopped after $checked record(s), $fixed repaired; will retry on next sync")
             return RepairResult(checked, fixed, e)
         }
     }

@@ -19,6 +19,7 @@ import com.icl.surveillance.utils.DialogHelper
 import com.icl.surveillance.utils.NetworkUtils
 import com.icl.surveillance.viewmodels.PeriodicSyncViewModel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class SyncActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySyncBinding
@@ -88,7 +89,7 @@ class SyncActivity : AppCompatActivity() {
         try {
             periodicSyncViewModel.cancelPeriodicSyncJob()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 
@@ -126,7 +127,7 @@ class SyncActivity : AppCompatActivity() {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 }

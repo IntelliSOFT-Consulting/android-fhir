@@ -4,7 +4,6 @@ import com.icl.surveillance.fhir.forms.latestValueOf
 import com.icl.surveillance.fhir.forms.answerText
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -1016,7 +1015,7 @@ class PatientListViewModel(
                                             extractedAnswers.find { it.linkId == id }?.answer
                                         }
                                     } catch (e: Exception) {
-                                        e.printStackTrace()
+                                        Timber.e(e)
                                         ""
                                     }
                                     subCounty = try {
@@ -1025,7 +1024,7 @@ class PatientListViewModel(
                                         }
 
                                     } catch (e: Exception) {
-                                        e.printStackTrace()
+                                        Timber.e(e)
                                         ""
                                     }
                                 }
@@ -1336,7 +1335,7 @@ class PatientListViewModel(
                 }
 
             } catch (e: Exception) {
-                e.printStackTrace()
+                Timber.e(e)
             }
             item
         }.let {
@@ -1395,7 +1394,7 @@ class PatientListViewModel(
                         obs.find { it.resource.code.codingFirstRep.code == id }?.resource?.value?.answerText()
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Timber.e(e)
                     ""
                 }
                 val subCounty = try {
@@ -1404,7 +1403,7 @@ class PatientListViewModel(
                     }
 
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Timber.e(e)
                     ""
                 }
                 val response = RumorItem(
@@ -1633,7 +1632,7 @@ class PatientListViewModel(
                                 count = 100
                             }
                         } catch (e: Exception) {
-                            println("Error loading observations for encounter $encounterId: ${e.message}")
+                            Timber.d("Error loading observations for encounter $encounterId: ${e.message}")
                             emptyList()
                         }
                     }
@@ -1683,7 +1682,7 @@ class PatientListViewModel(
         val occupation = findObservationValue(observations, "occupation")
         val vaccinationCenter = findObservationValue(observations, "vaccination_center")
 
-        println("Current Workflow :::: Campaign Day : $campaignDay")
+        Timber.d("Current Workflow :::: Campaign Day : $campaignDay")
 
         // Process lab results based on case type
         data = processLabResults(data, nameQuery, logicalId)
@@ -1726,7 +1725,7 @@ class PatientListViewModel(
             CaseSlugs.VHF -> try {
                 processVhfCase(fhirEngine, loadChildEncounter(data.resourceId, patientId), data, patientId)
             } catch (e: Exception) {
-                println("Error processing VHF lab results: ${e.message}")
+                Timber.d("Error processing VHF lab results: ${e.message}")
                 data
             }
 
@@ -1775,7 +1774,7 @@ class PatientListViewModel(
                 data
             }
         } catch (e: Exception) {
-            println("Error processing VL lab results: ${e.message}")
+            Timber.d("Error processing VL lab results: ${e.message}")
             data
         }
     }
@@ -1788,7 +1787,7 @@ class PatientListViewModel(
             val childEncounter = loadChildEncounter(data.resourceId, patientId)
             processAfpCase(fhirEngine, childEncounter, data)
         } catch (e: Exception) {
-            println("Error processing AFP lab results: ${e.message}")
+            Timber.d("Error processing AFP lab results: ${e.message}")
             data
         }
     }
@@ -1826,7 +1825,7 @@ class PatientListViewModel(
                 data
             }
         } catch (e: Exception) {
-            println("Error processing Measles lab results: ${e.message}")
+            Timber.d("Error processing Measles lab results: ${e.message}")
             data
         }
     }
@@ -2278,8 +2277,8 @@ class PatientListViewModel(
                 val encounter = loadEncounter(item.resourceId)
 
             } catch (e: Exception) {
-                e.printStackTrace()
-                println("Error Loading Patient data ${e.message}")
+                Timber.e(e)
+                Timber.d("Error Loading Patient data ${e.message}")
             }
             item
         }.toMutableList()

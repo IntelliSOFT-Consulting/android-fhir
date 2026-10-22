@@ -2,7 +2,6 @@ package com.icl.surveillance.viewmodels
 
 import android.app.Application
 import android.text.format.DateFormat
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -20,6 +19,7 @@ import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import timber.log.Timber
 
 
 class SyncFragmentViewModel(application: Application) : AndroidViewModel(application) {
@@ -78,14 +78,10 @@ class SyncFragmentViewModel(application: Application) : AndroidViewModel(applica
                     )
 
                 ).catch { throwable ->
-                    Log.e(
-                        "FHIR_SYNC",
-                        "Error setting up periodic sync: ${throwable.message}",
-                        throwable
-                    )
+                    Timber.tag("FHIR_SYNC").e(throwable, "Error setting up periodic sync: ${throwable.message}")
                 }.collect { }
             } catch (e: Exception) {
-                Log.e("FHIR_SYNC", "Error setting up periodic sync: ${e.message}", e)
+                Timber.tag("FHIR_SYNC").e(e, "Error setting up periodic sync: ${e.message}")
             }
         }
     }

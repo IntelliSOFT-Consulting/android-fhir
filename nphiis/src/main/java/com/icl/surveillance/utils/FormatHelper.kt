@@ -9,6 +9,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
+import timber.log.Timber
 
 class FormatHelper {
 
@@ -424,14 +425,14 @@ class FormatHelper {
             val current_time = simpleDateFormat.parse(systemTime)
 
             return if (current_time.after(endtime) && current_time.before(starttime)) {
-                println("Yes it Matches ")
+                Timber.d("Yes it Matches ")
                 true
             } else {
-                println("No")
+                Timber.d("No")
                 false
             }
         } catch (e: ParseException) {
-            e.printStackTrace()
+            Timber.e(e)
         }
         return false
     }
@@ -445,14 +446,14 @@ class FormatHelper {
             val current_time = simpleDateFormat.parse(actual)
 
             return if (current_time.after(starttime) && current_time.before(endtime)) {
-                println("Yes it Matches ")
+                Timber.d("Yes it Matches ")
                 true
             } else {
-                println("No")
+                Timber.d("No")
                 false
             }
         } catch (e: ParseException) {
-            e.printStackTrace()
+            Timber.e(e)
         }
         return false
     }
@@ -469,15 +470,15 @@ class FormatHelper {
                 return if ((current_time.after(starttime) || current_time.equals(starttime)) &&
                     (current_time.before(endtime) || current_time.equals(endtime))
                 ) {
-                    println("Yes it Matches ")
+                    Timber.d("Yes it Matches ")
                     true
                 } else {
-                    println("No")
+                    Timber.d("No")
                     false
                 }
             }
         } catch (e: ParseException) {
-            e.printStackTrace()
+            Timber.e(e)
         }
         return false
     }
@@ -493,14 +494,14 @@ class FormatHelper {
             val endTime = dest.parse(incomingString)
 
             return if (startTime.after(endTime)) {
-                println("Yes")
+                Timber.d("Yes")
                 true
             } else {
-                println("No")
+                Timber.d("No")
                 false
             }
         } catch (e: ParseException) {
-            e.printStackTrace()
+            Timber.e(e)
         }
         return false
     }

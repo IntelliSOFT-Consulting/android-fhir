@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import android.text.format.DateFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import timber.log.Timber
 
 class PeriodicSyncViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -97,7 +98,7 @@ class PeriodicSyncViewModel(application: Application) : AndroidViewModel(applica
                     )
 
             is LastSyncJobStatus.Failed -> {
-                println("Failed last sync status: ${lastSyncJobStatus.timestamp} $lastSyncJobStatus")
+                Timber.d("Failed last sync status: ${lastSyncJobStatus.timestamp} $lastSyncJobStatus")
                 getApplication<FhirApplication>()
                     .getString(
                         R.string.last_sync_status,

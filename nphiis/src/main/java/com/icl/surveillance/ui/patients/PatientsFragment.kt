@@ -22,6 +22,7 @@ import com.icl.surveillance.adapters.PatientItemRecyclerViewAdapter
 import com.icl.surveillance.databinding.FragmentPatientListBinding
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.utils.FormatterClass
+import timber.log.Timber
 
 class PatientsFragment : Fragment() {
     private lateinit var fhirEngine: FhirEngine
@@ -137,7 +138,7 @@ class PatientsFragment : Fragment() {
     }
 
     private fun onPatientItemClicked(patientItem: PatientListViewModel.PatientItem) {
-        println("Going to client details activity with the id as ${patientItem.resourceId} and Encounter ${patientItem.encounterId}")
+        Timber.d("Going to client details activity with the id as ${patientItem.resourceId} and Encounter ${patientItem.encounterId}")
         FormatterClass().saveSharedPref("resourceId", patientItem.resourceId, requireContext())
         FormatterClass().saveSharedPref("encounterId", patientItem.encounterId, requireContext())
         findNavController().navigate(R.id.action_navigation_dashboard_to_fullCaseDetailsActivity)

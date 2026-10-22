@@ -36,6 +36,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.json.JSONObject
 import kotlin.getValue
+import timber.log.Timber
 
 class GeneralEditorActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGeneralEditorBinding
@@ -145,7 +146,7 @@ class GeneralEditorActivity : AppCompatActivity() {
                     val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
                     val questionnaireResponseString =
                         jsonParser.encodeResourceToString(questionnaireResponse)
-                    println(" Current ID -> ${questionnaireResponse.idPart}")
+                    Timber.d(" Current ID -> ${questionnaireResponse.idPart}")
 
                     FormatterClass().saveSharedPref(
                         "activeResponse",

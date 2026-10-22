@@ -1,7 +1,6 @@
 package com.icl.surveillance.fhir
 
 import android.content.Context
-import android.util.Log
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
@@ -36,6 +35,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Specimen
 import org.hl7.fhir.r4.model.StringType
+import timber.log.Timber
 
 class SdcQuestionnaireResponseSaver(
     private val context: Context,
@@ -65,7 +65,7 @@ class SdcQuestionnaireResponseSaver(
         }
 
         if (extractedBundle.entry.isEmpty()) {
-            Log.w(TAG, "SDC extraction bundle is empty.")
+            Timber.tag(TAG).w("SDC extraction bundle is empty.")
             return@withContext SaveResult(
                 isSuccess = false,
                 userMessage = "No resources were extracted from this questionnaire response."
@@ -79,7 +79,7 @@ class SdcQuestionnaireResponseSaver(
             )
             SaveResult(isSuccess = true)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to save SDC extracted resources", e)
+            Timber.tag(TAG).e(e, "Failed to save SDC extracted resources")
             SaveResult(
                 isSuccess = false,
                 userMessage = "Failed to save the extracted SDC resources."

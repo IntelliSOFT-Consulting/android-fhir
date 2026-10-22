@@ -4,7 +4,6 @@ import android.content.Context
 import com.icl.surveillance.utils.DisplayFormat
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +29,7 @@ import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -98,7 +98,7 @@ class RegionalLabResultsFragment : Fragment() {
         }
       }
     } catch (e: Exception) {
-      println(e.message)
+      Timber.d(e.message)
     }
   }
 
@@ -145,10 +145,8 @@ class RegionalLabResultsFragment : Fragment() {
 
         parentLayout.removeAllViews()
         outputGroups.forEach { group ->
-          Log.d(
-              "OutputGroup",
-              "OutputGroup LinkId: ${group.linkId}, Text: ${group.text}, Type: ${group.type}",
-          )
+          Timber.tag("OutputGroup")
+              .d("OutputGroup LinkId: ${group.linkId}, Text: ${group.text}, Type: ${group.type}")
 
           val item =
               OutputItem(
@@ -383,8 +381,8 @@ class RegionalLabResultsFragment : Fragment() {
         OutputGroup(linkId = item.linkId, text = item.text, type = item.type)
       }
     } catch (e: Exception) {
-      e.printStackTrace()
-      Log.e("TAG", "File Error: ${e.message}")
+      Timber.e(e)
+      Timber.tag("TAG").e("File Error: ${e.message}")
       emptyList()
     }
   }

@@ -47,6 +47,7 @@ import com.icl.surveillance.utils.FormatterClass
 import kotlin.collections.filter
 import kotlin.getValue
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -945,7 +946,7 @@ class CaseSelectionFragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Timber.e(e)
             }
         }
     }
@@ -1000,7 +1001,7 @@ class CaseSelectionFragment : Fragment() {
      */
     fun checkIfUserIsAllowedToAction(): Boolean {
         val hasFacility = FormatterClass().getSharedPref("facility", requireContext())
-        println("Facility Selection: $hasFacility")
+        Timber.d("Facility Selection: $hasFacility")
         return true // !hasFacility.isNullOrEmpty()
     }
 
@@ -1036,7 +1037,7 @@ class CaseSelectionFragment : Fragment() {
         try {
             setupRecyclerView()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 

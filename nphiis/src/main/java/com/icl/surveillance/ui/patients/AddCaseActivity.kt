@@ -2,7 +2,6 @@ package com.icl.surveillance.ui.patients
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -51,6 +50,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.Type
+import timber.log.Timber
 
 class AddCaseActivity : AppCompatActivity() {
     private val fhirEngine: FhirEngine by lazy {
@@ -173,7 +173,7 @@ class AddCaseActivity : AppCompatActivity() {
                 FormatterClass().saveSharedPref("longitude", longitude, this)
             },
             onError = { error ->
-                println("Error: $error")
+                Timber.d("Error: $error")
             },
         )
     }
@@ -204,7 +204,6 @@ class AddCaseActivity : AppCompatActivity() {
             val jsonParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
             val questionnaireResponseString =
                 jsonParser.encodeResourceToString(questionnaireResponse)
-            println("Response $questionnaireResponseString")
             if (!passesContactChecks(questionnaireResponse)) return@launch
             saveCase(questionnaireFragment.getQuestionnaireResponse(), questionnaireResponseString)
         }
@@ -230,7 +229,7 @@ class AddCaseActivity : AppCompatActivity() {
 
         val saveConfig = questionnaire?.let(SAVE_CASE_CONFIGS::get)
         if (saveConfig == null) {
-            Log.w(TAG, "Unsupported questionnaire for saveCase: $questionnaire")
+            Timber.tag(TAG).w("Unsupported questionnaire for saveCase: $questionnaire")
             Toast.makeText(
                 this@AddCaseActivity,
                 "Unsupported questionnaire. Please try again.",
@@ -242,7 +241,7 @@ class AddCaseActivity : AppCompatActivity() {
         when (saveConfig.type) {
             SaveCaseType.LAB -> {
                 val title = saveConfig.title ?: run {
-                    Log.w(TAG, "Missing lab title for questionnaire: $questionnaire")
+                    Timber.tag(TAG).w("Missing lab title for questionnaire: $questionnaire")
                     Toast.makeText(
                         this@AddCaseActivity,
                         "Unable to save this questionnaire. Please try again.",
@@ -386,7 +385,6 @@ class AddCaseActivity : AppCompatActivity() {
                             }
 
                             val sendingDateAnswer = sendingDateItem?.answerFirstRep?.value
-                            println("Previous Date of sending ${response.resource.logicalId} ->  ${sendingDateAnswer?.primitiveValue()} current questionnaire $json")
 
                             val dateReceived =
                                 QuestionnaireResponse.QuestionnaireResponseItemComponent()

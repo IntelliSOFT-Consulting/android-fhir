@@ -4,11 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import com.icl.surveillance.auth.LoginActivity
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 
 object SessionExpiryHandler {
     private val redirectInProgress = AtomicBoolean(false)
@@ -32,7 +32,7 @@ object SessionExpiryHandler {
                 }
                 appContext.startActivity(intent)
             } catch (error: Exception) {
-                Log.e("SessionExpiryHandler", "Unable to launch login screen after 401", error)
+                Timber.tag("SessionExpiryHandler").e(error, "Unable to launch login screen after 401")
             }
         }
     }

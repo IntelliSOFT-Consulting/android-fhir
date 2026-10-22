@@ -45,6 +45,7 @@ import com.icl.surveillance.utils.FormatterClass
 import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class CaseListingActivity : AppCompatActivity() {
 
@@ -518,7 +519,7 @@ class CaseListingActivity : AppCompatActivity() {
         try {
             loadData()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 

@@ -584,7 +584,7 @@ class EditSupervisorChecklistViewModel(
         return try {
             formatter.extractStructuredAnswersOnlyFromItems(JSONObject(questionnaireResponseString))
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             emptyList()
         }
     }

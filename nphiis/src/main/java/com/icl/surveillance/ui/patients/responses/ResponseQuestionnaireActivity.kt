@@ -3,7 +3,6 @@ package com.icl.surveillance.ui.patients.responses
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -38,7 +37,7 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
         try {
             loadData()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 
@@ -92,9 +91,6 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
             invalidateOptionsMenu()
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setDisplayShowHomeEnabled(true)
-            data.observations.forEach { hello ->
-                println("Dealing with $questionnaireId with responses  ${hello.code} ${hello.value}")
-            }
             groups.forEach { group ->
                 // For each item inside the group
 
@@ -142,7 +138,7 @@ class ResponseQuestionnaireActivity : AppCompatActivity() {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             Timber.tag("TAG").e("File Error ${e.message}")
         }
         return outputGroups

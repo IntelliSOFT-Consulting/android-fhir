@@ -17,6 +17,7 @@ import java.util.Date
 import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
+import timber.log.Timber
 
 class FormatterClass {
     private val dateInverseFormatSeconds: SimpleDateFormat =
@@ -361,7 +362,7 @@ class FormatterClass {
                 .setOnClickListener { dialog.dismiss() }
             dialog.show()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 }

@@ -16,6 +16,7 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.databinding.FragmentSingleCaseBinding
 import com.icl.surveillance.utils.FormatterClass
 import kotlin.getValue
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -66,7 +67,7 @@ class SingleCaseFragment : Fragment() {
     var titleName = FormatterClass().getSharedPref("childTitle", requireContext())
     var stage = FormatterClass().getSharedPref("childStage", requireContext())
 
-    println("Current Stage is $stage")
+    Timber.d("Current Stage is $stage")
     val activity = requireActivity() as AppCompatActivity
     activity.supportActionBar?.apply {
       title = ""
@@ -93,7 +94,7 @@ class SingleCaseFragment : Fragment() {
             "100" -> viewModel.getMOHList()
             "7" -> viewModel.getDiseasesList(700)
             else -> {
-              println("Noting to Show")
+              Timber.d("Noting to Show")
               emptyList()
             }
           }
@@ -108,7 +109,7 @@ class SingleCaseFragment : Fragment() {
 
   private fun onItemClick(layout: HomeViewModel.Diseases) {
     val title = context?.getString(layout.textId) ?: ""
-    println("Click action ${layout.count}")
+    Timber.d("Click action ${layout.count}")
     when (layout.count) {
       0 -> {
         val bundle = Bundle().apply { putString(QUESTIONNAIRE_FILE_PATH_KEY, "add-case.json") }

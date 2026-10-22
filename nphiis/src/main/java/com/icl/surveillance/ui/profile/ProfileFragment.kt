@@ -43,6 +43,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class ProfileFragment : Fragment() {
 
@@ -365,7 +366,7 @@ class ProfileFragment : Fragment() {
             }
 
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
          }
     }
 

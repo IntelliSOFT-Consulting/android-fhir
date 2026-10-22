@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import timber.log.Timber
 
 /**
  * A helper class for creating FHIR resources from JSON data.
@@ -55,7 +56,7 @@ class ResourceCreationHelper {
         val json = readJsonFromAssets(context, "locations.json")
         val locations = parseLocationEntries(json)
         locations.forEach { entry ->
-            println("Creating location ${entry.resource.name}")
+            Timber.d("Creating location ${entry.resource.name}")
 
             val location = Location().apply {
                 id = entry.resource.id

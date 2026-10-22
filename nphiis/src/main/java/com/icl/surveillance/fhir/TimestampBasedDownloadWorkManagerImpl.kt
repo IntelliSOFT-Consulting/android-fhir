@@ -21,6 +21,7 @@ import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
+import timber.log.Timber
 
 class TimestampBasedDownloadWorkManagerImpl(
     private val dataStore: DemoDataStore,
@@ -103,8 +104,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         urls.addAll(CORE_URLS)
         // Logcat "SYNC_PHASE": the first sync downloads Locations only; everything else starts
         // once they are all in (FormatterClass.isSyncDone).
-        android.util.Log.i(
-            "SYNC_PHASE",
+        Timber.tag("SYNC_PHASE").i(
             if (isFirstTimeForLocation) "Initial sync: Locations only" else "Full sync: ${urls.size} record types",
         )
         seeded = true

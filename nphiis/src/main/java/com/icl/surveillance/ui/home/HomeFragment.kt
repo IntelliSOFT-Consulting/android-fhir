@@ -16,6 +16,7 @@ import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FI
 import com.icl.surveillance.databinding.FragmentHomeBinding
 import com.icl.surveillance.ui.notifications.NotificationActivity
 import com.icl.surveillance.utils.FormatterClass
+import timber.log.Timber
 
 class HomeFragment : Fragment() {
 
@@ -77,7 +78,7 @@ class HomeFragment : Fragment() {
         try {
             handleUser()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 

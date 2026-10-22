@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.gson.Gson
@@ -33,6 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.RequestBody
 import retrofit2.Response
+import timber.log.Timber
 
 class RetrofitCallsAuthentication {
     private val backgroundProcessingScope = CoroutineScope(
@@ -336,7 +336,7 @@ class RetrofitCallsAuthentication {
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Timber.e(e)
             }
         }
     }
@@ -373,8 +373,6 @@ class RetrofitCallsAuthentication {
             counter++
             formatter.saveSharedPref(key, "$value", context)
         }
-        // Optional debug log
-        Log.d("UserPrefs", "User info saved to SharedPreferences: $userDetails")
     }
 
     fun getResetPassword(context: Context, dbResetPasswordData: DbResetPasswordData) = runBlocking {
@@ -542,7 +540,7 @@ class RetrofitCallsAuthentication {
     private fun canMakeApiCall(context: Context, action: String): Boolean {
         val isOnline = NetworkUtils.isInternetAvailable(context)
         if (!isOnline) {
-            Log.d("RetrofitCallsAuth", "Skipping $action because device is offline")
+            Timber.tag("RetrofitCallsAuth").d("Skipping $action because device is offline")
         }
         return isOnline
     }

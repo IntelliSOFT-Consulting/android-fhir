@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.WeekFields
 import java.util.Locale
+import timber.log.Timber
 
 class PatientItemViewHolder(binding: PatientListItemViewBinding) :
     RecyclerView.ViewHolder(binding.root) {
@@ -71,7 +72,7 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
 
         // what is the current case we are dealing with?
@@ -199,7 +200,7 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                 .toString()
                 .padStart(2, '0') // Ensure two digits for week number
         } catch (e: DateTimeParseException) {
-            println("Invalid date format: ${e.message}")
+            Timber.d("Invalid date format: ${e.message}")
             ""
         }
     }

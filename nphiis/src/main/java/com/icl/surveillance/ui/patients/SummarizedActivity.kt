@@ -3,7 +3,6 @@ package com.icl.surveillance.ui.patients
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -148,7 +147,7 @@ class SummarizedActivity : AppCompatActivity() {
         try {
             loadData()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
         }
     }
 
@@ -659,7 +658,7 @@ class SummarizedActivity : AppCompatActivity() {
                     "encounterQuestionnaire",
                     this@SummarizedActivity
                 )
-                println("This is the latest encounter $encounterQuestionnaire")
+                Timber.d("This is the latest encounter $encounterQuestionnaire")
                 when (encounterQuestionnaire) {
                     CaseSlugs.RCCE_COMMUNITY -> "social-community.json"
                     CaseSlugs.RCCE_COUNTY -> "social-county.json"
@@ -714,7 +713,7 @@ class SummarizedActivity : AppCompatActivity() {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e)
             Timber.tag("TAG").e("File Error ${e.message}")
         }
         return outputGroups

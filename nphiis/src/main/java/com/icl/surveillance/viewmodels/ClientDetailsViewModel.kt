@@ -4,7 +4,6 @@ import com.icl.surveillance.fhir.forms.latestValueOf
 import android.app.Application
 import android.content.res.Resources
 import android.icu.text.DateFormat
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -399,9 +398,6 @@ class ClientDetailsViewModel(
                             { value = "Encounter/${matchingIdentifier.value}" })
                     }.take(500)
 
-                obs.forEach {
-                    println("Obs Retrieved: **** ${it.resource.code.codingFirstRep.code} Value ${it.resource.valueStringType}")
-                }
                 vaccinated = generateResponse(obs, "517772812375")
                 doses = generateResponse(obs, "886125589225")
                 thirtyDays = generateResponse(obs, "308128177300")
@@ -1055,7 +1051,7 @@ class ClientDetailsViewModel(
         patientId: String
     ): List<ContactResults> {
 
-        println("Dealing with Patient With ID $patientId")
+        Timber.d("Dealing with Patient With ID $patientId")
         val patients: MutableList<ContactResults> = mutableListOf()
         // Contacts of this case: its contact Group's members, plus records still linked the old
         // way (Patient.link) until migrated (ContactGroups).

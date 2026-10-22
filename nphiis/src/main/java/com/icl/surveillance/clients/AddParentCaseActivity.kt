@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -207,7 +206,7 @@ class AddParentCaseActivity : AppCompatActivity() {
                 FormatterClass().saveSharedPref("longitude", longitude, this)
             },
             onError = { error ->
-                println("Error: $error")
+                Timber.d("Error: $error")
 
             }
         )
@@ -767,8 +766,6 @@ class AddParentCaseActivity : AppCompatActivity() {
 
             // 4. Return to main thread for fragment transaction
             withContext(Dispatchers.Main) {
-
-                println("Starter Response: $questionnaireResponseJson")
 
                 if (supportFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) == null) {
                     supportFragmentManager.commit {

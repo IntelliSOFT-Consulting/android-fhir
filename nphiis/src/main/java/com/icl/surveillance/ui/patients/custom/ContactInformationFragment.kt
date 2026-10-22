@@ -8,7 +8,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +41,7 @@ import com.icl.surveillance.utils.setSingleClickListener
 import com.icl.surveillance.viewmodels.ClientDetailsViewModel
 import com.icl.surveillance.viewmodels.factories.PatientDetailsViewModelFactory
 import kotlin.collections.forEach
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -111,7 +111,7 @@ class ContactInformationFragment : Fragment() {
         }
       }
     } catch (e: Exception) {
-      println(e.message)
+      Timber.d(e.message)
     }
   }
 
@@ -125,11 +125,11 @@ class ContactInformationFragment : Fragment() {
     val currentCase = FormatterClass().getSharedPref("currentCase", requireContext())
     binding.apply {
       getStartedButton.setSingleClickListener {
-        println("Click button here ")
+        Timber.d("Click button here ")
         handleCase(currentCase)
       }
       fab.setSingleClickListener {
-        println("Click button here fab")
+        Timber.d("Click button here fab")
         handleCase(currentCase)
       }
     }
@@ -262,8 +262,8 @@ class ContactInformationFragment : Fragment() {
             )
           }
     } catch (e: Exception) {
-      e.printStackTrace()
-      Log.e("TAG", "File Error ${e.message}")
+      Timber.e(e)
+      Timber.tag("TAG").e("File Error ${e.message}")
     }
     return outputGroups
   }
@@ -465,7 +465,7 @@ class ContactInformationFragment : Fragment() {
         }
       }
     } catch (e: Exception) {
-      e.printStackTrace()
+      Timber.e(e)
     }
     btnClose.apply { setOnClickListener { dialog.dismiss() } }
     dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))

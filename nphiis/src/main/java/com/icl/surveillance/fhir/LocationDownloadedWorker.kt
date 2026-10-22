@@ -2,7 +2,6 @@ package com.icl.surveillance.fhir
 
 
 import android.content.Context
-import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -34,6 +33,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import timber.log.Timber
 
 
 class LocationDownloadedWorker(
@@ -54,7 +54,7 @@ class LocationDownloadedWorker(
         val output = workDataOf("fetch_complete" to true)
         Result.success(output)
     } catch (e: Exception) {
-        Log.e("LocationWorker", "Error in doWork", e)
+        Timber.tag("LocationWorker").e(e, "Error in doWork")
         Result.retry()
     }
 
@@ -108,7 +108,7 @@ class LocationDownloadedWorker(
 
         while (!nextUrl.isNullOrEmpty() && !Constants.isDownloadComplete(context)) {
             try {
-                Log.d("LocationWorker", "Fetching page $page: $nextUrl")
+                Timber.tag("LocationWorker").d("Fetching page $page: $nextUrl")
                 val token = FormatterClass().getSharedPref("access_token", context)
                 if (token != null) {
                     val bundle = apiService.fetchBundle(nextUrl, "Bearer $token")
@@ -128,7 +128,7 @@ class LocationDownloadedWorker(
                             processed++
                         } catch (e: Exception) {
                             failed++
-                            Log.e("LocationWorker", "Failed to save: ${entry.resource.id}", e)
+                            Timber.tag("LocationWorker").e(e, "Failed to save: ${entry.resource.id}")
                         }
 
                         // Update progress every `progressInterval` entries
@@ -151,12 +151,12 @@ class LocationDownloadedWorker(
                         Constants.clear(context)
                         Constants.markActionComplete(context, true)
                     }
-                    Log.d("LocationWorker", "Next URL: $nextUrl")
+                    Timber.tag("LocationWorker").d("Next URL: $nextUrl")
                     delay(200) // prevent rapid fire requests
                     page++
                 }
             } catch (e: Exception) {
-                Log.e("LocationWorker", "Error fetching page: $nextUrl", e)
+                Timber.tag("LocationWorker").e(e, "Error fetching page: $nextUrl")
                 break
             }
         }

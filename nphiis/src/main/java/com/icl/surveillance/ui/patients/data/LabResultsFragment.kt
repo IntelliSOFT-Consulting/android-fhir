@@ -4,7 +4,6 @@ import android.content.Context
 import com.icl.surveillance.utils.DisplayFormat
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,6 +38,7 @@ import kotlin.jvm.java
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
+import timber.log.Timber
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -109,7 +109,7 @@ class LabResultsFragment : Fragment() {
         }
       }
     } catch (e: Exception) {
-      println(e.message)
+      Timber.d(e.message)
     }
   }
 
@@ -517,8 +517,8 @@ class LabResultsFragment : Fragment() {
               OutputGroup(linkId = "root", text = "Top Level", type = "group", items = flatItems)
           )
     } catch (e: Exception) {
-      e.printStackTrace()
-      Log.e("TAG", "File Error ${e.message}")
+      Timber.e(e)
+      Timber.tag("TAG").e("File Error ${e.message}")
     }
 
     return outputGroups
