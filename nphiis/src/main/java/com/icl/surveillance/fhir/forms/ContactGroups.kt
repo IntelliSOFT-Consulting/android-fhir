@@ -1,5 +1,6 @@
 package com.icl.surveillance.fhir.forms
 
+import com.icl.surveillance.fhir.FhirConformance
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.asStringValue
 import com.google.android.fhir.datacapture.extensions.logicalId
@@ -79,7 +80,7 @@ object ContactGroups {
         }
         if (added == 0 && existing != null) return 0
         refresh(group, source)
-        if (existing == null) fhirEngine.create(group) else LocalWins.update(fhirEngine, group)
+        if (existing == null) fhirEngine.create(FhirConformance.ensureRequired(group)) else LocalWins.update(fhirEngine, group)
         Timber.tag(TAG).d("Group %s: +%d members (%d in all)", group.idElement.idPart, added, group.member.size)
         return added
     }

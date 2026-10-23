@@ -445,7 +445,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         questionnaireResponse.meta.tag + extraTags.map { it.copy() }
                 }
                 try {
-                    fhirEngine.create(questionnaireResponse)
+                    fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
                     PersistResult.SAVED
                 } catch (e: Exception) {
                     Timber.tag("AddClientViewModel").e(e, "Failed to save response")
@@ -1092,7 +1092,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         patient.link = (screened.link + patient.link)
                             .distinctBy { it.other?.reference }.toMutableList()
                     } else {
-                        fhirEngine.create(patient)
+                        fhirEngine.create(FhirConformance.ensureRequired(patient))
                         CaseIdentifierIndex.put(patient)
                     }
                     fhirEngine.create(FhirConformance.ensureRequired(enc))
@@ -1169,7 +1169,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     }
                     when (case) {
                         CaseSlugs.MOH_505 -> {
-                            fhirEngine.create(measure)
+                            fhirEngine.create(FhirConformance.ensureRequired(measure))
                         }
 
                         CaseSlugs.MPOX_TALLY_SHEET -> {
@@ -1184,7 +1184,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                                     displayData = "Latitude: $latitude, Longitude: $longitude"
                                 )
                             )
-                            fhirEngine.create(measure)
+                            fhirEngine.create(FhirConformance.ensureRequired(measure))
                         }
                     }
                     if (screened != null) {
@@ -1411,7 +1411,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
             }
             specimen.addExtension(sourceExtension("specimen", context, extractedAnswers))
             withMetaTags(specimen)
-            fhirEngine.create(specimen)
+            fhirEngine.create(FhirConformance.ensureRequired(specimen))
             Timber.tag("SPECIMEN").d(
                 "Saved %s specimen %s (ID %s) for %s, %s",
                 type, specimen.id, SpecimenId.of(specimen), subjectReference.reference, encounterReference.reference,

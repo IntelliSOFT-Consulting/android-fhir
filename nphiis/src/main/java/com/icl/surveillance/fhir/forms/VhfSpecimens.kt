@@ -1,5 +1,6 @@
 package com.icl.surveillance.fhir.forms
 
+import com.icl.surveillance.fhir.FhirConformance
 import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
@@ -167,7 +168,7 @@ object VhfSpecimens {
                     .filter { it.url != StandardSpecimen.ENCOUNTER_EXTENSION }
                     .forEach { built.addExtension(it.copy()) }
             }
-            fhirEngine.create(built)
+            fhirEngine.create(FhirConformance.ensureRequired(built))
             Timber.tag("SPECIMEN").d("Created %s specimen %s (ID %s) on edit", sample.type, built.id, SpecimenId.of(built))
             return
         }

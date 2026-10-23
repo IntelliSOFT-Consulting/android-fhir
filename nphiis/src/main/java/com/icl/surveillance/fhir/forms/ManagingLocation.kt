@@ -1,5 +1,6 @@
 package com.icl.surveillance.fhir.forms
 
+import com.icl.surveillance.fhir.FhirConformance
 import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.LocalChange
@@ -242,7 +243,7 @@ object ManagingLocation {
         repair(resource, place)
         if (pendingInsert(fhirEngine, resource) != null) {
             fhirEngine.purge(resource.resourceType, resource.logicalId, forcePurge = true)
-            fhirEngine.create(resource)
+            fhirEngine.create(FhirConformance.ensureRequired(resource))
         } else {
             LocalWins.update(fhirEngine, resource)
         }

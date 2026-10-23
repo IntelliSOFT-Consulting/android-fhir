@@ -151,8 +151,8 @@ class SdcQuestionnaireResponseSaver(
 
         val encounterReference = Reference("Encounter/${encounter.idPart}")
 
-        fhirEngine.create(patient)
-        fhirEngine.create(encounter)
+        fhirEngine.create(FhirConformance.ensureRequired(patient))
+        fhirEngine.create(FhirConformance.ensureRequired(encounter))
 
         extractedResources.forEach { resource ->
             when (resource) {
@@ -177,7 +177,7 @@ class SdcQuestionnaireResponseSaver(
                         resource.performerFirstRep.reference = "Practitioner/$practitionerId"
                     }
                     applyManagedLocation(resource, "observation", facility, extractedAnswers)
-                    fhirEngine.create(resource)
+                    fhirEngine.create(FhirConformance.ensureRequired(resource))
                 }
 
                 is Specimen -> {
@@ -189,7 +189,7 @@ class SdcQuestionnaireResponseSaver(
                     }
                     SpecimenId.ensure(resource, context)
                     applyManagedLocation(resource, "specimen", facility, extractedAnswers)
-                    fhirEngine.create(resource)
+                    fhirEngine.create(FhirConformance.ensureRequired(resource))
                 }
 
                 else -> {
@@ -204,7 +204,7 @@ class SdcQuestionnaireResponseSaver(
                             extractedAnswers
                         )
                     }
-                    fhirEngine.create(resource)
+                    fhirEngine.create(FhirConformance.ensureRequired(resource))
                 }
             }
         }
@@ -216,7 +216,7 @@ class SdcQuestionnaireResponseSaver(
             questionnaireResponse.author = Reference("Practitioner/$practitionerId")
         }
         applyManagedLocation(questionnaireResponse, "questionnaire", facility, extractedAnswers)
-        fhirEngine.create(questionnaireResponse)
+        fhirEngine.create(FhirConformance.ensureRequired(questionnaireResponse))
     }
 
     private suspend fun applyManagedLocation(

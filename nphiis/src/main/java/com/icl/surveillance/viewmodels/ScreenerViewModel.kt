@@ -225,8 +225,8 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 val encounterReference = Reference("Encounter/$encounterId")
 
                 contact.active = true
-                fhirEngine.create(contact)
-                fhirEngine.create(enc)
+                fhirEngine.create(FhirConformance.ensureRequired(contact))
+                fhirEngine.create(FhirConformance.ensureRequired(enc))
 
                 questionnaireResponse.id = generateUuid()
                 questionnaireResponse.subject = subjectReference
@@ -356,7 +356,7 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                         Reference("Practitioner/$practitionerId")
                 }
 
-                fhirEngine.create(enc)
+                fhirEngine.create(FhirConformance.ensureRequired(enc))
 
                 val encounterReference = Reference("Encounter/$encounterId")
                 questionnaireResponse.id = generateUuid()

@@ -1,5 +1,6 @@
 package com.icl.surveillance.viewmodels
 
+import com.icl.surveillance.fhir.FhirConformance
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
@@ -496,7 +497,7 @@ class EditSupervisorChecklistViewModel(
                 observation.extension = copyFrom.extension.mapTo(ArrayList()) { it.copy() }
                 observation.performer = copyFrom.performer.mapTo(ArrayList()) { it.copy() }
             }
-            fhirEngine.create(observation)
+            fhirEngine.create(FhirConformance.ensureRequired(observation))
         }
     }
 

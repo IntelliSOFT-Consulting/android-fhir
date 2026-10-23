@@ -1,5 +1,6 @@
 package com.icl.surveillance.fhir.forms
 
+import com.icl.surveillance.fhir.FhirConformance
 import android.content.Context
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
@@ -222,7 +223,7 @@ object VhfScreened {
         response.status = QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED
         if (extraTags.isNotEmpty()) response.meta.tag = response.meta.tag + extraTags.map { it.copy() }
 
-        engine.create(patient, response)
+        engine.create(FhirConformance.ensureRequired(patient), FhirConformance.ensureRequired(response))
         CaseIdentifierIndex.put(patient)
         Timber.tag(TAG).d("screened %s (%s) created", patient.id, screeningNumber)
         return patient.id
