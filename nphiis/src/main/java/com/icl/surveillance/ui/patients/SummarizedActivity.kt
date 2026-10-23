@@ -216,6 +216,9 @@ class SummarizedActivity : AppCompatActivity() {
             // Chosen once the record's answers load: contacts and cases get different tabs.
             CaseSlugs.VHF -> emptyList()
 
+            // The alert's specimens and their results, as for VHF cases.
+            CaseSlugs.ALERT_LOG -> listOf("Laboratory" to VhfSpecimensFragment())
+
             CaseSlugs.VL -> {
                 listOf(
                     "Laboratory Examination" to VlLabFragment(),

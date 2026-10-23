@@ -221,6 +221,8 @@ object FormPrefill {
      * Saved answers whose question has since become a date-and-time question (e.g. VHF sample
      * collection and sending, 12 Oct 2026) still hold a plain date. The form screen rejects an
      * answer of the wrong type, so such a date is carried over as a date-time with day precision.
+     * The other way round (alert log "Date the alert was received", 22 Oct 2026), a date-time
+     * keeps its day.
      */
     fun upgradeDateAnswers(q: Questionnaire, r: QuestionnaireResponse) {
         val types = mutableMapOf<String, Questionnaire.QuestionnaireItemType>()
@@ -230,11 +232,18 @@ object FormPrefill {
         index(q.item)
         fun visit(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
             items.forEach { item ->
-                if (types[item.linkId] == Questionnaire.QuestionnaireItemType.DATETIME) {
-                    item.answer.forEach { answer ->
+                when (types[item.linkId]) {
+                    Questionnaire.QuestionnaireItemType.DATETIME -> item.answer.forEach { answer ->
                         val v = answer.value
                         if (v is DateType && v.valueAsString != null) answer.value = DateTimeType(v.valueAsString)
                     }
+                    Questionnaire.QuestionnaireItemType.DATE -> item.answer.forEach { answer ->
+                        val v = answer.value
+                        if (v is DateTimeType && v.valueAsString != null) {
+                            answer.value = DateType(v.valueAsString.take(10))
+                        }
+                    }
+                    else -> Unit
                 }
                 item.answer.forEach { visit(it.item) }
                 visit(item.item)

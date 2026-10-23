@@ -127,6 +127,12 @@ internal interface Database {
    */
   suspend fun getAllChangesForEarliestChangedResource(): List<LocalChange>
 
+  /**
+   * Retrieves all [LocalChange]s for the (at most) [maxResources] [Resource]s whose oldest
+   * [LocalChange.timestamp] is earliest.
+   */
+  suspend fun getAllChangesForEarliestChangedResources(maxResources: Int): List<LocalChange>
+
   /** Retrieves the count of [LocalChange]s stored in the database. */
   suspend fun getLocalChangesCount(): Int
 

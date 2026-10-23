@@ -33,6 +33,7 @@ object StandardSpecimen {
     private val V2_CODES = mapOf(
         "blood" to ("BLD" to "Whole blood"),
         "whole blood" to ("BLD" to "Whole blood"),
+        "whole blood (edta)" to ("BLD" to "Whole blood"),
         "serum" to ("SER" to "Serum"),
         "plasma" to ("PLAS" to "Plasma"),
         "urine" to ("UR" to "Urine"),
@@ -42,6 +43,7 @@ object StandardSpecimen {
         "throat swab" to ("THRT" to "Throat"),
         "nasopharyngeal swab" to ("NP" to "Nasopharyngeal"),
         "oral swab" to ("ORH" to "Other"),
+        "oral swab (deceased)" to ("ORH" to "Other"),
         "csf" to ("CSF" to "Cerebral spinal fluid"),
         "skin lesion" to ("LES" to "Lesion"),
         "swab" to ("SWAB" to "Swab"),

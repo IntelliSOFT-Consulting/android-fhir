@@ -70,9 +70,6 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                             Timber.tag("App-HttpLog").e(line)
                             Timber.tag("FHIR-HTTP").d(line)
                         },
-                    // The server can pause for more than the default 10 s while it builds a large
-                    // page (e.g. hundreds of Locations), which failed the whole sync with
-                    // SocketTimeoutException: allow up to a minute between bytes.
                     networkConfiguration = NetworkConfiguration(
                         connectionTimeOut = 30,
                         readTimeOut = 60,

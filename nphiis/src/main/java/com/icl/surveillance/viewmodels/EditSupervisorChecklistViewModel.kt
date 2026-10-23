@@ -121,20 +121,10 @@ class EditSupervisorChecklistViewModel(
         }
 
         // Questions changed from a date to a date and time keep their saved date.
-        // Alert / rumour log reorganised as the 719 Call Centre Log: answers saved before sit in
-        // other groups; put them where the form now has them (else the form refuses the record).
+        // Alert log reorganised as the Alert Reporting Form: answers saved before sit in other
+        // groups; put them where the form now has them (else the form refuses the record).
         if (this.questionnaire == FormFields.AlertLog.FORM) {
             regroupToForm(questionnaire, questionnaireResponse)
-            // Earlier alerts recorded what was suspected: they were assessments.
-            val flat = questionnaireResponse.item.flatMap { listOf(it) + it.item }
-            if (flat.none { it.linkId == FormFields.AlertLog.CALL_PATHWAY && it.hasAnswer() } &&
-                flat.any { it.linkId == FormFields.AlertLog.SUSPECTED && it.hasAnswer() }
-            ) {
-                FormPrefill.applyTo(
-                    questionnaire, questionnaireResponse,
-                    mapOf(FormFields.AlertLog.CALL_PATHWAY to FormFields.AlertLog.PATHWAY_ASSESSMENT),
-                )
-            }
         }
         // VHF: the source case is picked from a list; a typed EPID number saved before stays linked.
         val savedSourceEpids = if (FormFields.Vhf.isRegistrationForm(this.questionnaire)) {
@@ -343,8 +333,8 @@ class EditSupervisorChecklistViewModel(
                 runCatching { linkVhfSourceCase(patientId, answers) }
                     .onFailure { Timber.e(it, "Failed to link the source case after editing") }
             }
-            if (questionnaire == FormFields.Vhf.CASE_FORM) {
-                // Laboratory section: create (or update) the case's Specimen.
+            if (questionnaire == FormFields.Vhf.CASE_FORM || questionnaire == FormFields.AlertLog.FORM) {
+                // Laboratory section (alert log: section E): create (or update) the Specimen.
                 runCatching {
                     val encounterId = original.encounter?.referenceElement?.idPart
                     val template = encounterId?.let { id ->
@@ -354,6 +344,7 @@ class EditSupervisorChecklistViewModel(
                     }
                     VhfSpecimens.syncFromCaseForm(
                         getApplication<Application>(), fhirEngine, patientId, encounterId, answers, template,
+                        questionnaire,
                     )
                 }.onFailure { Timber.e(it, "Failed to update the specimen after editing") }
             }
@@ -554,6 +545,7 @@ class EditSupervisorChecklistViewModel(
             "mpox-register.json" to PERSON,
             "vhf-case.json" to PERSON.copy(middleName = null),
             "vhf-contact.json" to PERSON.copy(middleName = null),
+            FormFields.AlertLog.FORM to PERSON.copy(middleName = null),
             "afp-case.json" to PERSON.copy(nameOrder = PatientMapper.NameOrder.FIRST_AS_FAMILY),
             "vl-case.json" to PatientFields(
                 FormFields.Vl.FIRST_NAME, FormFields.Vl.MIDDLE_NAME, FormFields.Vl.SURNAME,

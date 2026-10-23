@@ -41,13 +41,42 @@ import timber.log.Timber
  */
 object VhfSpecimens {
 
-    /** The sample recorded in the case form's Laboratory section. */
+    /** The sample recorded in the case form's Laboratory section (or the alert form's section E). */
     data class CaseFormSample(
         val type: String,
         val collected: String?,
         val sent: String?,
         val notes: List<String>,
+        /** The question the specimen type was answered on (the Specimen's app coding). */
+        val sourceLinkId: String = FormFields.Vhf.SAMPLE_TYPE,
     )
+
+    /** The sample recorded on [questionnaire] (VHF case form or alert log), or null. */
+    fun sampleFromForm(questionnaire: String, answers: List<QuestionnaireAnswer>): CaseFormSample? =
+        when (questionnaire) {
+            FormFields.Vhf.CASE_FORM -> sampleFromCaseForm(answers)
+            FormFields.AlertLog.FORM -> sampleFromAlertForm(answers)
+            else -> null
+        }
+
+    /** The alert log's specimen (section E), or null when "Was a sample collected?" is not Yes. */
+    fun sampleFromAlertForm(answers: List<QuestionnaireAnswer>): CaseFormSample? {
+        if (!answers.answerOf(FormFields.AlertLog.SAMPLE_COLLECTED).equals("yes", ignoreCase = true)) return null
+        val answeredType = answers.answerOf(FormFields.AlertLog.SPECIMEN_TYPE)
+        val type = when {
+            answeredType == null -> "Unspecified"
+            answeredType.startsWith("Other", ignoreCase = true) ->
+                answers.answerOf(FormFields.AlertLog.SPECIMEN_TYPE_OTHER) ?: answeredType
+            else -> answeredType
+        }
+        return CaseFormSample(
+            type = type,
+            collected = answers.answerOf(FormFields.AlertLog.SPECIMEN_DATE),
+            sent = null,
+            notes = emptyList(),
+            sourceLinkId = FormFields.AlertLog.SPECIMEN_TYPE,
+        )
+    }
 
     /** The case form's sample, or null when "Samples collected" is not Yes. */
     fun sampleFromCaseForm(answers: List<QuestionnaireAnswer>): CaseFormSample? {
@@ -74,8 +103,8 @@ object VhfSpecimens {
             sent = answers.answerOf(FormFields.Vhf.SENT_DATE),
             notes = listOfNotNull(
                 answers.answerOf(FormFields.Vhf.SAMPLE_TISSUE_TYPE)
-                    ?.takeIf { type == "Tissue" }?.let { "Tissue type: $it" },
-                transport?.let { "Transport: $it" },
+                    ?.takeIf { type == "Tissue" }?.let { "$TISSUE_NOTE $it" },
+                transport?.let { "$TRANSPORT_NOTE $it" },
             ),
         )
     }
@@ -87,6 +116,7 @@ object VhfSpecimens {
      *  - no specimen of that type yet (none at all, or the type was changed, e.g. Urine -> Blood)
      *    -> a new Specimen is added. Earlier specimens stay: each has its own lab result.
      * Nothing is removed when samples are changed to No. [template] supplies facility tags.
+     * The alert log's specimen (section E) is kept in step the same way.
      */
     suspend fun syncFromCaseForm(
         context: Context,
@@ -95,14 +125,15 @@ object VhfSpecimens {
         caseEncounterId: String?,
         answers: List<QuestionnaireAnswer>,
         template: DomainResource?,
+        questionnaire: String = FormFields.Vhf.CASE_FORM,
     ) {
-        val sample = sampleFromCaseForm(answers)
+        val sample = sampleFromForm(questionnaire, answers)
         Timber.tag("SPECIMEN").d("Edit of Patient/%s: case-form sample = %s", patientId, sample)
         if (sample == null) return
         val subject = Reference("Patient/$patientId")
         val encounter = caseEncounterId?.let { Reference("Encounter/$it") }
         val built = StandardSpecimen.build(
-            sourceLinkId = FormFields.Vhf.SAMPLE_TYPE,
+            sourceLinkId = sample.sourceLinkId,
             specimenType = sample.type,
             collected = sample.collected,
             subjectRef = subject,
@@ -118,7 +149,7 @@ object VhfSpecimens {
         // The specimen of this sample type recorded from the case form, if any.
         val existing = caseSpecimens.firstOrNull { specimen ->
             specimen.type.coding.any {
-                it.system == StandardSpecimen.APP_SYSTEM && it.code == FormFields.Vhf.SAMPLE_TYPE
+                it.system == StandardSpecimen.APP_SYSTEM && it.code == sample.sourceLinkId
             } && specimen.type.text.orEmpty().trim().equals(sample.type.trim(), ignoreCase = true)
         }
         Timber.tag("SPECIMEN").d(
@@ -144,7 +175,8 @@ object VhfSpecimens {
         val updated = existing.copy().apply {
             type = built.type
             collection = built.collection
-            note = built.note
+            // The form's notes are replaced; the lab's (e.g. why it rejected the specimen) stay.
+            note = built.note + existing.note.filter { n -> n.text?.let { !isAppNote(it) } == true }
             extension.removeAll { it.url == StandardSpecimen.SENT_EXTENSION }
             built.getExtensionByUrl(StandardSpecimen.SENT_EXTENSION)?.let { addExtension(it.copy()) }
         }
@@ -157,6 +189,12 @@ object VhfSpecimens {
 
     /** How specimens saved before the sent date had its own extension recorded it. */
     private const val LEGACY_SENT_NOTE = "Sent to the laboratory:"
+    private const val TISSUE_NOTE = "Tissue type:"
+    private const val TRANSPORT_NOTE = "Transport:"
+
+    /** Notes the app writes from the form; any other note was added by the lab. */
+    private fun isAppNote(text: String) =
+        listOf(LEGACY_SENT_NOTE, TISSUE_NOTE, TRANSPORT_NOTE).any { text.startsWith(it) }
 
     enum class Result(val label: String) {
         POSITIVE("Positive"),
@@ -184,6 +222,8 @@ object VhfSpecimens {
         val sent: Date?,
         val resultDate: Date?,
         val notes: List<String>,
+        /** The lab's notes on a rejected specimen (its reasons for rejecting it), else empty. */
+        val rejectionReasons: List<String>,
         val tests: List<TestResult>,
         val result: Result,
         /** Positive/negative from preliminary results only, while [result] is pending. */
@@ -230,6 +270,10 @@ object VhfSpecimens {
         }
         val labResults = when {
             result != Result.PENDING -> result.label
+            // Rejected specimens leave the case pending (classification "Pending Results"), but
+            // the lab result says why nothing came back.
+            rows.filter { it.result != Result.NEGATIVE }.all { it.result == Result.REJECTED } ->
+                Result.REJECTED.label
             rows.any { it.preliminary == Result.POSITIVE } -> "Preliminary: Positive"
             rows.all { it.result == Result.NEGATIVE || it.preliminary == Result.NEGATIVE } -> "Preliminary: Negative"
             else -> result.label
@@ -456,6 +500,9 @@ object VhfSpecimens {
         val logicalId = specimen.idElement.idPart.orEmpty()
         val result = resultOf(specimen, tests)
         val decided = tests.filter { it.isFinal }.takeIf { result != Result.PENDING && it.isNotEmpty() } ?: tests
+        val notes = specimen.note.mapNotNull { note ->
+            note.text?.takeIf { it.isNotBlank() && !it.startsWith(LEGACY_SENT_NOTE) }
+        }
         return Row(
             logicalId = logicalId,
             type = specimen.type.text
@@ -471,9 +518,8 @@ object VhfSpecimens {
                         ?.let { runCatching { DateTimeType(it).value }.getOrNull() }
                 },
             resultDate = decided.mapNotNull { it.date }.maxOrNull(),
-            notes = specimen.note.mapNotNull { note ->
-                note.text?.takeIf { it.isNotBlank() && !it.startsWith(LEGACY_SENT_NOTE) }
-            },
+            notes = notes.filter { result != Result.REJECTED || isAppNote(it) },
+            rejectionReasons = notes.filter { result == Result.REJECTED && !isAppNote(it) },
             tests = tests,
             result = result,
             preliminary = if (result == Result.PENDING) combine(tests.filter { !it.isFinal }) else null,

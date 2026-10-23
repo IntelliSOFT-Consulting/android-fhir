@@ -36,6 +36,7 @@ import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfScreened
+import com.icl.surveillance.fhir.forms.VhfCaseConfirmation
 import com.icl.surveillance.fhir.forms.VhfListMode
 import com.icl.surveillance.fhir.forms.VhfTraining
 import com.icl.surveillance.models.CaseOption
@@ -595,23 +596,11 @@ class CaseSelectionFragment : Fragment() {
                             showPermissionErrorDialog(requireContext())
                             return@CaseOptionsAdapter
                         }
-                        // 719 Call Centre Log: the call's date and time (now) and the agent (the
-                        // logged-in user) are filled in; both can be changed.
-                        run {
-                            val formatter = FormatterClass()
-                            fun pref(key: String) = formatter.getSharedPref(key, requireContext())?.trim()
-                                ?.takeIf { it.isNotBlank() && !it.equals("null", true) && it != "N/A" }
-                            val agent = pref("fullNames")
-                                ?: listOfNotNull(pref("firstName"), pref("lastName")).joinToString(" ").takeIf { it.isNotBlank() }
-                            val now = java.time.OffsetDateTime.now().withNano(0).toString()
-                            com.icl.surveillance.fhir.forms.FormPrefill.stage(
-                                requireContext(), FormFields.AlertLog.FORM,
-                                buildMap {
-                                    put(FormFields.AlertLog.DATE, now)
-                                    agent?.let { put(FormFields.AlertLog.AGENT_ID, it) }
-                                },
-                            )
-                        }
+                        // The date the alert was received starts as today; it can be changed.
+                        com.icl.surveillance.fhir.forms.FormPrefill.stage(
+                            requireContext(), FormFields.AlertLog.FORM,
+                            mapOf(FormFields.AlertLog.DATE to java.time.LocalDate.now().toString()),
+                        )
                         val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
                         intent.putExtra("AddParentTitle", " $titleName")
                         intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, FormFields.AlertLog.FORM)
@@ -927,7 +916,18 @@ class CaseSelectionFragment : Fragment() {
                                 recyclerView.adapter?.notifyDataSetChanged()
                             }
                         }
-                        if (contactsIndex >= 0 || roleScope == LocationLevel.COUNTY || roleScope == LocationLevel.SUB_COUNTY) {
+                        if (contactsIndex >= 0) {
+                            // VHF: cases the lab confirmed move from Suspected to Confirmed
+                            // before the lists are counted.
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                runCatching {
+                                    VhfCaseConfirmation.confirmLabConfirmedCases(
+                                        FhirApplication.fhirEngine(requireContext())
+                                    )
+                                }.onFailure { e -> Timber.e(e, "Confirming lab-confirmed VHF cases failed") }
+                                loadAndCount()
+                            }
+                        } else if (roleScope == LocationLevel.COUNTY || roleScope == LocationLevel.SUB_COUNTY) {
                             // County names (or, for VHF, the type of case) are needed for the
                             // counts: load the list.
                             loadAndCount()

@@ -5,7 +5,9 @@ import android.util.Log
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.LocalChange
 import com.google.android.fhir.datacapture.extensions.logicalId
+import com.google.android.fhir.get
 import com.google.android.fhir.search.search
+import com.icl.surveillance.fhir.FhirConformance
 import com.icl.surveillance.utils.FormatterClass
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.MeasureReport
@@ -49,7 +51,11 @@ object LocalWins {
     /** Saves edits to records already stored on this device. Use this instead of fhirEngine.update(). */
     suspend fun update(fhirEngine: FhirEngine, vararg resources: Resource) {
         resources.forEach { resource ->
-            if (canReplace(fhirEngine, resource)) save(fhirEngine, resource) else fhirEngine.update(resource)
+            if (canReplace(fhirEngine, resource)) {
+                save(fhirEngine, resource)
+            } else {
+                fhirEngine.update(FhirConformance.ensureRequired(resource))
+            }
         }
     }
 
@@ -71,7 +77,7 @@ object LocalWins {
     suspend fun save(fhirEngine: FhirEngine, resource: Resource) {
         fhirEngine.withTransaction {
             purge(resource.resourceType, resource.logicalId, forcePurge = true)
-            create(resource)
+            create(FhirConformance.ensureRequired(resource))
         }
     }
 
@@ -80,7 +86,7 @@ object LocalWins {
      * or 400 on upload): each record with a pending update (Observation, Encounter,
      * QuestionnaireResponse, MeasureReport, Patient) is re-saved with [update]. New edits never
      * need it, because they are saved with [update] already.
-     * Runs before sync until a pass completes; [force] runs it again (Settings > Update Data).
+     * Runs from Settings > Update Data ([force]).
      * Returns how many records were re-saved, or null if the pass failed.
      */
     suspend fun replacePendingUpdates(context: Context, fhirEngine: FhirEngine, force: Boolean = false): Int? {
@@ -94,30 +100,38 @@ object LocalWins {
             Timber.tag(TAG).i("Re-saved $fixed record(s) with pending version-checked updates")
             fixed
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Re-saving pending updates failed; will retry on next sync")
+            Timber.tag(TAG).e(e, "Re-saving pending updates failed")
             null
         }
     }
 
     private suspend inline fun <reified R : Resource> replace(fhirEngine: FhirEngine): Int {
         // Collect first, then re-save: re-saving changes the stored order, which would shift
-        // the pages of a scan still in progress.
-        val toFix = mutableListOf<R>()
+        // the pages of a scan still in progress. Only the ids are kept: holding the records
+        // themselves ran the sync out of memory (tens of thousands of pending Observations).
+        val toFix = mutableListOf<String>()
         var from = 0
         while (true) {
             val page = fhirEngine.search<R> {
                 count = PAGE_SIZE
                 this.from = from
             }.map { it.resource }
-            page.filterTo(toFix) { resource ->
-                fhirEngine.getLocalChanges(resource.resourceType, resource.logicalId)
+            page.forEach { resource ->
+                val pending = fhirEngine.getLocalChanges(resource.resourceType, resource.logicalId)
                     .any { it.type == LocalChange.Type.UPDATE }
+                if (pending) toFix.add(resource.logicalId)
             }
             if (page.size < PAGE_SIZE) break
             from += PAGE_SIZE
         }
-        val replaceable = toFix.filter { canReplace(fhirEngine, it) }
-        replaceable.forEach { save(fhirEngine, it) }
-        return replaceable.size
+        var replaced = 0
+        toFix.forEach { id ->
+            val resource = fhirEngine.get<R>(id)
+            if (canReplace(fhirEngine, resource)) {
+                save(fhirEngine, resource)
+                replaced++
+            }
+        }
+        return replaced
     }
 }

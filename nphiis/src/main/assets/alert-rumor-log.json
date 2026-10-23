@@ -43,66 +43,49 @@
       "valueCode": "prior-edit"
     }
   ],
-  "title": "Call Centre Log (Alert / Rumour)",
+  "title": "Alert Log",
   "status": "draft",
   "item": [
     {
       "linkId": "alert-details",
-      "text": "1. Call and caller details",
+      "text": "A. Alert details",
       "type": "group",
       "item": [
         {
           "linkId": "alert-date",
-          "text": "Date and time the call was received",
-          "type": "dateTime",
+          "text": "Date the alert was received",
+          "type": "date",
           "required": true,
           "extension": [
             {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Filled automatically. Change it only if you are entering an earlier call."
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
             }
           ]
         },
         {
-          "linkId": "alert-agent-id",
-          "text": "Call-centre agent ID",
-          "type": "string",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Your staff name or the ID used for 719 call-centre reporting"
-            }
-          ]
-        },
-        {
-          "linkId": "alert-reporter-name",
-          "text": "Caller's name",
-          "type": "string",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Ask the caller: \"Please tell me your name.\""
-            }
-          ]
-        },
-        {
-          "linkId": "alert-reporter-mobile",
-          "text": "Caller's phone number",
-          "type": "string",
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Ask: \"What phone number can we use to call you back?\" Include the country code when needed."
-            }
-          ]
-        },
-        {
-          "linkId": "alert-calling-about",
-          "text": "Who are you calling about?",
+          "linkId": "alert-source-type",
+          "text": "Source of alert",
           "type": "choice",
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -115,66 +98,171 @@
                   }
                 ]
               }
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Select Self if the caller is describing their own symptoms or exposure."
             }
           ],
           "answerOption": [
             {
               "valueCoding": {
-                "code": "self",
-                "display": "Self — calling about my own symptoms or exposure"
+                "code": "health-facility",
+                "display": "Health facility"
               }
             },
             {
               "valueCoding": {
-                "code": "family",
-                "display": "Family member"
+                "code": "community-based-surveillance",
+                "display": "Community-based surveillance"
               }
             },
             {
               "valueCoding": {
-                "code": "chp",
-                "display": "Community health promoter or volunteer"
+                "code": "active-case-finding",
+                "display": "Active case finding"
               }
             },
             {
               "valueCoding": {
-                "code": "hcw",
-                "display": "Healthcare worker"
+                "code": "contact-monitoring",
+                "display": "Contact monitoring"
               }
             },
             {
               "valueCoding": {
-                "code": "chief",
-                "display": "Chief, village elder, or local administrator"
+                "code": "point-of-entry",
+                "display": "Point of entry"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hotline",
+                "display": "Hotline"
               }
             },
             {
               "valueCoding": {
                 "code": "other",
-                "display": "Another person"
+                "display": "Other"
               }
             }
           ]
         },
         {
-          "linkId": "alert-reporter-designation",
-          "text": "Caller's designation (e.g. CHP, nurse, chief)",
+          "linkId": "alert-source-type-other",
+          "text": "Other source (specify)",
           "type": "string",
-          "extension": [
+          "required": true,
+          "enableWhen": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "question": "alert-source-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other"
+              }
             }
           ]
         },
         {
-          "linkId": "alert-source-type",
+          "linkId": "alert-facility",
+          "text": "Name of the reporting health facility",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-source-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "health-facility",
+                "display": "Health facility"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-reporter-name",
+          "text": "Reporting person: name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "alert-reporter-mobile",
+          "text": "Reporting person: telephone",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g., +254700000000"
+            }
+          ]
+        },
+        {
+          "linkId": "alert-identifier",
+          "text": "Alert identifier",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Unique; links the alert to the case record."
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "alert-patient",
+      "text": "B. Patient details",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "486402457213",
+          "text": "Patient family name (surname)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "873240407472",
+          "text": "Patient given names",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "929966324957",
+          "text": "Sex",
           "type": "choice",
-          "text": "Source of information",
           "required": true,
           "extension": [
             {
@@ -197,74 +285,1505 @@
           "answerOption": [
             {
               "valueCoding": {
-                "code": "community",
-                "display": "Community"
+                "code": "male",
+                "display": "Male"
               }
             },
             {
               "valueCoding": {
-                "code": "health-facility",
-                "display": "Health facility"
+                "code": "female",
+                "display": "Female"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-age-unit",
+          "text": "Age in",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "years",
+                "display": "Years"
               }
             },
             {
               "valueCoding": {
-                "code": "media",
-                "display": "Media"
+                "code": "months",
+                "display": "Months (if under 2)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "492731638700",
+          "text": "Age (years)",
+          "type": "integer",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-age-unit",
+              "operator": "=",
+              "answerCoding": {
+                "code": "years",
+                "display": "Years"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 120
+            }
+          ]
+        },
+        {
+          "linkId": "185726989867",
+          "text": "Age (months)",
+          "type": "integer",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-age-unit",
+              "operator": "=",
+              "answerCoding": {
+                "code": "months",
+                "display": "Months (if under 2)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 23
+            }
+          ]
+        },
+        {
+          "linkId": "alert-home-country",
+          "text": "Country of residence",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AF",
+                "display": "Afghanistan"
               }
             },
             {
               "valueCoding": {
-                "code": "social-media",
-                "display": "Social media"
+                "system": "urn:iso:std:iso:3166",
+                "code": "AL",
+                "display": "Albania"
               }
             },
             {
               "valueCoding": {
-                "code": "hotline",
-                "display": "Hotline"
+                "system": "urn:iso:std:iso:3166",
+                "code": "DZ",
+                "display": "Algeria"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AD",
+                "display": "Andorra"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AO",
+                "display": "Angola"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AG",
+                "display": "Antigua and Barbuda"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AR",
+                "display": "Argentina"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AM",
+                "display": "Armenia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AU",
+                "display": "Australia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AT",
+                "display": "Austria"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AZ",
+                "display": "Azerbaijan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BS",
+                "display": "Bahamas"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BH",
+                "display": "Bahrain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BD",
+                "display": "Bangladesh"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BB",
+                "display": "Barbados"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BY",
+                "display": "Belarus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BE",
+                "display": "Belgium"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BZ",
+                "display": "Belize"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BJ",
+                "display": "Benin"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BT",
+                "display": "Bhutan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BO",
+                "display": "Bolivia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BA",
+                "display": "Bosnia and Herzegovina"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BW",
+                "display": "Botswana"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BR",
+                "display": "Brazil"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BN",
+                "display": "Brunei"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BG",
+                "display": "Bulgaria"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BF",
+                "display": "Burkina Faso"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "BI",
+                "display": "Burundi"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CV",
+                "display": "Cabo Verde"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KH",
+                "display": "Cambodia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CM",
+                "display": "Cameroon"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CA",
+                "display": "Canada"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CF",
+                "display": "Central African Republic"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TD",
+                "display": "Chad"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CL",
+                "display": "Chile"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CN",
+                "display": "China"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CO",
+                "display": "Colombia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KM",
+                "display": "Comoros"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CG",
+                "display": "Congo"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CD",
+                "display": "Congo (Democratic Republic)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CR",
+                "display": "Costa Rica"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CI",
+                "display": "Côte d'Ivoire"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "HR",
+                "display": "Croatia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CU",
+                "display": "Cuba"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CY",
+                "display": "Cyprus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CZ",
+                "display": "Czechia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "DK",
+                "display": "Denmark"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "DJ",
+                "display": "Djibouti"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "DM",
+                "display": "Dominica"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "DO",
+                "display": "Dominican Republic"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "EC",
+                "display": "Ecuador"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "EG",
+                "display": "Egypt"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SV",
+                "display": "El Salvador"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GQ",
+                "display": "Equatorial Guinea"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ER",
+                "display": "Eritrea"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "EE",
+                "display": "Estonia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SZ",
+                "display": "Eswatini"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ET",
+                "display": "Ethiopia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "FJ",
+                "display": "Fiji"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "FI",
+                "display": "Finland"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "FR",
+                "display": "France"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GA",
+                "display": "Gabon"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GM",
+                "display": "Gambia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GE",
+                "display": "Georgia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "DE",
+                "display": "Germany"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GH",
+                "display": "Ghana"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GR",
+                "display": "Greece"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GD",
+                "display": "Grenada"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GT",
+                "display": "Guatemala"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GN",
+                "display": "Guinea"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GW",
+                "display": "Guinea-Bissau"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GY",
+                "display": "Guyana"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "HT",
+                "display": "Haiti"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "HN",
+                "display": "Honduras"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "HU",
+                "display": "Hungary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IS",
+                "display": "Iceland"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IN",
+                "display": "India"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ID",
+                "display": "Indonesia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IR",
+                "display": "Iran"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IQ",
+                "display": "Iraq"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IE",
+                "display": "Ireland"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IL",
+                "display": "Israel"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "IT",
+                "display": "Italy"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "JM",
+                "display": "Jamaica"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "JP",
+                "display": "Japan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "JO",
+                "display": "Jordan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KZ",
+                "display": "Kazakhstan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KE",
+                "display": "Kenya"
               },
               "initialSelected": true
             },
             {
               "valueCoding": {
-                "code": "other",
-                "display": "Other (specify)"
+                "system": "urn:iso:std:iso:3166",
+                "code": "KI",
+                "display": "Kiribati"
               }
-            }
-          ]
-        },
-        {
-          "linkId": "alert-source-type-other",
-          "text": "Other (specify)",
-          "type": "string",
-          "required": true,
-          "enableWhen": [
+            },
             {
-              "question": "alert-source-type",
-              "operator": "=",
-              "answerCoding": {
-                "code": "other",
-                "display": "Other (specify)"
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KP",
+                "display": "Korea (North)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KR",
+                "display": "Korea (South)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "XK",
+                "display": "Kosovo"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KW",
+                "display": "Kuwait"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KG",
+                "display": "Kyrgyzstan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LA",
+                "display": "Laos"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LV",
+                "display": "Latvia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LB",
+                "display": "Lebanon"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LS",
+                "display": "Lesotho"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LR",
+                "display": "Liberia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LY",
+                "display": "Libya"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LI",
+                "display": "Liechtenstein"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LT",
+                "display": "Lithuania"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LU",
+                "display": "Luxembourg"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MG",
+                "display": "Madagascar"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MW",
+                "display": "Malawi"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MY",
+                "display": "Malaysia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MV",
+                "display": "Maldives"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ML",
+                "display": "Mali"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MT",
+                "display": "Malta"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MH",
+                "display": "Marshall Islands"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MR",
+                "display": "Mauritania"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MU",
+                "display": "Mauritius"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MX",
+                "display": "Mexico"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "FM",
+                "display": "Micronesia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MD",
+                "display": "Moldova"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MC",
+                "display": "Monaco"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MN",
+                "display": "Mongolia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ME",
+                "display": "Montenegro"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MA",
+                "display": "Morocco"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MZ",
+                "display": "Mozambique"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MM",
+                "display": "Myanmar"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NA",
+                "display": "Namibia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NR",
+                "display": "Nauru"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NP",
+                "display": "Nepal"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NL",
+                "display": "Netherlands"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NZ",
+                "display": "New Zealand"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NI",
+                "display": "Nicaragua"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NE",
+                "display": "Niger"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NG",
+                "display": "Nigeria"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "MK",
+                "display": "North Macedonia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "NO",
+                "display": "Norway"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "OM",
+                "display": "Oman"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PK",
+                "display": "Pakistan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PW",
+                "display": "Palau"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PS",
+                "display": "Palestine"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PA",
+                "display": "Panama"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PG",
+                "display": "Papua New Guinea"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PY",
+                "display": "Paraguay"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PE",
+                "display": "Peru"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PH",
+                "display": "Philippines"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PL",
+                "display": "Poland"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "PT",
+                "display": "Portugal"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "QA",
+                "display": "Qatar"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "RO",
+                "display": "Romania"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "RU",
+                "display": "Russia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "RW",
+                "display": "Rwanda"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KN",
+                "display": "Saint Kitts and Nevis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LC",
+                "display": "Saint Lucia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "VC",
+                "display": "Saint Vincent and the Grenadines"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "WS",
+                "display": "Samoa"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SM",
+                "display": "San Marino"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ST",
+                "display": "Sao Tome and Principe"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SA",
+                "display": "Saudi Arabia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SN",
+                "display": "Senegal"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "RS",
+                "display": "Serbia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SC",
+                "display": "Seychelles"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SL",
+                "display": "Sierra Leone"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SG",
+                "display": "Singapore"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SK",
+                "display": "Slovakia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SI",
+                "display": "Slovenia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SB",
+                "display": "Solomon Islands"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SO",
+                "display": "Somalia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ZA",
+                "display": "South Africa"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SS",
+                "display": "South Sudan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ES",
+                "display": "Spain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "LK",
+                "display": "Sri Lanka"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SD",
+                "display": "Sudan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SR",
+                "display": "Suriname"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SE",
+                "display": "Sweden"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "CH",
+                "display": "Switzerland"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "SY",
+                "display": "Syria"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TW",
+                "display": "Taiwan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TJ",
+                "display": "Tajikistan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TZ",
+                "display": "Tanzania"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TH",
+                "display": "Thailand"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TL",
+                "display": "Timor-Leste"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TG",
+                "display": "Togo"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TO",
+                "display": "Tonga"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TT",
+                "display": "Trinidad and Tobago"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TN",
+                "display": "Tunisia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TR",
+                "display": "Türkiye"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TM",
+                "display": "Turkmenistan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "TV",
+                "display": "Tuvalu"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "UG",
+                "display": "Uganda"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "UA",
+                "display": "Ukraine"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "AE",
+                "display": "United Arab Emirates"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "GB",
+                "display": "United Kingdom"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "US",
+                "display": "United States"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "UY",
+                "display": "Uruguay"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "UZ",
+                "display": "Uzbekistan"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "VU",
+                "display": "Vanuatu"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "VA",
+                "display": "Vatican City"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "VE",
+                "display": "Venezuela"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "VN",
+                "display": "Vietnam"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "YE",
+                "display": "Yemen"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ZM",
+                "display": "Zambia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "ZW",
+                "display": "Zimbabwe"
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "linkId": "alert-source",
-      "text": "Location of the person being reported",
-      "type": "group",
-      "item": [
-        {
-          "linkId": "alert-location-note",
-          "type": "display",
-          "text": "Select the county first, followed by the sub-county and ward."
         },
         {
           "linkId": "a4-county",
-          "text": "Which county is the person currently in?",
+          "text": "County of residence",
           "type": "reference",
           "required": true,
           "extension": [
@@ -288,11 +1807,22 @@
                 }
               ]
             }
+          ],
+          "enableWhen": [
+            {
+              "question": "alert-home-country",
+              "operator": "=",
+              "answerCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KE",
+                "display": "Kenya"
+              }
+            }
           ]
         },
         {
           "linkId": "a3-sub-county",
-          "text": "Which sub-county are they in?",
+          "text": "Sub-county of residence",
           "type": "reference",
           "required": true,
           "extension": [
@@ -316,11 +1846,92 @@
                 }
               ]
             }
+          ],
+          "enableWhen": [
+            {
+              "question": "alert-home-country",
+              "operator": "=",
+              "answerCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KE",
+                "display": "Kenya"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-mobile",
+          "text": "Patient telephone",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g., +254700000000"
+            }
+          ]
+        },
+        {
+          "linkId": "alert-vital-status",
+          "text": "Alive or deceased at the time of alert",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "deceased",
+                "display": "Deceased"
+              }
+            }
           ]
         },
         {
           "linkId": "a2-ward",
-          "text": "Which ward are they in?",
+          "text": "Ward of residence",
           "type": "reference",
           "required": false,
           "extension": [
@@ -344,42 +1955,28 @@
                 }
               ]
             }
-          ]
-        },
-        {
-          "linkId": "alert-location",
-          "text": "Location / sub-location",
-          "type": "string",
-          "extension": [
+          ],
+          "enableWhen": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "question": "alert-home-country",
+              "operator": "=",
+              "answerCoding": {
+                "system": "urn:iso:std:iso:3166",
+                "code": "KE",
+                "display": "Kenya"
+              }
             }
           ]
         },
         {
           "linkId": "alert-village",
-          "text": "Village / estate",
-          "type": "string",
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "linkId": "alert-pathway",
-      "text": "2. Select the call pathway",
-      "type": "group",
-      "item": [
+          "text": "Village or estate",
+          "type": "string"
+        },
         {
-          "linkId": "alert-call-pathway",
-          "text": "Agent use only — select the call pathway",
+          "linkId": "alert-hcw",
+          "text": "Health care worker?",
           "type": "choice",
-          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -394,305 +1991,111 @@
               }
             },
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Do not ask the caller another question here. Based on the reason already given for the call, select General advice only or Symptoms/exposure assessment."
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
             }
           ],
           "answerOption": [
             {
               "valueCoding": {
-                "code": "general-advice",
-                "display": "General advice only"
+                "code": "yes",
+                "display": "Yes"
               }
             },
             {
               "valueCoding": {
-                "code": "assessment",
-                "display": "Symptoms or exposure assessment"
+                "code": "no",
+                "display": "No"
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "linkId": "alert-person",
-      "text": "3. Person being reported (if different from caller)",
-      "type": "group",
-      "enableWhen": [
+        },
         {
-          "question": "alert-call-pathway",
-          "operator": "=",
-          "answerCoding": {
-            "code": "assessment",
-            "display": "Symptoms or exposure assessment"
-          }
+          "linkId": "alert-hcw-facility",
+          "text": "Health care worker: facility",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "alert-hcw",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-hcw-role",
+          "text": "Health care worker: role",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "alert-hcw",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
         }
       ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "alert-clinical",
+      "text": "C. Clinical presentation",
+      "type": "group",
       "item": [
         {
-          "linkId": "873240407472",
-          "text": "What is the person's name?",
-          "type": "string",
-          "required": false,
+          "linkId": "alert-onset-date",
+          "text": "Date of symptom onset",
+          "type": "date",
+          "required": true,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Ask for the name of the person whose symptoms or exposure are being reported."
-            }
-          ]
-        },
-        {
-          "linkId": "492731638700",
-          "text": "How old is the person?",
-          "type": "integer",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Age in years. If the exact age is not known, enter the caller's best estimate."
-            }
-          ]
-        },
-        {
-          "linkId": "929966324957",
-          "text": "What is the person's sex?",
-          "type": "choice",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "radio-button",
-                    "display": "Radio Button"
-                  }
-                ]
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Select the answer given by the caller. Use Not specified if it is not provided."
-            }
-          ],
-          "answerOption": [
-            {
-              "valueCoding": {
-                "code": "male",
-                "display": "Male"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "female",
-                "display": "Female"
-              }
-            }
-          ]
-        },
-        {
-          "linkId": "alert-name-display",
-          "type": "display",
-          "text": "Person affected (if known)",
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "486402457213",
-          "text": "Family name (surname)",
-          "type": "string",
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "alert-mobile",
-          "text": "Mobile number",
-          "type": "string",
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "phone-number",
-                    "display": "Phone Number"
-                  }
-                ]
-              }
-            },
             {
               "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
-              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/regex",
-              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "alert-home-country",
-          "text": "Home country",
-          "type": "string",
-          "initial": [
-            {
-              "valueString": "Kenya"
-            }
-          ],
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "linkId": "alert-event",
-      "text": "4. Reported symptoms",
-      "type": "group",
-      "enableWhen": [
-        {
-          "question": "alert-call-pathway",
-          "operator": "=",
-          "answerCoding": {
-            "code": "assessment",
-            "display": "Symptoms or exposure assessment"
-          }
-        }
-      ],
-      "item": [
-        {
-          "linkId": "alert-symptoms",
-          "text": "Which symptoms did the caller report?",
-          "type": "choice",
-          "repeats": true,
-          "required": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "check-box",
-                    "display": "Check-box"
-                  }
-                ]
-              }
+              "valueString": "Cannot be a date in the future"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Select all symptoms the caller mentioned. If no symptom was mentioned, select None reported."
-            }
-          ],
-          "answerOption": [
-            {
-              "valueCoding": {
-                "code": "fever",
-                "display": "Fever"
-              }
+              "valueString": "dd/mm/yyyy"
             },
             {
-              "valueCoding": {
-                "code": "bleeding",
-                "display": "Unexplained bleeding or bruising"
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
               }
-            },
-            {
-              "valueCoding": {
-                "code": "vomiting",
-                "display": "Vomiting"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "diarrhoea",
-                "display": "Diarrhoea"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "severe-headache",
-                "display": "Severe headache"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "muscle-joint-pain",
-                "display": "Muscle or joint pain"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "severe-weakness",
-                "display": "Severe weakness or unusual tiredness"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "sore-throat",
-                "display": "Sore throat"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "hiccups",
-                "display": "Persistent hiccups"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "rash",
-                "display": "Rash"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "red-eyes",
-                "display": "Red or bloodshot eyes"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "difficulty-breathing",
-                "display": "Difficulty breathing"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "none",
-                "display": "None reported"
-              },
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-optionExclusive",
-                  "valueBoolean": true
-                }
-              ]
             }
           ]
         },
         {
-          "linkId": "alert-suspected",
+          "linkId": "alert-fever",
+          "text": "Fever, or history of fever",
           "type": "choice",
-          "text": "Suspected of",
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -711,101 +2114,36 @@
               "valueCode": "horizontal"
             },
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Record each symptom separately."
             }
           ],
           "answerOption": [
             {
               "valueCoding": {
-                "code": "ebola",
-                "display": "Ebola"
+                "code": "yes",
+                "display": "Yes"
               }
             },
             {
               "valueCoding": {
-                "code": "marburg",
-                "display": "Marburg"
+                "code": "no",
+                "display": "No"
               }
             },
             {
               "valueCoding": {
-                "code": "other-vhf",
-                "display": "Other VHF"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "cholera",
-                "display": "Cholera"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "measles",
-                "display": "Measles"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "afp---polio",
-                "display": "AFP / Polio"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "mpox",
-                "display": "Mpox"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "anthrax",
-                "display": "Anthrax"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "rabies",
-                "display": "Rabies"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "unexplained-deaths-(human)",
-                "display": "Unexplained deaths (human)"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "unexplained-deaths-(animals)",
-                "display": "Unexplained deaths (animals)"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "other",
-                "display": "Other (specify)"
+                "code": "unknown",
+                "display": "Unknown"
               }
             }
           ]
         },
         {
-          "linkId": "alert-suspected-other",
-          "text": "Other (specify)",
-          "type": "string",
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "alert-signs",
+          "linkId": "alert-headache",
+          "text": "Headache",
           "type": "choice",
-          "text": "Signs and symptoms (tick all that apply)",
-          "repeats": true,
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -813,129 +2151,800 @@
                 "coding": [
                   {
                     "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "check-box",
-                    "display": "Check-box"
+                    "code": "radio-button",
+                    "display": "Radio Button"
                   }
                 ]
               }
             },
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
             }
           ],
           "answerOption": [
             {
               "valueCoding": {
-                "code": "fever",
-                "display": "Fever"
+                "code": "yes",
+                "display": "Yes"
               }
             },
             {
               "valueCoding": {
-                "code": "bleeding",
-                "display": "Bleeding"
+                "code": "no",
+                "display": "No"
               }
             },
             {
               "valueCoding": {
-                "code": "diarrhoea",
-                "display": "Diarrhoea"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "vomiting",
-                "display": "Vomiting"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "rash",
-                "display": "Rash"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "cough",
-                "display": "Cough"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "paralysis",
-                "display": "Paralysis"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "death",
-                "display": "Death"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "other",
-                "display": "Other (specify)"
+                "code": "unknown",
+                "display": "Unknown"
               }
             }
           ]
         },
         {
-          "linkId": "alert-signs-other",
-          "text": "Other (specify)",
-          "type": "string",
+          "linkId": "alert-chills",
+          "text": "Chills",
+          "type": "choice",
+          "required": true,
           "extension": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
             }
           ]
         },
         {
-          "linkId": "alert-cases",
-          "type": "integer",
-          "text": "Number of people affected",
+          "linkId": "alert-weakness",
+          "text": "Weakness",
+          "type": "choice",
+          "required": true,
           "extension": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
             }
           ]
         },
         {
-          "linkId": "alert-deaths",
-          "type": "integer",
-          "text": "Number of deaths",
+          "linkId": "alert-joint-pain",
+          "text": "Joint pain",
+          "type": "choice",
+          "required": true,
           "extension": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
             }
           ]
+        },
+        {
+          "linkId": "alert-fatigue",
+          "text": "Fatigue",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-muscle-pain",
+          "text": "Muscle pain",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-diarrhoea",
+          "text": "Diarrhoea",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-nose-bleeding",
+          "text": "Nose bleeding",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-vomiting",
+          "text": "Vomiting",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-unexplained-bleeding",
+          "text": "Unexplained bleeding",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "From any site, such as gums, eyes, vomit, stool or injection sites. A nose bleed is ticked here as well as at nose bleeding."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-true-onset-date",
+          "text": "Estimated true onset date",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "First reported symptoms may not be the first symptoms."
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
         }
       ]
     },
     {
       "linkId": "alert-exposure",
-      "text": "5. Exposure history (last 21 days)",
+      "text": "D. Exposure in the past 21 days",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "alert-known-case-contact",
+          "text": "Contact of a known case?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-known-case-name",
+          "text": "Name of the known case",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "alert-known-case-contact",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Name of the case, not a description such as \"index case\"."
+            }
+          ]
+        },
+        {
+          "linkId": "alert-travelled",
+          "text": "Travel in the past 21 days?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-travel-from",
+          "text": "Travelled from: country and smallest administrative unit",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "alert-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "For example, country, province and health zone."
+            }
+          ]
+        },
+        {
+          "linkId": "alert-travel-mode",
+          "text": "Mode of travel",
+          "type": "choice",
+          "enableWhen": [
+            {
+              "question": "alert-travelled",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "air",
+                "display": "Air"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "road-public",
+                "display": "Road, public transport"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "road-private",
+                "display": "Road, private vehicle"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "rail",
+                "display": "Rail"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "water",
+                "display": "Water"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-travel-mode-other",
+          "text": "Other mode of travel (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "alert-travel-mode",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-facilities-visited",
+          "text": "Health facilities visited since symptom onset",
+          "type": "text",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "List every facility, in the order visited."
+            }
+          ]
+        },
+        {
+          "linkId": "alert-known-case-contact-id",
+          "text": "Contact identifier of the known case",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "alert-known-case-contact",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "alert-sample-collected",
+          "text": "Was a sample collected?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "Select Yes to fill in E. Assessment and specimen."
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "alert-assessment",
+      "text": "E. Assessment and specimen",
       "type": "group",
       "enableWhen": [
         {
-          "question": "alert-call-pathway",
+          "question": "alert-sample-collected",
           "operator": "=",
           "answerCoding": {
-            "code": "assessment",
-            "display": "Symptoms or exposure assessment"
+            "code": "yes",
+            "display": "Yes"
           }
         }
       ],
       "item": [
         {
-          "linkId": "alert-exposures",
-          "text": "Which possible exposures did the caller report?",
+          "linkId": "alert-meets-case-definition",
+          "text": "Does the case meet the suspected case definition?",
           "type": "choice",
-          "repeats": true,
           "required": true,
           "extension": [
             {
@@ -944,90 +2953,67 @@
                 "coding": [
                   {
                     "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "check-box",
-                    "display": "Check-box"
+                    "code": "radio-button",
+                    "display": "Radio Button"
                   }
                 ]
               }
             },
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Select all exposures mentioned. If none was mentioned, select None reported."
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
             }
           ],
           "answerOption": [
             {
               "valueCoding": {
-                "code": "confirmed-case-contact",
-                "display": "Contact with a confirmed or probable Ebola case"
+                "code": "yes",
+                "display": "Yes"
               }
             },
             {
               "valueCoding": {
-                "code": "unexplained-illness-contact",
-                "display": "Contact with someone sick or deceased after an unexplained illness"
+                "code": "no",
+                "display": "No"
               }
-            },
-            {
-              "valueCoding": {
-                "code": "funeral",
-                "display": "Attended a funeral or touched a dead body"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "affected-area-travel",
-                "display": "Travel to or from an Ebola-affected area"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "ebola-facility",
-                "display": "Worked in or visited a facility treating Ebola patients"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "animals",
-                "display": "Contact with bats, bushmeat, or wild animals"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "none",
-                "display": "None reported"
-              },
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-optionExclusive",
-                  "valueBoolean": true
-                }
-              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "linkId": "alert-outcome",
-      "text": "6. Classification, guidance, and action",
-      "type": "group",
-      "item": [
+        },
         {
-          "linkId": "alert-classification",
-          "text": "Call classification",
-          "type": "choice",
+          "linkId": "alert-specimen-date",
+          "text": "Specimen collected: date",
+          "type": "date",
           "required": true,
-          "enableWhen": [
+          "extension": [
             {
-              "question": "alert-call-pathway",
-              "operator": "=",
-              "answerCoding": {
-                "code": "assessment",
-                "display": "Symptoms or exposure assessment"
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
               }
             }
-          ],
+          ]
+        },
+        {
+          "linkId": "alert-specimen-type",
+          "text": "Specimen type",
+          "type": "choice",
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -1045,209 +3031,99 @@
           "answerOption": [
             {
               "valueCoding": {
-                "code": "possible",
-                "display": "Possible — needs clinical review"
+                "code": "whole-blood-edta",
+                "display": "Whole blood (EDTA)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "oral-swab",
+                "display": "Oral swab (deceased)"
               }
             },
             {
               "valueCoding": {
                 "code": "other",
-                "display": "Other (specify)"
+                "display": "Other"
               }
             }
           ]
         },
         {
-          "linkId": "alert-classification-other",
-          "text": "Other classification (specify)",
+          "linkId": "alert-specimen-type-other",
+          "text": "Other specimen type (specify)",
           "type": "string",
           "required": true,
           "enableWhen": [
             {
-              "question": "alert-classification",
+              "question": "alert-specimen-type",
               "operator": "=",
               "answerCoding": {
                 "code": "other",
-                "display": "Other (specify)"
+                "display": "Other"
               }
             }
           ]
         },
         {
-          "linkId": "alert-routed-action",
-          "text": "Action to take",
-          "type": "choice",
-          "required": true,
-          "enableWhen": [
-            {
-              "question": "alert-call-pathway",
-              "operator": "=",
-              "answerCoding": {
-                "code": "assessment",
-                "display": "Symptoms or exposure assessment"
-              }
-            }
-          ],
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "radio-button",
-                    "display": "Radio Button"
-                  }
-                ]
-              }
-            }
-          ],
-          "answerOption": [
-            {
-              "valueCoding": {
-                "code": "pheoc-rrt",
-                "display": "Refer to the PHEOC Watcher for Rapid Response Team dispatch"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "other",
-                "display": "Other (specify)"
-              }
-            }
-          ]
-        },
-        {
-          "linkId": "alert-routed-action-other",
-          "text": "Other action (specify)",
+          "linkId": "alert-investigator-name",
+          "text": "Investigator name",
           "type": "string",
           "required": true,
-          "enableWhen": [
-            {
-              "question": "alert-routed-action",
-              "operator": "=",
-              "answerCoding": {
-                "code": "other",
-                "display": "Other (specify)"
-              }
-            }
-          ]
-        },
-        {
-          "linkId": "alert-facility",
-          "text": "Nearest health facility receiving the person",
-          "type": "string",
-          "required": false,
-          "enableWhen": [
-            {
-              "question": "alert-call-pathway",
-              "operator": "=",
-              "answerCoding": {
-                "code": "assessment",
-                "display": "Symptoms or exposure assessment"
-              }
-            }
-          ],
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Ask for or confirm the nearest appropriate health facility receiving the referral."
+              "valueString": "Name of the person, not the team."
             }
           ]
-        },
-        {
-          "linkId": "alert-action-status",
-          "text": "What is the status of this action?",
-          "type": "choice",
-          "required": true,
-          "enableWhen": [
-            {
-              "question": "alert-call-pathway",
-              "operator": "=",
-              "answerCoding": {
-                "code": "assessment",
-                "display": "Symptoms or exposure assessment"
-              }
-            }
-          ],
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/questionnaire-item-control",
-                    "code": "radio-button",
-                    "display": "Radio Button"
-                  }
-                ]
-              }
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Record whether the routed action is pending, completed, or escalated."
-            }
-          ],
-          "answerOption": [
-            {
-              "valueCoding": {
-                "code": "pending",
-                "display": "Pending"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "completed",
-                "display": "Completed"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "escalated",
-                "display": "Escalated"
-              }
-            }
-          ]
-        },
-        {
-          "linkId": "alert-moh-note",
-          "type": "display",
-          "text": "This form provides decision support for the 719 call-centre agent. Follow the current Ministry of Health escalation procedure for all alerts and referrals."
         },
         {
           "linkId": "alert-description",
-          "type": "text",
-          "text": "Additional information from the caller",
-          "required": false,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "Important details, directions, travel history, exposure details, or follow-up instructions not captured above."
-            }
-          ]
+          "text": "Comments",
+          "type": "text"
         },
         {
-          "linkId": "alert-action",
-          "type": "text",
-          "text": "Action taken (notes)",
+          "linkId": "alert-investigation-date",
+          "text": "Date of field investigation",
+          "type": "date",
           "extension": [
             {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
-              "valueBoolean": true
-            }
-          ]
-        },
-        {
-          "linkId": "alert-call-end",
-          "text": "What time did the call end?",
-          "type": "time",
-          "required": true,
-          "extension": [
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
-              "valueString": "The time the conversation with the caller ended"
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
             }
           ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
         }
       ]
     }

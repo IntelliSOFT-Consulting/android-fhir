@@ -41,7 +41,7 @@ class QuestionnaireHelper {
             display
         observation.code.text = text
         observation.valueStringType.value = text
-        return observation
+        return FhirConformance.ensureRequired(observation)
     }
 
     fun codingTimeQuestionnaire(code: String, display: String, text: String): Observation {
@@ -51,7 +51,7 @@ class QuestionnaireHelper {
         observation.code.text = text
         val date = FormatHelper().convertStringDate(text)
         observation.valueDateTimeType.value = date
-        return observation
+        return FhirConformance.ensureRequired(observation)
     }
 
     fun generalEncounter(basedOn: String?, encounter: String): Encounter {
@@ -72,7 +72,7 @@ class QuestionnaireHelper {
         observation.code.text = text
         val date = FormatHelper().convertStringDateParent(text)
         observation.valueDateTimeType.value = date
-        return observation
+        return FhirConformance.ensureRequired(observation)
     }
 
     fun quantityQuestionnaire(
@@ -91,6 +91,6 @@ class QuestionnaireHelper {
                 .setValue(quantity.toBigDecimal())
                 .setUnit(units)
                 .setSystem("http://unitsofmeasure.org")
-        return observation
+        return FhirConformance.ensureRequired(observation)
     }
 }

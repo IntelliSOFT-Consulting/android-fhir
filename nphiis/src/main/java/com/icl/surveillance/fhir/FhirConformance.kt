@@ -12,8 +12,7 @@ import org.hl7.fhir.r4.model.Resource
  * so resources pass validation on servers that enforce the base specification. Only missing
  * values are set; anything already present is left unchanged.
  *
- * Applied when resources are created and again just before upload, so records saved before this
- * existed are corrected too.
+ * Applied whenever resources are created, and to every edit saved through LocalWins.
  */
 object FhirConformance {
 

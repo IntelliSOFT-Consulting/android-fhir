@@ -14,7 +14,7 @@ class VhfSpecimensTest {
 
     private fun row(result: VhfSpecimens.Result, preliminary: VhfSpecimens.Result? = null) =
         VhfSpecimens.Row(
-            "id", "Blood", "MV990JK0", null, null, null, emptyList(), emptyList(), result, preliminary, null
+            "id", "Blood", "MV990JK0", null, null, null, emptyList(), emptyList(), emptyList(), result, preliminary, null
         )
 
     private fun test(value: String, final: Boolean = true) =
@@ -47,6 +47,22 @@ class VhfSpecimensTest {
         assertEquals(
             "Pending Results",
             VhfSpecimens.summarize(listOf(row(VhfSpecimens.Result.NEGATIVE), row(VhfSpecimens.Result.REJECTED)))!!.classification
+        )
+    }
+
+    @Test
+    fun `rejected specimens show as rejected and keep the case pending`() {
+        val rejected = VhfSpecimens.summarize(listOf(row(VhfSpecimens.Result.REJECTED)))!!
+        assertEquals("Rejected", rejected.labResults)
+        assertEquals("Pending Results", rejected.classification)
+        assertEquals(
+            "Rejected",
+            VhfSpecimens.summarize(listOf(row(VhfSpecimens.Result.NEGATIVE), row(VhfSpecimens.Result.REJECTED)))!!.labResults
+        )
+        // Another specimen still awaiting results: the case is simply pending.
+        assertEquals(
+            "Pending",
+            VhfSpecimens.summarize(listOf(row(VhfSpecimens.Result.PENDING), row(VhfSpecimens.Result.REJECTED)))!!.labResults
         )
     }
 

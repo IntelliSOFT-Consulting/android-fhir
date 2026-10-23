@@ -24,7 +24,7 @@ object CaseTypes {
     const val RCCE_COMMUNITY = "RCCE - Community Questionnaire"
     const val RCCE_COUNTY = "RCCE - County/Subcounty Interface"
 
-    /** Outbreak Response: alert / rumour log (client's Alert_log_rumour_log form). */
+    /** Outbreak Response: alert log (Alert Reporting Form). The stored name is unchanged. */
     const val ALERT_LOG = "Alert Rumor Log"
 
     /** Modules whose submissions create a case (Patient + Encounter) and appear in case lists. */
@@ -408,37 +408,36 @@ object FormFields {
                 ReportingSite.COUNTY_VARIANTS + ReportingSite.SUB_COUNTY_VARIANTS
     }
 
-    /** Alert / rumour log (alert-rumor-log.json). No illness dates, lab results or classification. */
+    /**
+     * Alert log (alert-rumor-log.json): the Alert Reporting Form. The file and the stored
+     * case type keep their earlier "rumor" names so saved alerts still open.
+     */
     object AlertLog {
         const val FORM = "alert-rumor-log.json"
         const val DATE = "alert-date"
+        const val SOURCE_TYPE = "alert-source-type"
+        const val FACILITY = "alert-facility"
+        const val REPORTER_NAME = "alert-reporter-name"
+        const val REPORTER_MOBILE = "alert-reporter-mobile"
+        const val IDENTIFIER = "alert-identifier"
         const val MOBILE = "alert-mobile"
         const val HOME_COUNTRY = "alert-home-country"
         const val AGE = "492731638700"
-        const val LOCATION = "alert-location"
         const val VILLAGE = "alert-village"
-        const val SOURCE_TYPE = "alert-source-type"
-        const val REPORTER_NAME = "alert-reporter-name"
-        const val REPORTER_MOBILE = "alert-reporter-mobile"
-        const val REPORTER_DESIGNATION = "alert-reporter-designation"
+        const val VITAL_STATUS = "alert-vital-status"
+        const val VITAL_STATUS_DECEASED = "deceased"
+        const val ONSET_DATE = "alert-onset-date"
+        const val MEETS_CASE_DEFINITION = "alert-meets-case-definition"
+        const val SPECIMEN_DATE = "alert-specimen-date"
+        const val SAMPLE_COLLECTED = "alert-sample-collected"
+        const val SPECIMEN_TYPE = "alert-specimen-type"
+        const val SPECIMEN_TYPE_OTHER = "alert-specimen-type-other"
+        const val DESCRIPTION = "alert-description"
+
+        /** Earlier versions (alert / rumour log, 719 call-centre log): shown for alerts saved then. */
         const val SUSPECTED = "alert-suspected"
         const val SUSPECTED_OTHER = "alert-suspected-other"
-        const val SIGNS = "alert-signs"
-        const val FACILITY = "alert-facility"
-        const val DESCRIPTION = "alert-description"
-        /** 719 Call Centre Log (the alert / rumour log). */
-        const val AGENT_ID = "alert-agent-id"
-        const val CALLING_ABOUT = "alert-calling-about"
-        const val CALL_PATHWAY = "alert-call-pathway"
-        const val PATHWAY_ASSESSMENT = "assessment"
-        const val PATHWAY_GENERAL_ADVICE = "general-advice"
         const val CLASSIFICATION = "alert-classification"
-        const val ROUTED_ACTION = "alert-routed-action"
-        const val ACTION_STATUS = "alert-action-status"
-        const val CALL_END = "alert-call-end"
-        const val SYMPTOMS = "alert-symptoms"
-        const val EXPOSURES = "alert-exposures"
-        const val CALLING_ABOUT_SELF = "self"
     }
 
     object Geo {

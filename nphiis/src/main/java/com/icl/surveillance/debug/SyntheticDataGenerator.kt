@@ -103,7 +103,7 @@ object SyntheticDataGenerator {
             SaveMode.SCREENED,
             diseases = listOf("Ebola", "Marburg"),
         ),
-        Module(CaseTypes.ALERT_LOG, "Alert / rumour log", FormFields.AlertLog.FORM),
+        Module(CaseTypes.ALERT_LOG, "Alert log", FormFields.AlertLog.FORM),
         Module(CaseTypes.MOH_505, "MOH 505 report", "moh505.json"),
         Module(CaseTypes.MPOX_REGISTER, "Mpox register", "mpox-register.json", diseases = listOf("mpox")),
         Module(CaseTypes.MPOX_TALLY_SHEET, "Mpox tally sheet", "mpox-tally-sheet.json", diseases = listOf("mpox")),

@@ -315,14 +315,10 @@ class AddCaseActivity : AppCompatActivity() {
 
                 else -> null
             }
-            val next = state.nextDay
+            // Days can be recorded in any order; follow up need not start from day 1.
             dateProblem ?: when {
                 day == null -> null
                 day in state.recordedDays -> "Day $day follow up is already recorded."
-                // The schedule is filled in order: day N needs days 1 to N-1 first.
-                day >= 1 && next != null && day > next ->
-                    "Record day $next first. Follow ups are recorded in order."
-
                 else -> null
             }
         } else {

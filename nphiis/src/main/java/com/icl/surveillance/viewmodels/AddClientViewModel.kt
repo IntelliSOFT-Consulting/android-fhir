@@ -1015,14 +1015,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
                 }
 
                 CaseSlugs.ALERT_LOG -> {
-                    // The person affected, when known (name is optional on an alert); a caller
-                    // reporting their own symptoms is that person.
-                    val callingAboutSelf = answers.answerOf(FormFields.AlertLog.CALLING_ABOUT)
-                        ?.startsWith("Self", ignoreCase = true) == true
+                    // The patient the alert is about: family name and given names.
                     PatientMapper.applyName(
                         patient,
-                        first = answers.answerOf(FormFields.Person.FIRST_NAME)
-                            ?: answers.answerOf(FormFields.AlertLog.REPORTER_NAME)?.takeIf { callingAboutSelf },
+                        first = answers.answerOf(FormFields.Person.FIRST_NAME),
                         middle = null,
                         surname = answers.answerOf(FormFields.Person.SURNAME),
                         order = PatientMapper.NameOrder.SURNAME_AS_FAMILY
@@ -1031,11 +1027,15 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         patient.nameFirstRep.family = "Alert"
                     }
                     PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
-                    (answers.answerOf(FormFields.AlertLog.MOBILE)
-                        ?: answers.answerOf(FormFields.AlertLog.REPORTER_MOBILE)?.takeIf { callingAboutSelf })
+                    answers.answerOf(FormFields.AlertLog.MOBILE)
                         ?.let { patient.addTelecom(PatientMapper.mobile(it)) }
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.ALERT_LOG))
+
+                    // Section E: the specimen collected, as a standard Specimen (like VHF cases).
+                    VhfSpecimens.sampleFromAlertForm(answers)?.let { sample ->
+                        saveSpecimen(sample.sourceLinkId, sample.collected, sample.type, sample.notes)
+                    }
                 }
 
                 CaseSlugs.MOH_505 -> {

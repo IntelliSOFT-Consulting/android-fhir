@@ -118,7 +118,7 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                     this.lnFinalClassification.visibility = View.GONE
                     this.tvEpidLabel.text = "Alert No"
                     this.tvDateLabel.text = "Date of Alert"
-                    this.tvLabLabel.text = "Suspected of"
+                    this.tvLabLabel.text = "Suspected case"
                     this.labResults.text = patientItem.labResults
                 }
 

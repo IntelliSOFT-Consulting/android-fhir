@@ -140,7 +140,7 @@ object ContactGroups {
     /**
      * Puts back any contact missing from its case's Group: each contact's "Source case EPID"
      * answer is the source of truth. Covers a Group overwritten by another device's upload (two
-     * phones adding contacts to the same case offline). Runs before every sync. Returns how many
+     * phones adding contacts to the same case offline). Not run automatically. Returns how many
      * memberships were restored.
      */
     suspend fun repair(fhirEngine: FhirEngine): Int {

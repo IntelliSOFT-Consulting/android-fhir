@@ -135,8 +135,7 @@ object ManagingLocation {
 
     /**
      * Repairs every Encounter, QuestionnaireResponse, Observation and Patient saved with
-     * "Location/" (no id), in the stored copy or the pending upload: each takes its case's facility. Runs before sync until a pass
-     * finds nothing left to fix, and from Settings > Update Data. Logged under "ManagingLocation".
+     * "Location/" (no id), in the stored copy or the pending upload: each takes its case's facility. Runs from Settings > Update Data. Logged under "ManagingLocation".
      */
     suspend fun repairLocalRecords(
         context: Context,
@@ -172,7 +171,7 @@ object ManagingLocation {
             Timber.tag(TAG).i("Checked $checked record(s); repaired $fixed")
             return RepairResult(checked, fixed)
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Repair stopped after $checked record(s), $fixed repaired; will retry on next sync")
+            Timber.tag(TAG).e(e, "Repair stopped after $checked record(s), $fixed repaired")
             return RepairResult(checked, fixed, e)
         }
     }

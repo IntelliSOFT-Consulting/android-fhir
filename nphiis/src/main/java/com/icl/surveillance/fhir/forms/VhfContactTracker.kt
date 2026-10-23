@@ -126,16 +126,26 @@ data class ContactFollowUpState(
         get() = daysSinceExposure > window ||
             ((daysSinceExposure == window || VhfDemoMode.enabled) && window in recordedDays)
 
-    /** The next day in the schedule (1-21) without a record; null once all 21 are recorded. */
-    val nextDay: Int?
-        get() = (1..window).firstOrNull { it !in recordedDays }
-
     /**
-     * Follow ups are recorded in order; the next day opens once its date has arrived
-     * (in demo mode, straight away).
+     * The next day to record: today's day if it has no record, else the first upcoming day without
+     * one; null once none remain. Follow up need not start from day 1 (a contact listed late starts
+     * on the current day); earlier missed days stay recordable via [canRecordDay]. Demo mode walks
+     * the schedule from day 1.
      */
+    val nextDay: Int?
+        get() {
+            val start = if (VhfDemoMode.enabled) 1 else daysSinceExposure.coerceIn(1, window + 1)
+            return (start..window).firstOrNull { it !in recordedDays }
+        }
+
+    /** The next day opens once its date has arrived (in demo mode, straight away). */
     val nextDayOpen: Boolean
         get() = nextDay?.let { it <= daysSinceExposure || VhfDemoMode.enabled } ?: false
+
+    /** Any day 1-21 without a record can be recorded once its date has arrived, in any order. */
+    fun canRecordDay(day: Int): Boolean =
+        day in 1..window && day !in recordedDays &&
+            (day <= daysSinceExposure || (VhfDemoMode.enabled && day == nextDay))
 
     val isDueToday: Boolean
         get() = isContact && !isClosed && daysSinceExposure in 1..window &&

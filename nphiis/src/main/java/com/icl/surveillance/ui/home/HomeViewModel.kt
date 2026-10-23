@@ -82,7 +82,7 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
             R.string.trainings, HomeViewModel.ADAM_STAGE, 51
         ),
 
-        // Alert / rumour log (client's Alert_log_rumour_log form).
+        // Alert log (Alert Reporting Form).
         ALERT_LOG(
             R.drawable.searching,
             R.string.alert_log, HomeViewModel.ADAM_STAGE, 52

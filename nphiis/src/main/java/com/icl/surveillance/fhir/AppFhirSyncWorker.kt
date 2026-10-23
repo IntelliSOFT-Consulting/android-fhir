@@ -1,7 +1,6 @@
 package com.icl.surveillance.fhir
 
 import android.content.Context
-import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
@@ -13,8 +12,6 @@ import com.google.android.fhir.sync.FhirSyncWorker
 import com.google.android.fhir.sync.upload.HttpCreateMethod
 import com.google.android.fhir.sync.upload.HttpUpdateMethod
 import com.google.android.fhir.sync.upload.UploadStrategy
-import com.icl.surveillance.fhir.forms.LocalWins
-import com.icl.surveillance.fhir.forms.ManagingLocation
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
 import com.icl.surveillance.utils.Constants.UPLOAD_BUNDLE_SIZE
@@ -252,32 +249,20 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override fun getConflictResolver() = AcceptLocalConflictResolver
 
-    /** Repairs records saved with an empty Location reference before uploading (once). */
-    override suspend fun doWork(): ListenableWorker.Result {
-        ManagingLocation.repairLocalRecords(applicationContext, getFhirEngine())
-        LocalWins.replacePendingUpdates(applicationContext, getFhirEngine())
-        // VHF contact Groups: put back contacts another device's upload dropped (before the
-        // upload, and again after the download replaced Groups with the server's copy).
-        repairContactGroups()
-        val result = super.doWork()
-        repairContactGroups()
-        return result
-    }
-
-    private suspend fun repairContactGroups() {
-        runCatching { com.icl.surveillance.fhir.forms.ContactGroups.repair(getFhirEngine()) }
-            .onFailure { timber.log.Timber.tag(com.icl.surveillance.fhir.forms.ContactGroups.TAG).e(it, "Contact group repair failed") }
-    }
-
     override fun getFhirEngine() = FhirApplication.fhirEngine(applicationContext)
 
-    /** Local changes are uploaded as transactions of [UPLOAD_BUNDLE_SIZE] resources. */
+    /**
+     * Local changes are uploaded as transactions of [UPLOAD_BUNDLE_SIZE] resources, read one
+     * bundle at a time: reading every pending change at once ran the app out of memory with a
+     * large backlog (and crashed whatever screen was open).
+     */
     override fun getUploadStrategy(): UploadStrategy =
         UploadStrategy.forBundleRequest(
             methodForCreate = HttpCreateMethod.PUT,
             methodForUpdate = HttpUpdateMethod.PATCH,
             squash = true,
             bundleSize = UPLOAD_BUNDLE_SIZE,
+            maxResourcesPerFetch = UPLOAD_BUNDLE_SIZE,
         )
 
 }

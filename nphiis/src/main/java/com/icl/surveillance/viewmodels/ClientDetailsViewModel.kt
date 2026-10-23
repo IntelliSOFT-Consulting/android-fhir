@@ -36,6 +36,7 @@ import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
+import org.hl7.fhir.r4.model.HumanName
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -204,7 +205,7 @@ class ClientDetailsViewModel(
                 logicalId = it.resource.logicalId
                 name =
                     if (it.resource.hasName()) {
-                        "${it.resource.name[0].givenAsSingleString} ${it.resource.name[0].family} "
+                        displayName(it.resource.name[0])
                     } else ""
                 sex = if (it.resource.hasGenderElement()) it.resource.gender.display else ""
                 dob =
@@ -341,6 +342,12 @@ class ClientDetailsViewModel(
             epidNo = epidNo
         )
     }
+
+    /** Given names then family name, leaving out whichever is missing (never "null"). */
+    private fun displayName(name: HumanName): String =
+        listOfNotNull(name.givenAsSingleString, name.family)
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
 
     /** linkId -> answer as shown on the summary (choices by display, several joined by ", "). */
     private fun answersOf(
@@ -509,7 +516,7 @@ class ClientDetailsViewModel(
             logicalId = it.resource.logicalId
             name =
                 if (it.resource.hasName()) {
-                    "${it.resource.name[0].givenAsSingleString} ${it.resource.name[0].family} "
+                    displayName(it.resource.name[0])
                 } else ""
 
             sex = if (it.resource.hasGenderElement()) it.resource.gender.display else ""
@@ -703,7 +710,7 @@ class ClientDetailsViewModel(
             name =
                 if (it.resource.hasName()) {
                     // display name in order as fname, then others
-                    "${it.resource.name[0].givenAsSingleString} ${it.resource.name[0].family} "
+                    displayName(it.resource.name[0])
                 } else ""
             sex = if (it.resource.hasGenderElement()) it.resource.gender.display else ""
             dob =

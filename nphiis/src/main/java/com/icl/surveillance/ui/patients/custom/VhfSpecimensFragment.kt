@@ -81,7 +81,7 @@ class VhfSpecimensFragment : Fragment() {
                 VhfCards.action(
                     parent, CardTone.NEUTRAL, R.drawable.ic_vhf_info,
                     "No specimens collected",
-                    "Specimens recorded in the case form's laboratory section appear here with their results.",
+                    "Specimens recorded on the form appear here with their results.",
                 )
             )
             return
@@ -111,7 +111,11 @@ class VhfSpecimensFragment : Fragment() {
                 CardTone.SUCCESS, R.drawable.ic_vhf_check_circle,
                 if (rows.size == 1) "The specimen tested negative." else "All ${rows.size} specimens tested negative."
             )
-            else -> Triple(
+            else -> if (summary.labResults == VhfSpecimens.Result.REJECTED.label) Triple(
+                CardTone.WARNING, R.drawable.ic_vhf_info,
+                "The lab rejected the specimen" + (if (rows.size == 1) "" else "s") +
+                    ". See the reason in the specimen's notes."
+            ) else Triple(
                 CardTone.INFO, R.drawable.ic_vhf_info,
                 "Waiting for results on ${rows.count { it.result != VhfSpecimens.Result.NEGATIVE }} of ${rows.size} specimens."
             )
@@ -142,6 +146,7 @@ class VhfSpecimensFragment : Fragment() {
                         add("Sent to lab: ${row.sent?.let { dateFormat.format(it) } ?: "Not recorded"}")
                         add(
                             "Results: " + when {
+                                row.result == VhfSpecimens.Result.REJECTED -> "Rejected by the lab"
                                 row.resultDate != null -> dateFormat.format(row.resultDate)
                                 row.tests.isEmpty() -> "Awaiting results"
                                 else -> "Date not recorded"
@@ -150,6 +155,9 @@ class VhfSpecimensFragment : Fragment() {
                         // Each test (Observation in a DiagnosticReport for this specimen).
                         row.tests.forEach { test ->
                             add("${test.name}: ${test.value}" + if (test.isFinal) "" else " (preliminary)")
+                        }
+                        if (row.result == VhfSpecimens.Result.REJECTED) {
+                            add("Reason for rejection: " + row.rejectionReasons.joinToString("; ").ifEmpty { "Not recorded" })
                         }
                         addAll(row.notes)
                     },

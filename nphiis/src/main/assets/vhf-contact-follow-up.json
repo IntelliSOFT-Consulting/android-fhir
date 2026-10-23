@@ -364,9 +364,64 @@
           ]
         },
         {
+          "linkId": "vhf-follow-up-temperature-am-taken",
+          "text": "Temperature AM taken?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "question": "vhf-follow-up-contact-status",
+              "operator": "exists",
+              "answerBoolean": false
+            }
+          ],
+          "enableBehavior": "any"
+        },
+        {
           "linkId": "vhf-follow-up-temperature-am",
           "text": "Temperature AM (°C)",
           "type": "decimal",
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -379,6 +434,54 @@
             {
               "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
               "valueString": "e.g. 37.5"
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "vhf-follow-up-temperature-am-taken",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-follow-up-temperature-pm-taken",
+          "text": "Temperature PM taken?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
             }
           ],
           "enableWhen": [
@@ -402,6 +505,7 @@
           "linkId": "vhf-follow-up-temperature-pm",
           "text": "Temperature PM (°C)",
           "type": "decimal",
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -418,20 +522,14 @@
           ],
           "enableWhen": [
             {
-              "question": "vhf-follow-up-contact-status",
+              "question": "vhf-follow-up-temperature-pm-taken",
               "operator": "=",
               "answerCoding": {
-                "code": "alive",
-                "display": "Alive"
+                "code": "yes",
+                "display": "Yes"
               }
-            },
-            {
-              "question": "vhf-follow-up-contact-status",
-              "operator": "exists",
-              "answerBoolean": false
             }
-          ],
-          "enableBehavior": "any"
+          ]
         },
         {
           "linkId": "vhf-follow-up-mark-x",

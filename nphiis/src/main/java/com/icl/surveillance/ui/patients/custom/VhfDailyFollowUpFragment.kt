@@ -165,20 +165,18 @@ class VhfDailyFollowUpFragment : Fragment() {
         parent.addView(VhfScheduleCards.marksGrid(parent, window, state.marks, state.daysSinceExposure))
 
         parent.addView(VhfCards.sectionHeader(parent, "Follow-up schedule"))
-        val next = state.nextDay
         val rows = (0..window).mapNotNull { day ->
             val visits = state.visits.filter { it.day == day }
             if (day == 0 && visits.isEmpty()) return@mapNotNull null
             val date = SCHEDULE_DATE.format(state.dateOfDay(day))
-            // Only the next day in the schedule, once its date has arrived, can be recorded.
-            if (canRecord && visits.isEmpty() && day == next && state.nextDayOpen) {
-                val caption = when {
-                    day == state.daysSinceExposure -> "Due today"
-                    day > state.daysSinceExposure -> "Next in the schedule"
-                    else -> "Overdue"
+            // Any day whose date has arrived can be recorded, in any order (no need to start at day 1).
+            if (canRecord && visits.isEmpty() && state.canRecordDay(day)) {
+                val record = { VhfContactActions.recordFollowUp(context, state, day) }
+                return@mapNotNull when {
+                    day == state.daysSinceExposure -> ScheduleRow(day, date, "Due today", "Due today", CardTone.INFO, onRecord = record)
+                    day > state.daysSinceExposure -> ScheduleRow(day, date, "Next in the schedule", "Next", CardTone.INFO, onRecord = record)
+                    else -> ScheduleRow(day, date, "Not recorded", "Missed", CardTone.WARNING, onRecord = record)
                 }
-                return@mapNotNull ScheduleRow(day, date, caption, caption, CardTone.INFO,
-                    onRecord = { VhfContactActions.recordFollowUp(context, state, day) })
             }
             val tap = { message: String -> { toast(message) } }
             // A recorded day opens what was entered on it.
@@ -221,8 +219,7 @@ class VhfDailyFollowUpFragment : Fragment() {
                 )
                 day <= state.daysSinceExposure -> ScheduleRow(
                     day, date, "Not recorded", "Missed", CardTone.WARNING,
-                    onTap = tap(next?.let { "Record day $it first. Follow ups are recorded in order." }
-                        ?: "Day $day was not recorded.")
+                    onTap = tap("Day $day was not recorded.")
                 )
                 else -> ScheduleRow(
                     day, date, "Opens on this date", "Upcoming", CardTone.NEUTRAL,

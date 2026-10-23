@@ -90,6 +90,30 @@ internal class PerResourceLocalChangeFetcher(
     SyncUploadProgress(database.getLocalChangesCount(), total)
 }
 
+/**
+ * Fetches the local changes of at most [maxResources] resources at a time, earliest changed first,
+ * so a large backlog of changes is never held in memory at once.
+ */
+internal class BatchedLocalChangeFetcher(
+  private val database: Database,
+  private val maxResources: Int,
+) : LocalChangeFetcher {
+
+  override var total by Delegates.notNull<Int>()
+
+  suspend fun initTotalCount() {
+    total = database.getLocalChangesCount()
+  }
+
+  override suspend fun hasNext(): Boolean = database.getLocalChangesCount().isNotZero()
+
+  override suspend fun next(): List<LocalChange> =
+    database.getAllChangesForEarliestChangedResources(maxResources)
+
+  override suspend fun getProgress(): SyncUploadProgress =
+    SyncUploadProgress(database.getLocalChangesCount(), total)
+}
+
 /** Represents the mode in which local changes should be fetched. */
 sealed class LocalChangesFetchMode {
   object AllChanges : LocalChangesFetchMode()
@@ -97,6 +121,9 @@ sealed class LocalChangesFetchMode {
   object PerResource : LocalChangesFetchMode()
 
   object EarliestChange : LocalChangesFetchMode()
+
+  /** The changes of at most [maxResources] resources at a time, earliest changed first. */
+  data class Batched(val maxResources: Int) : LocalChangesFetchMode()
 }
 
 internal object LocalChangeFetcherFactory {
@@ -109,6 +136,8 @@ internal object LocalChangeFetcherFactory {
         AllChangesLocalChangeFetcher(database).apply { initTotalCount() }
       is LocalChangesFetchMode.PerResource ->
         PerResourceLocalChangeFetcher(database).apply { initTotalCount() }
+      is LocalChangesFetchMode.Batched ->
+        BatchedLocalChangeFetcher(database, mode.maxResources).apply { initTotalCount() }
       else -> throw NotImplementedError("$mode is not implemented yet.")
     }
 }

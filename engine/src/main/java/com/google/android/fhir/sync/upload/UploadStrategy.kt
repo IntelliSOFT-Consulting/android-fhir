@@ -74,6 +74,9 @@ private constructor(
      * @param squash Whether to combine multiple changes to the same resource into a single update.
      *   Only `true` is supported currently.
      * @param bundleSize The maximum number of resources to include in a single bundle.
+     * @param maxResourcesPerFetch When set, local changes are read and uploaded for at most this
+     *   many resources at a time (earliest changed first) instead of all at once, so a large
+     *   backlog does not run the app out of memory.
      * @return An [UploadStrategy] configured for bundle requests.
      */
     fun forBundleRequest(
@@ -81,6 +84,7 @@ private constructor(
       methodForUpdate: HttpUpdateMethod,
       squash: Boolean,
       bundleSize: Int,
+      maxResourcesPerFetch: Int? = null,
     ): UploadStrategy {
       if (methodForUpdate == HttpUpdateMethod.PUT) {
         throw NotImplementedError("PUT for UPDATE not supported yet.")
@@ -88,8 +92,13 @@ private constructor(
       if (!squash) {
         throw NotImplementedError("No squashing with bundle uploading not supported yet.")
       }
+      require(maxResourcesPerFetch == null || maxResourcesPerFetch > 0) {
+        "maxResourcesPerFetch must be positive."
+      }
       return UploadStrategy(
-        localChangesFetchMode = LocalChangesFetchMode.AllChanges,
+        localChangesFetchMode =
+          maxResourcesPerFetch?.let { LocalChangesFetchMode.Batched(it) }
+            ?: LocalChangesFetchMode.AllChanges,
         patchGeneratorMode = PatchGeneratorMode.PerResource,
         requestGeneratorMode =
           UploadRequestGeneratorMode.BundleRequest(

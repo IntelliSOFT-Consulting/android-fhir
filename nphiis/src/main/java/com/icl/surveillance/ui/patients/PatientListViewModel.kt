@@ -1096,19 +1096,17 @@ class PatientListViewModel(
                             }
 
                             CaseSlugs.ALERT_LOG -> {
-                                // The row shows what the alert is suspected of; no lab or classification.
+                                // The row shows whether the alert is a suspected case; no lab or classification.
+                                val meetsDefinition = obs.valueOf(FormFields.AlertLog.MEETS_CASE_DEFINITION)
                                 val suspected = obs.valueOf(FormFields.AlertLog.SUSPECTED)
                                 val other = obs.valueOf(FormFields.AlertLog.SUSPECTED_OTHER)
-                                val pathway = obs.valueOf(FormFields.AlertLog.CALL_PATHWAY)
                                 val classification = obs.valueOf(FormFields.AlertLog.CLASSIFICATION)
                                 data = data.copy(
                                     labResults = when {
-                                        // 719 call log: the call's classification.
+                                        meetsDefinition.isNotBlank() -> meetsDefinition
+                                        // Alerts saved with earlier versions of the form.
                                         classification.isNotBlank() -> classification
                                         suspected.startsWith("Other") && other.isNotBlank() -> other
-                                        suspected.isNotBlank() -> suspected
-                                        // 719 call log: an advice-only call has no suspected disease.
-                                        pathway.startsWith("General", ignoreCase = true) -> "General advice"
                                         else -> suspected
                                     },
                                     status = "",
@@ -1167,8 +1165,7 @@ class PatientListViewModel(
                             county = " $county",
                             subCounty = " $subCounty",
                             caseOnsetDate = onset.ifBlank {
-                                // Alerts have no onset date: the date of the alert instead.
-                                // The call's date (the question now records date and time).
+                                // Alerts list by the date the alert was received.
                                 if (nameQuery == CaseSlugs.ALERT_LOG) obs.valueOf(FormFields.AlertLog.DATE).take(10) else onset
                             },
                             encounterQuestionnaire = encounterQuestionnaire,
@@ -1937,9 +1934,9 @@ class PatientListViewModel(
             FormFields.Rcce.OCCUPATION_OTHER,
             FormFields.MpoxRegister.VACCINATION_CENTER,
             FormFields.AlertLog.DATE,
+            FormFields.AlertLog.MEETS_CASE_DEFINITION,
             FormFields.AlertLog.SUSPECTED,
             FormFields.AlertLog.SUSPECTED_OTHER,
-            FormFields.AlertLog.CALL_PATHWAY,
             FormFields.AlertLog.CLASSIFICATION,
             FormFields.Vhf.CASE_TYPE, // VHF: Suspected Cases vs Contact List
             FormFields.Vhf.CONTACT_DATE, // Contact List: date of last contact
