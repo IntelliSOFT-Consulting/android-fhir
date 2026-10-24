@@ -18,6 +18,7 @@ import com.icl.surveillance.R
 import com.icl.surveillance.fhir.forms.CaseResponse
 import com.icl.surveillance.fhir.forms.CaseSlugs
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.VhfCaseOutcome
 import com.icl.surveillance.fhir.forms.VhfContactTracker
 import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.ui.patients.PatientListViewModel.ClinicalData
@@ -315,7 +316,15 @@ class ClientDetailsViewModel(
                             // Observation wins over the form for it.
                             val observedType = obs.latestValueOf(FormFields.Vhf.CASE_TYPE)
                             if (observedType.isNotBlank()) fromForm[FormFields.Vhf.CASE_TYPE] = observedType
-                            observations.removeAll { it.code in fromForm.keys }
+                            // The outcome is also recorded on its own (Outcome tab), which updates
+                            // these answers on the case: the newest Observation of each code wins
+                            // (none at all: the form's answer stays).
+                            VhfCaseOutcome.CODES.forEach { code ->
+                                if (obs.none { it.resource.code.codingFirstRep.code == code }) return@forEach
+                                fromForm.remove(code)
+                                obs.latestValueOf(code).takeIf { it.isNotBlank() }?.let { fromForm[code] = it }
+                            }
+                            observations.removeAll { it.code in fromForm.keys || it.code in VhfCaseOutcome.CODES }
                             fromForm.forEach { (code, value) ->
                                 observations.add(
                                     PatientListViewModel.ObservationItem(

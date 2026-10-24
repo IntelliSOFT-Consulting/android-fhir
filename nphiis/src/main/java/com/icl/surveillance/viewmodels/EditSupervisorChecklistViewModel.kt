@@ -14,8 +14,10 @@ import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseResponse
+import com.icl.surveillance.fhir.forms.ContactGroups
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.LocalWins
+import com.icl.surveillance.fhir.forms.VhfCaseOutcome
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.VhfSpecimens
 import com.icl.surveillance.ui.patients.custom.VhfContactActions.PREF_CONVERT_TO_SUSPECTED
@@ -334,6 +336,19 @@ class EditSupervisorChecklistViewModel(
                 runCatching { linkVhfSourceCase(patientId, answers) }
                     .onFailure { Timber.e(it, "Failed to link the source case after editing") }
             }
+            if (questionnaire == FormFields.Vhf.CASE_OUTCOME_FORM) {
+                // An edited outcome record: copy it onto its case (the Encounter it is partOf).
+                runCatching {
+                    val recordId = original.encounter?.referenceElement?.idPart ?: return@runCatching
+                    val caseEncounterId = fhirEngine.get<org.hl7.fhir.r4.model.Encounter>(recordId)
+                        .partOf?.referenceElement?.idPart ?: return@runCatching
+                    VhfCaseOutcome.applyToCase(
+                        fhirEngine,
+                        getApplication<Application>().readFileFromAssets(FormFields.Vhf.CASE_FORM),
+                        patientId, caseEncounterId, edited, answers,
+                    )
+                }.onFailure { Timber.e(it, "Failed to copy the edited outcome onto the case") }
+            }
             if (questionnaire == FormFields.Vhf.CASE_FORM || questionnaire == FormFields.AlertLog.FORM) {
                 // Laboratory section (alert log: section E): create (or update) the Specimen.
                 runCatching {
@@ -406,10 +421,12 @@ class EditSupervisorChecklistViewModel(
         val source = VhfSourceCases.findByEpid(fhirEngine, epid) ?: return
         val sourceId = source.idElement.idPart
         if (sourceId == patientId) return
-        com.icl.surveillance.fhir.forms.ContactGroups.addMember(
+        ContactGroups.addMember(
             fhirEngine, sourceId, patientId,
             com.icl.surveillance.fhir.forms.VhfContactTracker.parseDate(answers.answerOf(FormFields.Vhf.CONTACT_DATE)),
         )
+        // Re-exposure: the latest case wins; the contact's follow up under earlier cases ends.
+        ContactGroups.closeMember(fhirEngine, patientId, java.time.LocalDate.now(), keepSourceId = sourceId)
     }
 
     /** Name / sex / date of birth, using each form's own questions and name order. */
@@ -453,8 +470,10 @@ class EditSupervisorChecklistViewModel(
         }.map { it.resource }
         val answerByCode = answers.associateBy { it.linkId }
         val questionIds = questionLinkIds(questionnaire)
+        val links = existing.filter { it.code.codingFirstRep.code == FormFields.Vhf.SOURCE_CASE_EPID }
+        saveSourceCaseLink(links, answerByCode[FormFields.Vhf.SOURCE_CASE_EPID], patientId, encounterId)
 
-        existing.forEach { observation ->
+        (existing - links.toSet()).forEach { observation ->
             val code = observation.code.codingFirstRep.code ?: return@forEach
             val answer = answerByCode[code]
             when {
@@ -498,6 +517,50 @@ class EditSupervisorChecklistViewModel(
                 observation.performer = copyFrom.performer.mapTo(ArrayList()) { it.copy() }
             }
             fhirEngine.create(FhirConformance.ensureRequired(observation))
+        }
+    }
+
+    /**
+     * "Contact Link to Case": the latest link Observation is the contact's source case, and the
+     * HIE resolves it (adding focus: Encounter/<case>). A different case (re-exposure) is a new
+     * link Observation; earlier ones are kept unchanged, so their focus never names the wrong
+     * case. A first link (none in [links]) is created with the other new answers.
+     */
+    private suspend fun saveSourceCaseLink(
+        links: List<Observation>,
+        answer: QuestionnaireAnswer?,
+        patientId: String,
+        encounterId: String?,
+    ) {
+        val latest = links.maxByOrNull { maxOf(it.issued?.time ?: 0L, it.meta.lastUpdated?.time ?: 0L) } ?: return
+        val epid = VhfSourceCases.epidFrom(answer?.answer) ?: return
+        val latestEpid = VhfSourceCases.epidFrom(latest.value?.primitiveValue())
+        when {
+            latest.status == Observation.ObservationStatus.ENTEREDINERROR || latestEpid == null -> {
+                latest.value = StringType(answer!!.answer)
+                latest.code.text = answer.answer
+                latest.status = Observation.ObservationStatus.FINAL
+                latest.focus = mutableListOf() // the HIE resolves the case again
+                latest.issued = Date()
+                LocalWins.save(fhirEngine, latest)
+            }
+
+            !latestEpid.equals(epid, ignoreCase = true) -> {
+                val link = QuestionnaireHelper().codingQuestionnaire(
+                    code = FormFields.Vhf.SOURCE_CASE_EPID,
+                    display = answer!!.text,
+                    text = answer.answer,
+                )
+                link.id = generateUuid()
+                link.subject = Reference("Patient/$patientId")
+                encounterId?.let { link.encounter = Reference("Encounter/$it") }
+                link.issued = Date()
+                link.meta.tag = latest.meta.tag.mapTo(ArrayList()) { it.copy() }
+                link.extension = latest.extension.mapTo(ArrayList()) { it.copy() }
+                link.performer = latest.performer.mapTo(ArrayList()) { it.copy() }
+                fhirEngine.create(FhirConformance.ensureRequired(link))
+                Timber.tag(ContactGroups.TAG).d("Contact %s re-linked: %s -> %s", patientId, latestEpid, epid)
+            }
         }
     }
 

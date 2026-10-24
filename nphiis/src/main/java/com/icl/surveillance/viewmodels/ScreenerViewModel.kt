@@ -10,7 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.icl.surveillance.clients.AddClientFragment.Companion.QUESTIONNAIRE_FILE_PATH_KEY
 import com.icl.surveillance.fhir.FhirApplication
+import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.ManagingLocation
+import com.icl.surveillance.fhir.forms.VhfCaseOutcome
 import com.icl.surveillance.models.QuestionnaireAnswer
 import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.QuestionnaireHelper
@@ -376,6 +378,13 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                         facility,
                         facilityName,
                         practitionerId
+                    )
+                }
+                // VHF case outcome: also onto the case record (answers, case form, Patient).
+                if (title == FormFields.Vhf.CASE_OUTCOME_TITLE) {
+                    VhfCaseOutcome.applyToCase(
+                        fhirEngine, readFileFromAssets(FormFields.Vhf.CASE_FORM),
+                        patientId, encounter, questionnaireResponse, extractedAnswers,
                     )
                 }
                 true

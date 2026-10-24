@@ -341,6 +341,13 @@ class SummarizedActivity : AppCompatActivity() {
     ): List<Pair<String, Fragment>> {
         // Lab results come from the case's specimens (no lab results form).
         val lab = "Laboratory" to VhfSpecimensFragment()
+        // A case's outcome (alive / dead, status of case), recorded without editing the case form.
+        val outcome = "Outcome" to FollowUpFormFragment.newInstance(
+            FormFields.Vhf.CASE_OUTCOME_TITLE,
+            FormFields.Vhf.CASE_OUTCOME_FORM,
+            allowUpdates = true,
+            emptyMessage = "No outcome recorded yet"
+        )
         val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
         return if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) {
             listOf(
@@ -365,9 +372,10 @@ class SummarizedActivity : AppCompatActivity() {
                     allowUpdates = true,
                     emptyMessage = "No monitoring status recorded"
                 ),
+                outcome,
             )
         } else {
-            listOf(lab, "Contacts" to VhfContactsFragment())
+            listOf(lab, "Contacts" to VhfContactsFragment(), outcome)
         }
     }
 

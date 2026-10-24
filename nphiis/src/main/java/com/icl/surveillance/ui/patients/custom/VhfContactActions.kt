@@ -152,6 +152,15 @@ object VhfContactActions {
         )
     }
 
+    /**
+     * "Record outcome" of a suspected / confirmed case (e.g. the case died) without editing the
+     * case form; [current] is the outcome the case record holds now. Saving copies it onto the
+     * case record (VhfCaseOutcome).
+     */
+    fun recordOutcome(context: Context, current: Map<String, String>) {
+        openChildForm(context, FormFields.Vhf.CASE_OUTCOME_FORM, FormFields.Vhf.CASE_OUTCOME_TITLE, current)
+    }
+
     /** Set while "Convert to case" waits for its monitoring outcome to be saved (AddCaseActivity). */
     const val PREF_CONVERT_AFTER_MONITORING = "vhfConvertAfterMonitoring"
 
@@ -268,8 +277,10 @@ object VhfContactActions {
         title: String,
         prefill: Map<String, String>,
     ) {
-        // Contact monitoring: the Official section is the logged-in user, checking today.
-        val values = if (questionnaireFile == FormFields.Vhf.CONTACT_MONITORING_FORM) {
+        // Contact monitoring and case outcome: the Official section is the logged-in user, today.
+        val values = if (questionnaireFile == FormFields.Vhf.CONTACT_MONITORING_FORM ||
+            questionnaireFile == FormFields.Vhf.CASE_OUTCOME_FORM
+        ) {
             officialDetails(context) + prefill
         } else prefill
         FormPrefill.stage(context, questionnaireFile, values)

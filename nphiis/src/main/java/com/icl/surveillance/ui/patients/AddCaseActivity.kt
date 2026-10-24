@@ -85,6 +85,8 @@ class AddCaseActivity : AppCompatActivity() {
                     SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.CONTACT_FOLLOW_UP_TITLE),
             FormFields.Vhf.CONTACT_MONITORING_FORM to
                     SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.CONTACT_MONITORING_TITLE),
+            FormFields.Vhf.CASE_OUTCOME_FORM to
+                    SaveCaseConfig(SaveCaseType.LAB, FormFields.Vhf.CASE_OUTCOME_TITLE),
             "vl-case-lab-information.json" to
                     SaveCaseConfig(SaveCaseType.LAB, "VL Laboratory Examination"),
             "vl-case-sixMonthsFollowup.json" to

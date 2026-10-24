@@ -338,7 +338,24 @@ class FollowUpFormFragment : Fragment() {
             openContactMonitoring()
             return
         }
+        if (questionnaireFile == FormFields.Vhf.CASE_OUTCOME_FORM) {
+            openCaseOutcome()
+            return
+        }
         openForm()
+    }
+
+    /** The case outcome form, pre-filled with the outcome the case record holds now. */
+    private fun openCaseOutcome() {
+        val encounterId = FormatterClass().getSharedPref("encounterId", requireContext())
+        viewLifecycleOwner.lifecycleScope.launch {
+            val current = encounterId?.let {
+                withContext(Dispatchers.IO) {
+                    runCatching { com.icl.surveillance.fhir.forms.VhfCaseOutcome.prefill(fhirEngine, it) }.getOrNull()
+                }
+            }.orEmpty()
+            if (_binding != null) VhfContactActions.recordOutcome(requireContext(), current)
+        }
     }
 
     private fun openForm() {

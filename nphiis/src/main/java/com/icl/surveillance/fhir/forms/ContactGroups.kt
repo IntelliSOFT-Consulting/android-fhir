@@ -87,10 +87,13 @@ object ContactGroups {
 
     /**
      * Ends [contactId]'s membership (follow-up over: released, died, lost, became a case):
-     * period.end and inactive, in every Group it is in. The member stays listed.
+     * period.end and inactive, in every Group it is in except [keepSourceId]'s (re-exposure: the
+     * contact now follows up under that case). The member stays listed.
      */
-    suspend fun closeMember(fhirEngine: FhirEngine, contactId: String, end: LocalDate) {
-        groupsWithMember(fhirEngine, contactId).forEach { group ->
+    suspend fun closeMember(fhirEngine: FhirEngine, contactId: String, end: LocalDate, keepSourceId: String? = null) {
+        groupsWithMember(fhirEngine, contactId)
+            .filter { keepSourceId == null || indexCaseOf(it) != keepSourceId }
+            .forEach { group ->
             var changed = false
             group.member.filter { memberId(it) == contactId && !it.inactive }.forEach { member ->
                 member.inactive = true
@@ -150,11 +153,13 @@ object ContactGroups {
         }.map { it.resource }
             .filter { it.status != Observation.ObservationStatus.ENTEREDINERROR }
         if (answers.isEmpty()) return 0
-        val epidByContact = answers.mapNotNull { obs ->
-            val contactId = obs.subject?.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
-            val epid = VhfSourceCases.epidFrom(obs.value?.answerText()) ?: return@mapNotNull null
-            contactId to epid
-        }.toMap()
+        // A re-exposed contact has a link per case; the latest one is its source case.
+        val epidByContact = answers.sortedBy { maxOf(it.issued?.time ?: 0L, it.meta.lastUpdated?.time ?: 0L) }
+            .mapNotNull { obs ->
+                val contactId = obs.subject?.reference?.let { IdType(it).idPart } ?: return@mapNotNull null
+                val epid = VhfSourceCases.epidFrom(obs.value?.answerText()) ?: return@mapNotNull null
+                contactId to epid
+            }.toMap()
         val sourceByEpid = HashMap<String, String?>()
         var restored = 0
         epidByContact.entries.groupBy { (_, epid) -> epid }.forEach { (epid, entries) ->

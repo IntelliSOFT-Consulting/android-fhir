@@ -19,12 +19,18 @@ object VhfListMode {
 
     fun get(context: Context): String = FormatterClass().getSharedPref(PREF, context).orEmpty()
 
-    /** The contact number the HIE assigned to [patient] (identifier CONTACT_ID), or null. */
+    /**
+     * The contact number the HIE assigned to [patient] (identifier CONTACT_ID), or null. A number
+     * kept from an earlier exposure (use old) is skipped, and a complete number wins over the
+     * device's "-C" prefix.
+     */
     fun contactIdOf(patient: org.hl7.fhir.r4.model.Patient): String? =
-        patient.identifier.firstOrNull { identifier ->
-            identifier.system == FhirSystems.CONTACT_ID_SYSTEM ||
-                identifier.type?.coding?.any { it.code == FhirSystems.CONTACT_ID } == true
-        }?.value?.trim()?.takeIf { it.isNotBlank() }
+        patient.identifier.filter { identifier ->
+            identifier.use != org.hl7.fhir.r4.model.Identifier.IdentifierUse.OLD &&
+                (identifier.system == FhirSystems.CONTACT_ID_SYSTEM ||
+                    identifier.type?.coding?.any { it.code == FhirSystems.CONTACT_ID } == true)
+        }.mapNotNull { it.value?.trim()?.takeIf { value -> value.isNotBlank() } }
+            .let { ids -> ids.lastOrNull { !isIncompleteContactId(it) } ?: ids.firstOrNull() }
 
     /** "<source case EPID>-C": the contact number before the server adds the sequence. */
     fun contactIdPrefix(sourceEpid: String): String = sourceEpid.trim().trimEnd('-') + "-C"

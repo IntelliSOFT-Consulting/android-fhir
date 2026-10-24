@@ -342,7 +342,16 @@ object FormFields {
         const val NEXT_OF_KIN = "vhf-next-of-kin"
         const val NEXT_OF_KIN_PHONE = "vhf-next-of-kin-phone"
         const val OUTCOME = "vhf-outcome"
+        const val OUTCOME_DEAD_CODE = "dead"
+        const val DEATH_DATE = "vhf-death-date"
+        const val DEATH_PLACE = "vhf-death-place"
+        const val DEATH_PLACE_OTHER = "vhf-death-place-other"
         const val CASE_STATUS = "vhf-case-status"
+        const val DISCHARGE_DATE = "vhf-discharge-date"
+
+        /** Case outcome (alive / dead, status of case), recorded without editing the case form. */
+        const val CASE_OUTCOME_FORM = "vhf-case-outcome.json"
+        const val CASE_OUTCOME_TITLE = "VHF Case Outcome"
         const val SAMPLES_COLLECTED = "vhf-samples-collected"
         const val SAMPLE_TYPE = "vhf-sample-type"
         const val SAMPLE_TYPE_OTHER = "vhf-sample-type-other"
