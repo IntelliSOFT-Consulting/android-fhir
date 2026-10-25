@@ -294,7 +294,26 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
         appContext: Context
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val success = try {
+            isResourcesSaved.postValue(
+                saveChildRecord(questionnaireResponse, patientId, encounter, title, questionnaireResponseString, appContext)
+            )
+        }
+    }
+
+    /**
+     * Saves a follow-up record of the case [encounter] (follow up, monitoring, lab results,
+     * outcome): a child Encounter titled [title], the response and one Observation per answer.
+     * True when saved. Used by the form screen and by the VHF workflow simulator.
+     */
+    suspend fun saveChildRecord(
+        questionnaireResponse: QuestionnaireResponse,
+        patientId: String,
+        encounter: String,
+        title: String,
+        questionnaireResponseString: String,
+        appContext: Context
+    ): Boolean {
+            return try {
                 val formattedNow = formatter.formatDateTime(Date())
 
                 val identifierSystem0 = Identifier().apply {
@@ -392,9 +411,6 @@ class ScreenerViewModel(application: Application, private val state: SavedStateH
                 Timber.tag("ScreenerViewModel").e(e, "Failed to complete lab assessment")
                 false
             }
-
-            isResourcesSaved.postValue(success)
-        }
     }
 
     fun extractStructuredAnswersOnlyFromItems(json: JSONObject): List<QuestionnaireAnswer> {

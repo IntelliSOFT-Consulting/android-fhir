@@ -18,6 +18,7 @@ import com.icl.surveillance.fhir.AppFhirSyncWorker
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfScreened
 import com.icl.surveillance.viewmodels.AddClientViewModel
 import com.icl.surveillance.viewmodels.AddClientViewModel.PersistResult
@@ -197,6 +198,79 @@ object SyntheticDataGenerator {
     fun cancel() {
         job?.cancel()
     }
+
+    /**
+     * A complete, valid response to [questionnaireFile] built from the form alone (as generated
+     * records are), with [values] answered as given (FormPrefill format: option code or display,
+     * yyyy-MM-dd). [codings] are choice answers set as they are (e.g. a source case EPID number,
+     * whose options are only filled in on the device). Questions that depend on these answers
+     * are answered to match them. Used by the VHF workflow simulator.
+     */
+    suspend fun buildRecord(
+        app: Application,
+        questionnaireFile: String,
+        values: Map<String, String>,
+        codings: Map<String, Coding> = emptyMap(),
+        diseases: List<String> = listOf("Ebola", "Marburg"),
+    ): QuestionnaireResponse {
+        val questionnaire = FhirContext.forR4Cached().newJsonParser().parseResource(
+            Questionnaire::class.java,
+            app.assets.open(questionnaireFile).bufferedReader().use { it.readText() }
+        )
+        val engine = FhirApplication.fhirEngine(app)
+        val picker = LocationPicker(engine)
+        val random = Random(System.nanoTime())
+        val chain = picker.takeIf { it.load() > 0 }?.pick(1, random)
+        // Choices filled in on the device (e.g. source cases): added as options, as the app does.
+        codings.forEach { (linkId, coding) -> addOption(questionnaire.item, linkId, coding) }
+        val start = QuestionnaireResponse().apply { item = reportingSitePrefill(app) }
+        FormPrefill.applyTo(questionnaire, start, values + codings.mapValues { it.value.code }, overwrite = true)
+        return VariationPlan(questionnaire, diseases).build(random, chain, start.item)
+    }
+
+    /**
+     * [existing] edited as on the edit screen: [values] answered (replacing earlier answers),
+     * questions they enable answered, everything else kept. Returns a new response with
+     * [existing]'s id; the edit screen's save restores its links (subject, encounter, tags).
+     */
+    fun completeRecord(
+        app: Application,
+        questionnaireFile: String,
+        existing: QuestionnaireResponse,
+        values: Map<String, String>,
+        diseases: List<String> = listOf("Ebola", "Marburg"),
+    ): QuestionnaireResponse {
+        val questionnaire = FhirContext.forR4Cached().newJsonParser().parseResource(
+            Questionnaire::class.java,
+            app.assets.open(questionnaireFile).bufferedReader().use { it.readText() }
+        )
+        // Saved choices the device filled in (e.g. the source case) stay valid options.
+        fun keepChoices(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            items.forEach { item ->
+                item.answer.mapNotNull { it.value as? Coding }.forEach { addOption(questionnaire.item, item.linkId, it) }
+                keepChoices(item.item)
+                item.answer.forEach { keepChoices(it.item) }
+            }
+        }
+        val start = existing.copy()
+        keepChoices(start.item)
+        FormPrefill.applyTo(questionnaire, start, values, overwrite = true)
+        return VariationPlan(questionnaire, diseases).build(Random(System.nanoTime()), null, start.item).also {
+            it.id = existing.idElement.idPart
+        }
+    }
+
+    private fun addOption(items: List<Questionnaire.QuestionnaireItemComponent>, linkId: String, coding: Coding) {
+        items.forEach { item ->
+            if (item.linkId == linkId && item.answerOption.none { (it.value as? Coding)?.code == coding.code }) {
+                item.addAnswerOption().value = coding.copy()
+            }
+            addOption(item.item, linkId, coding)
+        }
+    }
+
+    /** Runs a one-time sync (upload and download) and waits for it. True when it succeeded. */
+    suspend fun syncNow(app: Application): Boolean = uploadPending(app)
 
     /**
      * The hidden "reporting site" answers the data-entry screen pre-fills for the logged-in user

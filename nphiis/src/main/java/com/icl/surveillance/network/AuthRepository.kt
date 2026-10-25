@@ -3,6 +3,7 @@ package com.icl.surveillance.network
 import android.content.Context
 import com.icl.surveillance.models.RefreshToken
 import com.icl.surveillance.utils.Constants.BASE_AUTH_URL
+import com.icl.surveillance.utils.FormatterClass
 import com.icl.surveillance.utils.NetworkUtils
 
 class AuthRepository(private val context: Context) {
@@ -12,7 +13,8 @@ class AuthRepository(private val context: Context) {
             return false
         }
 
-        val refreshToken = TokenStore.getRefreshToken(context)
+        val refreshToken = TokenStore.getRefreshToken(context)?.takeIf { it.isNotBlank() }
+            ?: FormatterClass().getSharedPref("refresh_token", context)?.takeIf { it.isNotBlank() }
             ?: return false
 
         val apiService =
@@ -30,6 +32,11 @@ class AuthRepository(private val context: Context) {
                             context,
                             accessToken = body.access_token,
                             refreshToken = body.refresh_token,
+                        )
+                        val formatter = FormatterClass()
+                        formatter.saveSharedPrefSync("expires_in", "${body.expires_in}", context)
+                        formatter.saveSharedPrefSync(
+                            "refresh_expires_in", "${body.refresh_expires_in}", context
                         )
                         SessionExpiryHandler.markSessionActive()
                         return true

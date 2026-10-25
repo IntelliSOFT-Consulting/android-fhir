@@ -47,6 +47,7 @@ import com.icl.surveillance.ui.patients.PatientListViewModel
 import com.icl.surveillance.utils.FormatterClass
 import kotlin.collections.filter
 import kotlin.getValue
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -885,10 +886,12 @@ class CaseSelectionFragment : Fragment() {
                     }
 
                     else -> {
-                        val loadAndCount = {
+                        val loadAndCount = load@{
+                            // Runs after a database read: the view may be gone by then.
+                            val owner = viewLifecycleOwnerLiveData.value ?: return@load
                             patientListViewModel.handleCurrentCaseListing(it, units, userRole)
-                            patientListViewModel.liveSearchedCases.removeObservers(viewLifecycleOwner)
-                            patientListViewModel.liveSearchedCases.observe(viewLifecycleOwner) { cases ->
+                            patientListViewModel.liveSearchedCases.removeObservers(owner)
+                            patientListViewModel.liveSearchedCases.observe(owner) { cases ->
 
                                 /**
                                  * Let's update based on roles
@@ -925,6 +928,8 @@ class CaseSelectionFragment : Fragment() {
                                         FhirApplication.fhirEngine(requireContext())
                                     )
                                 }.onFailure { e -> Timber.e(e, "Confirming lab-confirmed VHF cases failed") }
+                                // runCatching also catches the cancellation when the view closes.
+                                ensureActive()
                                 loadAndCount()
                             }
                         } else if (roleScope == LocationLevel.COUNTY || roleScope == LocationLevel.SUB_COUNTY) {
@@ -935,6 +940,7 @@ class CaseSelectionFragment : Fragment() {
                             // Everyone else sees all records of the module: count in the database.
                             viewLifecycleOwner.lifecycleScope.launch {
                                 val total = patientListViewModel.countCaseRecords(it)
+                                ensureActive()
                                 if (total == null) {
                                     loadAndCount()
                                 } else {

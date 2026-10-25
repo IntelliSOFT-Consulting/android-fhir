@@ -100,6 +100,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
     /** Why the last persistPatientData call failed (exception message), or null. */
     var lastSaveError: String? = null
 
+    /** Questions that failed the last validation ("linkId: message"); empty when it passed. */
+    var lastValidationErrors: List<String> = emptyList()
+        private set
+
     // Parsed once: re-parsing the form JSON on every save was a large source of allocations.
     private val questionnaire: Questionnaire by lazy {
         FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
@@ -593,12 +597,13 @@ class AddClientViewModel(application: Application, private val state: SavedState
      * The screened person a VHF case investigation was started from (Screened Cases), or null.
      * Only for the interactive VHF form: synthetic data passes [caseOverride].
      */
-    private suspend fun screenedSource(context: Context, caseOverride: String?): Patient? {
-        if (caseOverride != null) return null
+    private suspend fun screenedSource(context: Context, caseOverride: String?, screenedId: String? = null): Patient? {
         val formatter = FormatterClass()
-        if (formatter.getSharedPref("currentCase", context) != CaseTypes.VHF) return null
-        val id = formatter.getSharedPref(VhfScreened.PREF_SOURCE, context)
-            ?.takeIf { it.isNotBlank() } ?: return null
+        val id = screenedId ?: run {
+            if (caseOverride != null) return null
+            if (formatter.getSharedPref("currentCase", context) != CaseTypes.VHF) return null
+            formatter.getSharedPref(VhfScreened.PREF_SOURCE, context)?.takeIf { it.isNotBlank() }
+        } ?: return null
         val patient = runCatching { fhirEngine.get(ResourceType.Patient, id) as Patient }
             .onFailure { Timber.tag(SCREENED_LOG).w(it, "Screened patient %s not found", id) }
             .getOrNull()
@@ -675,6 +680,10 @@ class AddClientViewModel(application: Application, private val state: SavedState
         extraTags: List<Coding> = emptyList(),
         /** False to save even with unanswered required questions (bulk upload of contacts). */
         requireValid: Boolean = true,
+        /** VHF: the screened person investigated (in place of the Screened Cases preference). */
+        screenedId: String? = null,
+        /** VHF contact: its source case's Patient id (in place of the Contacts tab preference). */
+        contactSourceId: String? = null,
     ): PersistResult {
         facilityInfoCache.clear()
         activeExtraTags = extraTags
@@ -700,7 +709,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
 
             // A case investigation started from a screened person (Screened Cases) continues that
             // person's Patient and screening response instead of creating new ones.
-            val screened: Patient? = screenedSource(context, caseOverride)
+            val screened: Patient? = screenedSource(context, caseOverride, screenedId)
             val screeningResponse: QuestionnaireResponse? =
                 screened?.let { VhfScreened.screeningResponse(fhirEngine, it.logicalId) }
             val patientId = screened?.logicalId ?: generateUuid()
@@ -974,8 +983,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     // the case it was registered from (Contacts tab), else the case named by its
                     // source EPID if it is on the device. (No Patient.link: that is for records of
                     // the same person.)
-                    pendingContactSource =
-                        FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
+                    pendingContactSource = contactSourceId
+                        ?: FormatterClass().getSharedPref(VhfContactTracker.PREF_SOURCE_PATIENT, context)
                             ?.takeIf { it.isNotBlank() }
                             ?: VhfSourceCases.epidFrom(answers.answerOf(FormFields.Vhf.SOURCE_CASE_EPID))
                                 ?.let { VhfSourceCases.findByEpid(fhirEngine, it)?.logicalId }
@@ -1242,6 +1251,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
             results.filterIsInstance<Invalid>().takeIf { it.isNotEmpty() }
                 ?.let { "$linkId: ${it.joinToString(" | ") { invalid -> invalid.getSingleStringValidationMessage() }}" }
         }
+        lastValidationErrors = failures
         if (failures.isNotEmpty()) {
             Timber.tag("SyntheticData").w("Validation failed: ${failures.joinToString("; ")}")
         }

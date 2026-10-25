@@ -24,7 +24,9 @@ import com.icl.surveillance.BuildConfig
 import com.icl.surveillance.utils.Constants.BASE_URL
 import com.icl.surveillance.utils.Constants.TEST_TOKEN
 import com.icl.surveillance.utils.ContribQuestionnaireItemViewHolderFactoryMatchersProviderFactory
+import com.icl.surveillance.network.TokenRefresher
 import com.icl.surveillance.utils.FormatterClass
+import com.icl.surveillance.utils.NetworkUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -64,7 +66,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                     httpLogger =
                         HttpLogger(
                             HttpLogger.Configuration(
-                                if (BuildConfig.DEBUG) HttpLogger.Level.BASIC else HttpLogger.Level.NONE,
+                                if (BuildConfig.DEBUG) HttpLogger.Level.BODY else HttpLogger.Level.NONE,
                             ),
                         ) { line ->
                             Timber.tag("App-HttpLog").e(line)
@@ -96,6 +98,32 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
         } catch (e: Exception) {
             Timber.e(e)
         }
+        syncWhenBackOnline()
+    }
+
+    /**
+     * When the device comes back online while logged in: sync, refreshing the token first if it
+     * expired while offline. Only on a change from offline to online, not at start-up (the
+     * launch screens sync then).
+     */
+    private fun syncWhenBackOnline() {
+        appScope.launch {
+            var wasOnline: Boolean? = null
+            NetworkUtils.observeNetworkConnectivity(this@FhirApplication)
+                .catch { Timber.tag(TokenRefresher.TAG).e(it, "Network observer stopped") }
+                .collect { online ->
+                    val reconnected = wasOnline == false && online
+                    wasOnline = online
+                    if (!reconnected) return@collect
+                    if (FormatterClass().getSharedPref("isLoggedIn", this@FhirApplication) != "true") {
+                        return@collect
+                    }
+                    // The sync refreshes the token first (AppFhirSyncWorker.doWork), and is retried
+                    // with backoff if the new connection is not usable yet.
+                    Timber.tag(TokenRefresher.TAG).d("Back online: syncing")
+                    Sync.oneTimeSync<AppFhirSyncWorker>(this@FhirApplication)
+                }
+        }
     }
 
 
@@ -119,8 +147,9 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
         updateAccessToken(FormatterClass().getSharedPref("access_token", this))
     }
 
+    /** Saves for a patient's records also stamp its Patient with the time (PatientDataLastUpdated). */
     private fun constructFhirEngine(): FhirEngine {
-        return FhirEngineProvider.getInstance(this)
+        return PatientTouchingFhirEngine(FhirEngineProvider.getInstance(this))
     }
 
     companion object {

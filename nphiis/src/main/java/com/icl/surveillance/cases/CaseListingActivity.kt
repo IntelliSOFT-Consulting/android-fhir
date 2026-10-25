@@ -439,10 +439,31 @@ class CaseListingActivity : AppCompatActivity() {
         } else {
             "Showing ${filtered.size} of ${allRumorCases.size} Results"
         }
-        binding.patientListContainer.emptyStateLayout.visibility =
-            if (filtered.isEmpty()) View.VISIBLE else View.GONE
-        binding.patientListContainer.caseCount.text =
-            getString(R.string.matching_cases_single, filtered.size)
+        showEmptyState(filtered.isEmpty())
+    }
+
+    /**
+     * The empty list explained: nothing matches the search or the county / sub-county filters
+     * (with a hint to change them), or there are no records yet.
+     */
+    private fun showEmptyState(empty: Boolean) {
+        val container = binding.patientListContainer
+        container.emptyStateLayout.visibility = if (empty) View.VISIBLE else View.GONE
+        if (!empty) return
+        val query = searchQuery.trim()
+        val filtered = selectedCounties.isNotEmpty() || selectedSubCounties.isNotEmpty()
+        val noResults = query.isNotEmpty() || filtered
+        container.emptyStateIcon.setImageResource(
+            if (noResults) R.drawable.ic_empty_no_results else R.drawable.ic_empty_no_records
+        )
+        container.caseCount.text = getString(
+            if (noResults) R.string.empty_no_results_title else R.string.empty_no_records_title
+        )
+        container.emptyStateMessage.text = when {
+            query.isNotEmpty() -> getString(R.string.empty_no_results_search, query)
+            filtered -> getString(R.string.empty_no_results_filters)
+            else -> getString(R.string.empty_no_records_message)
+        }
     }
 
     private fun applyCaseFilters() {
@@ -479,10 +500,7 @@ class CaseListingActivity : AppCompatActivity() {
         mpoxAdapter?.setData(filtered)
         binding.count.visibility = View.VISIBLE
         binding.count.text = "Showing ${filtered.size} Results"
-        binding.patientListContainer.emptyStateLayout.visibility =
-            if (filtered.isEmpty()) View.VISIBLE else View.GONE
-        binding.patientListContainer.caseCount.text =
-            getString(R.string.matching_cases_single, filtered.size)
+        showEmptyState(filtered.isEmpty())
         invalidateOptionsMenu()
     }
 

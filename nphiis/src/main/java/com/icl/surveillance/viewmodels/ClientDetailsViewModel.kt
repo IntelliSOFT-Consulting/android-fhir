@@ -17,6 +17,7 @@ import com.google.android.fhir.search.search
 import com.icl.surveillance.R
 import com.icl.surveillance.fhir.forms.CaseResponse
 import com.icl.surveillance.fhir.forms.CaseSlugs
+import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.VhfCaseOutcome
 import com.icl.surveillance.fhir.forms.VhfContactTracker
@@ -161,7 +162,7 @@ class ClientDetailsViewModel(
                 it.system == slug
             }
             val epidIdenfifier =
-                data.resource.identifier.find { it.type.codingFirstRep.code == "EPID" }
+                FhirSystems.caseNumberOf(data.resource)
 
             if (epidIdenfifier != null) {
                 epid = epidIdenfifier.value
@@ -223,7 +224,7 @@ class ClientDetailsViewModel(
 
 
                 val epidIdenfifier =
-                    it.resource.identifier.find { it.type.codingFirstRep.code == "EPID" }
+                    FhirSystems.caseNumberOf(it.resource)
 
                 if (epidIdenfifier != null) {
                     epidNo = epidIdenfifier.value
@@ -1083,7 +1084,7 @@ class ClientDetailsViewModel(
                     name = if (patient.resource.hasName()) patient.resource.nameFirstRep.nameAsSingleString else "N/A",
                     epid = if (patient.resource.hasIdentifier()) {
                         val identifier =
-                            patient.resource.identifier.find { it.type.codingFirstRep.code == "EPID" }
+                            FhirSystems.caseNumberOf(patient.resource)
                         if (identifier != null) {
                             identifier.value
                         } else {

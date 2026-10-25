@@ -704,7 +704,7 @@ class PatientListViewModel(
                         it.system == nameQuery
                     }
                     val epidIdenfifier =
-                        fhirPatient.resource.identifier.find { it.type.codingFirstRep.code == "EPID" }
+                        FhirSystems.caseNumberOf(fhirPatient.resource)
 
                     if (matchingIdentifier != null) {
                         // Convert the FHIR Patient resource to your PatientItem model
@@ -877,7 +877,7 @@ class PatientListViewModel(
                         }
                     }
                     val epidIdenfifier =
-                        fhirPatient.resource.identifier.find { it.type.codingFirstRep.code == "EPID" }
+                        FhirSystems.caseNumberOf(fhirPatient.resource)
 
 
                     if (matchingIdentifier != null) {
@@ -1654,7 +1654,7 @@ class PatientListViewModel(
         var data = patient.toPatientItem(index)
 
         // Extract EPID
-        val epidIdentifier = patient.identifier.find { it.type.codingFirstRep.code == "EPID" }
+        val epidIdentifier = FhirSystems.caseNumberOf(patient)
         val epid = epidIdentifier?.value ?: findObservationValue(observations, "EPID")
 
         // Extract location data

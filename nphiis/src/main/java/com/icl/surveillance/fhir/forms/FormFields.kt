@@ -94,6 +94,18 @@ object FhirSystems {
     const val CONTACT_ID_SYSTEM = "http://hie.org/identifiers/CONTACT_ID"
     const val CONTACT_ID = "CONTACT_ID"
 
+    /** Alert number assigned by the HIE, e.g. "KEN-GAR-DAC-2026-ALR-001" (an alert has no EPID). */
+    const val ALERT_LOG_ID_SYSTEM = "http://hie.org/identifiers/ALERT_LOG_ID"
+    const val ALERT_LOG_ID = "ALERT_LOG_ID"
+
+    /** The number shown for a record: its EPID number, else (alerts) the HIE's alert number. */
+    fun caseNumberOf(patient: org.hl7.fhir.r4.model.Patient): org.hl7.fhir.r4.model.Identifier? =
+        patient.identifier.firstOrNull { it.type.codingFirstRep.code == EPID }
+            ?: patient.identifier.firstOrNull { identifier ->
+                identifier.system == ALERT_LOG_ID_SYSTEM ||
+                    identifier.type?.coding?.any { it.code == ALERT_LOG_ID } == true
+            }
+
     private const val STRUCTURE_DEFINITION_BASE = "http://example.org/fhir/StructureDefinition/"
     const val MANAGING_LOCATION_SUFFIX = "-managingLocation"
 

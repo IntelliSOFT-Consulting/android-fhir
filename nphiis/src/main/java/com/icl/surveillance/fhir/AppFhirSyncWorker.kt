@@ -14,6 +14,7 @@ import com.google.android.fhir.sync.upload.HttpUpdateMethod
 import com.google.android.fhir.sync.upload.UploadStrategy
 import com.icl.surveillance.models.LocationLevel
 import com.icl.surveillance.models.UserRole
+import com.icl.surveillance.network.TokenRefresher
 import com.icl.surveillance.utils.Constants.UPLOAD_BUNDLE_SIZE
 import com.icl.surveillance.utils.FormatterClass
 import kotlinx.coroutines.CoroutineScope
@@ -245,6 +246,15 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
 
         return LinkedList(urls)
+    }
+
+    /**
+     * Refreshes an expired or nearly expired token before syncing, so the sync does not run
+     * into 401s. Offline, the sync runs as before (and fails on the network, not the token).
+     */
+    override suspend fun doWork(): Result {
+        TokenRefresher.ensureFresh(applicationContext)
+        return super.doWork()
     }
 
     override fun getConflictResolver() = AcceptLocalConflictResolver

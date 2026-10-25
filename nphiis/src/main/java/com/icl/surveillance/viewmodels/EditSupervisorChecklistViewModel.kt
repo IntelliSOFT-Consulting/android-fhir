@@ -241,11 +241,50 @@ class EditSupervisorChecklistViewModel(
         questionnaireResponseString: String
     ) {
         viewModelScope.launch {
+            val saved = saveEdit(questionnaireResponse, questionnaire, questionnaireResponseString)
+            isResourcesSaved.value = saved != null
+            if (saved != null && saved.isCaseForm && questionnaire != null) {
+                startBackgroundProcessing(
+                    saved.original, questionnaireResponse, saved.responseString, questionnaire,
+                    answersDone = saved.answersDone,
+                )
+            }
+        }
+    }
+
+    /**
+     * As [updatePatient], but returns once everything is saved, the background steps (patient,
+     * source case link, specimen, outcome copy) included. For the VHF workflow simulator.
+     */
+    suspend fun updatePatientAndWait(
+        questionnaireResponse: QuestionnaireResponse,
+        questionnaire: String,
+        questionnaireResponseString: String,
+    ): Boolean {
+        val saved = saveEdit(questionnaireResponse, questionnaire, questionnaireResponseString) ?: return false
+        if (saved.isCaseForm) {
+            processEdit(saved.original, questionnaireResponse, saved.responseString, questionnaire, saved.answersDone)
+        }
+        return true
+    }
+
+    private class SavedEdit(
+        val original: QuestionnaireResponse,
+        val responseString: String,
+        val isCaseForm: Boolean,
+        val answersDone: Boolean,
+    )
+
+    /** Saves the edited response and, for VHF registration forms, its answers; null if not found. */
+    private suspend fun saveEdit(
+        questionnaireResponse: QuestionnaireResponse,
+        questionnaire: String?,
+        questionnaireResponseString: String,
+    ): SavedEdit? {
             val original = runCatching { fhirEngine.get<QuestionnaireResponse>(responseId) }.getOrNull()
             if (original == null) {
                 // Nothing to update (the record could not be found); never create a stray response.
-                isResourcesSaved.value = false
-                return@launch
+                return null
             }
             questionnaireResponse.id = responseId
             keepRecordLinks(from = original, to = questionnaireResponse)
@@ -287,14 +326,7 @@ class EditSupervisorChecklistViewModel(
                     }.onFailure { Timber.e(it, "Failed to update the answers after editing %s", questionnaire) }
                 }
             }
-            isResourcesSaved.value = true
-            if (isCaseForm && questionnaire != null) {
-                startBackgroundProcessing(
-                    original, questionnaireResponse, responseString, questionnaire,
-                    answersDone = answersFirst,
-                )
-            }
-        }
+            return SavedEdit(original, responseString, isCaseForm, answersFirst)
     }
 
     /** The questionnaire screen returns a bare response: carry over what links it to the case. */
@@ -321,8 +353,17 @@ class EditSupervisorChecklistViewModel(
         questionnaire: String,
         answersDone: Boolean = false,
     ) {
-        backgroundProcessingScope.launch {
-            val patientId = original.subject.referenceElement.idPart ?: return@launch
+        backgroundProcessingScope.launch { processEdit(original, edited, editedJson, questionnaire, answersDone) }
+    }
+
+    private suspend fun processEdit(
+        original: QuestionnaireResponse,
+        edited: QuestionnaireResponse,
+        editedJson: String,
+        questionnaire: String,
+        answersDone: Boolean,
+    ) {
+            val patientId = original.subject.referenceElement.idPart ?: return
             val answers = extractStructuredAnswers(edited, editedJson)
             // The answers shown on the case summary come first; each step runs on its own so a
             // failure in one (e.g. the patient's name) cannot leave the summary out of date.
@@ -364,7 +405,6 @@ class EditSupervisorChecklistViewModel(
                     )
                 }.onFailure { Timber.e(it, "Failed to update the specimen after editing") }
             }
-        }
     }
 
     /**

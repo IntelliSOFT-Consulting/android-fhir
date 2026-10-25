@@ -38,20 +38,10 @@ class TimestampBasedDownloadWorkManagerImpl(
     private val tracker = NPHIISSyncTracker(locationMonitor, locationTarget = 17000)
     private var lastResolvedResourceType: ResourceType? = null
 
-    /**
-     * Records last changed before this are never downloaded (start of sync: 15 Oct 2026, midnight
-     * Nairobi time = 14 Oct 21:00 UTC; written in UTC because Instant.parse and the URL need "Z").
-     * A resource type's own last-synced time is used when later. Locations are exempt on the
-     * first sync (the full list is needed).
-     */
-    private val SYNC_START = "2026-01-01T21:00:00Z"
+    private val SYNC_START = "2026-01-01T00:00:00Z"
 
     private val LOCATION_URL = "Location?_count=$LOCATION_PAGE_SIZE&_sort=_lastUpdated"
 
-    // NOTE: keep your intended behavior; this is just as you had it.
-    // Page sizes are kept small for clinical resources: a single QuestionnaireResponse can carry
-    // 150-250 answers, and a 500-response page (parsed into HAPI objects) exhausted the heap
-    // (OutOfMemoryError) once the server held a few thousand submissions.
     private val CORE_URLS =
         if (FormatterClass().isSyncDone(context)) {
             listOf(
@@ -59,12 +49,6 @@ class TimestampBasedDownloadWorkManagerImpl(
                 "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
                 "DiagnosticReport?_count=$REPORT_PAGE_SIZE&_sort=_lastUpdated",
                 "Group?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
-                // Records the server creates or changes without touching their Patient (e.g. a
-                // contact registered by the HIE: new Encounter + answers on an existing Patient)
-                // never come through Patient/$everything, which only runs for changed Patients.
-                "Encounter?_count=$ENCOUNTER_PAGE_SIZE&_sort=_lastUpdated",
-                "Observation?_count=$OBSERVATION_PAGE_SIZE&_sort=_lastUpdated",
-                "Specimen?_count=$ENCOUNTER_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {
@@ -87,13 +71,6 @@ class TimestampBasedDownloadWorkManagerImpl(
         urls.clear()
         tracker.startRun()
         lastResolvedResourceType = null
-
-        // Their own downloads are new: start them from SYNC_START once. (Timestamps saved earlier
-        // for these types came from Patient/$everything and would skip records it never returned.)
-        if (FormatterClass().getSharedPref(TYPE_SYNC_RESET_PREF, context) != "true") {
-            dataStore.clearTimestamps(listOf(ResourceType.Encounter, ResourceType.Observation, ResourceType.Specimen))
-            FormatterClass().saveSharedPref(TYPE_SYNC_RESET_PREF, "true", context)
-        }
 
         val isFirstTimeForLocation = !FormatterClass().isSyncDone(context)
         if (isFirstTimeForLocation) {
@@ -328,10 +305,5 @@ class TimestampBasedDownloadWorkManagerImpl(
         // Smaller pages (were 950, ~0.5 MB each): each reply is quicker, so the server is far
         // less likely to stall long enough to time out.
         const val LOCATION_PAGE_SIZE = 400
-        const val ENCOUNTER_PAGE_SIZE = 100
-        const val OBSERVATION_PAGE_SIZE = 200
-
-        /** Set once the Encounter / Observation / Specimen downloads have started from SYNC_START. */
-        private const val TYPE_SYNC_RESET_PREF = "typeDownloadsResetV1"
     }
 }

@@ -4,6 +4,10 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 
+/**
+ * Periodic refresh while online (scheduled by MainActivity), which also keeps the server
+ * session from going idle between syncs.
+ */
 class TokenRefreshWorker(
     context: Context,
     workerParams: WorkerParameters,
@@ -11,11 +15,7 @@ class TokenRefreshWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            val authRepository = AuthRepository(applicationContext)
-
-            val refreshed = authRepository.refreshToken()
-
-            if (refreshed) {
+            if (TokenRefresher.ensureFresh(applicationContext, force = true)) {
                 Result.success()
             } else {
                 Result.retry()

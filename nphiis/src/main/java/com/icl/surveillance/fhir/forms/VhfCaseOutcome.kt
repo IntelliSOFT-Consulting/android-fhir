@@ -169,6 +169,16 @@ object VhfCaseOutcome {
         }
         val questionnaire = FhirContext.forR4Cached().newJsonParser()
             .parseResource(Questionnaire::class.java, caseQuestionnaireJson)
+        mergeInto(caseResponse, questionnaire, outcome)
+        LocalWins.save(fhirEngine, caseResponse)
+    }
+
+    /**
+     * Puts the outcome answers of [outcome] into [caseResponse] (a response to the case form
+     * [questionnaire]), under the same groups and in the form's order; a question with no answer
+     * (no longer enabled) is removed. Changes nothing else.
+     */
+    fun mergeInto(caseResponse: QuestionnaireResponse, questionnaire: Questionnaire, outcome: QuestionnaireResponse) {
         val outcomeItems = flatten(outcome.item).filter { it.linkId in CODES }.associateBy { it.linkId }
         CODES.forEach { code ->
             val path = pathTo(questionnaire.item, code) ?: return@forEach
@@ -186,7 +196,6 @@ object VhfCaseOutcome {
                 remove(caseResponse.item, code)
             }
         }
-        LocalWins.save(fhirEngine, caseResponse)
     }
 
     /** Patient.deceased: the date of death when the outcome is Dead; false when it is Alive. */

@@ -249,6 +249,10 @@ class ProfileFragment : Fragment() {
                 ProfileSettingsBottomSheet.ACTION_MIGRATE_CONTACTS -> {
                     startActivity(Intent(requireContext(), com.icl.surveillance.bulk.ContactMigrationActivity::class.java))
                 }
+
+                ProfileSettingsBottomSheet.ACTION_SIMULATE_VHF_WORKFLOW -> {
+                    com.icl.surveillance.debug.VhfWorkflowDialogs.open(this)
+                }
             }
         }
     }

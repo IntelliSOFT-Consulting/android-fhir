@@ -56,12 +56,10 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.messaging.FirebaseMessaging
 
 import com.icl.surveillance.auth.LoginActivity
-import com.icl.surveillance.auth.tokenizer.NPHIISTokenWorker
 import com.icl.surveillance.fhir.DemoDataStore
 import com.icl.surveillance.fhir.FhirApplication
 import com.icl.surveillance.network.RetrofitCallsAuthentication
 import com.icl.surveillance.network.TokenRefreshWorker
-import com.icl.surveillance.utils.NetworkUtils.isInternetAvailable
 import com.icl.surveillance.viewmodels.AddClientViewModel
 import com.icl.surveillance.viewmodels.PeriodicSyncViewModel
 import kotlinx.coroutines.launch
@@ -225,26 +223,9 @@ class MainActivity : AppCompatActivity() {
         generateAreaOfJurisdiction()
     }
 
+    /** The old 15-minute refresh worker, replaced by [setupTokenRefresh]. */
     private fun handleTokenRefresh() {
-        val isLoggedIn = FormatterClass().getSharedPref("isLoggedIn", this)
-
-        if (isLoggedIn != "true") return
-
-        val workRequest = PeriodicWorkRequestBuilder<NPHIISTokenWorker>(
-            15, TimeUnit.MINUTES
-        ).apply {
-            setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-        }.build()
-
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "NPHIISTokenWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            workRequest
-        )
+        WorkManager.getInstance(applicationContext).cancelUniqueWork("NPHIISTokenWorker")
     }
 
     private fun resolveNavController(): NavController {
@@ -278,28 +259,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Refreshes the token every 15 minutes while online (WorkManager waits for a connection). */
     private fun setupTokenRefresh() {
+        if (FormatterClass().getSharedPref("isLoggedIn", this) != "true") return
 
-        if (isInternetAvailable(this@MainActivity)) {
-            val workRequest =
-                PeriodicWorkRequestBuilder<TokenRefreshWorker>(
-                    1, TimeUnit.HOURS
+        val workRequest =
+            PeriodicWorkRequestBuilder<TokenRefreshWorker>(15, TimeUnit.MINUTES)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
                 )
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .build()
+                .build()
 
-            WorkManager.getInstance(
-                this@MainActivity
-            ).enqueueUniquePeriodicWork(
-                "token_refresh_work",
-                ExistingPeriodicWorkPolicy.UPDATE,
-                workRequest
-            )
-        }
+        WorkManager.getInstance(this@MainActivity).enqueueUniquePeriodicWork(
+            "token_refresh_work",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            workRequest
+        )
     }
 
     private fun generateAreaOfJurisdiction() {
