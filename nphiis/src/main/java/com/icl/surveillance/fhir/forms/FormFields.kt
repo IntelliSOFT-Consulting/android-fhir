@@ -67,6 +67,11 @@ object CaseSlugs {
     /** List-screen key covering both RCCE forms. */
     const val RCCE = "rcce"
     val RCCE_FORMS = listOf(RCCE_COMMUNITY, RCCE_COUNTY)
+
+    /** Modules every user sees in full, whatever their county / sub-county (VHF and VHF Training). */
+    private val OPEN_TO_ALL_LOCATIONS = setOf(VHF)
+
+    fun isOpenToAllLocations(slug: String?): Boolean = slug in OPEN_TO_ALL_LOCATIONS
 }
 
 /** Systems and codes written on the resources extracted from a submission. */
@@ -397,6 +402,74 @@ object FormFields {
                 "negative" -> "Discarded"
                 else -> "Pending Results"
             }
+    }
+
+    /**
+     * Ebola Post-Exposure & Survivor Monitoring Module (NPHI EPESM form): a contact's release on
+     * day 22, and a confirmed survivor's discharge assessment, follow-up visits, semen / breast
+     * milk testing, relapse testing and clearance. Each is a child record of the VHF case.
+     */
+    object Epesm {
+        /** Part 1: asymptomatic close contact, on day 22. */
+        const val CONTACT_RELEASE_FORM = "vhf-epesm-contact-release.json"
+        const val CONTACT_RELEASE_TITLE = "VHF Contact Release"
+        const val MONITORING_COMPLETED = "epesm-monitoring-completed"
+        const val TEMPERATURE_GAP = "epesm-temperature-gap"
+        const val SYMPTOM_FREE = "epesm-symptom-free"
+        const val RELEASE_TYPE = "epesm-release-type"
+
+        /** Part 2A: discharge assessment, at discharge from isolation. */
+        const val DISCHARGE_FORM = "vhf-epesm-discharge.json"
+        const val DISCHARGE_TITLE = "VHF Survivor Discharge Assessment"
+        const val MEETS_DISCHARGE_CRITERIA = "epesm-meets-discharge-criteria"
+
+        /** Part 3: post-discharge follow up (one record per visit). */
+        const val FOLLOW_UP_FORM = "vhf-epesm-follow-up.json"
+        const val FOLLOW_UP_TITLE = "VHF Survivor Follow Up"
+        const val FOLLOW_UP_DATE = "epesm-follow-up-date"
+        const val SYMPTOMS_RETURNED = "epesm-symptoms-returned"
+        /** Follow-up visits start on this day after discharge and run for [FOLLOW_UP_DAYS] days. */
+        const val FOLLOW_UP_START_DAY = 22
+        const val FOLLOW_UP_DAYS = 14
+
+        /** Part 4: semen / breast milk testing (one record per sample). */
+        const val PERSISTENCE_FORM = "vhf-epesm-persistence.json"
+        const val PERSISTENCE_TITLE = "VHF Viral Persistence Test"
+        const val SAMPLE_TYPE = "epesm-sample-type"
+        const val SAMPLE_SEMEN_CODE = "semen"
+        const val SAMPLE_BREAST_MILK_CODE = "breast-milk"
+        const val SEMEN_DATE = "epesm-semen-date"
+        const val SEMEN_RESULT = "epesm-semen-result"
+        const val SEMEN_NEGATIVE_COUNT = "epesm-semen-negative-count"
+        const val SEMEN_CLEARANCE_DATE = "epesm-semen-clearance-date"
+        const val BREAST_MILK_DATE = "epesm-breast-milk-date"
+        const val BREAST_MILK_RESULT = "epesm-breast-milk-result"
+        /** Consecutive negative results that clear semen or breast milk. */
+        const val NEGATIVES_TO_CLEAR = 2
+
+        /** Part 5: relapse / recurrence testing, as soon as symptoms recur. */
+        const val RELAPSE_FORM = "vhf-epesm-relapse.json"
+        const val RELAPSE_TITLE = "VHF Survivor Relapse"
+        const val RELAPSE_SUSPECTED = "epesm-relapse-suspected"
+        const val RELAPSE_PCR_RESULT = "epesm-relapse-pcr-result"
+        const val RELAPSE_ACTION = "epesm-relapse-action"
+
+        /** Clearance: ends survivor monitoring. */
+        const val CLEARANCE_FORM = "vhf-epesm-clearance.json"
+        const val CLEARANCE_TITLE = "VHF Survivor Clearance"
+        const val CLEARANCE_DATE = "epesm-clearance-date"
+        const val CLEARED_BY_NAME = "epesm-cleared-by-name"
+        const val CLEARED_DATE = "epesm-cleared-date"
+
+        /** Form file -> record title, for every EPESM form. */
+        val TITLES = mapOf(
+            CONTACT_RELEASE_FORM to CONTACT_RELEASE_TITLE,
+            DISCHARGE_FORM to DISCHARGE_TITLE,
+            FOLLOW_UP_FORM to FOLLOW_UP_TITLE,
+            PERSISTENCE_FORM to PERSISTENCE_TITLE,
+            RELAPSE_FORM to RELAPSE_TITLE,
+            CLEARANCE_FORM to CLEARANCE_TITLE,
+        )
     }
 
     object MpoxRegister {

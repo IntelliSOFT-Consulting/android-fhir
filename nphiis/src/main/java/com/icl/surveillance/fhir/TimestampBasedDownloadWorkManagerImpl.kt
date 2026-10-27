@@ -49,6 +49,7 @@ class TimestampBasedDownloadWorkManagerImpl(
                 "QuestionnaireResponse?_count=$RESPONSE_PAGE_SIZE&_sort=_lastUpdated",
                 "DiagnosticReport?_count=$REPORT_PAGE_SIZE&_sort=_lastUpdated",
                 "Group?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
+                "List?_count=$GROUP_PAGE_SIZE&_sort=_lastUpdated",
                 "Location?_count=500&_sort=_lastUpdated",
             )
         } else {

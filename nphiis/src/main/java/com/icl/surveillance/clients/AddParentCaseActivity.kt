@@ -772,8 +772,9 @@ class AddParentCaseActivity : AppCompatActivity() {
                         setReorderingAllowed(true)
 
                         val fragmentBuilder = QuestionnaireFragment.builder()
-                    // Required questions: red asterisk after the question, no "Required" line.
-                    .showAsterisk(true).showRequiredText(false).apply {
+                    // Required questions: red asterisk after the question, no "Required" line. A review page of all
+                    // answers comes before Submit.
+                    .showAsterisk(true).showRequiredText(false).showReviewPageBeforeSubmit(true).apply {
                             setShowSubmitAnywayButton(false)
                             setQuestionnaireResponse(questionnaireResponseJson)
                             setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(

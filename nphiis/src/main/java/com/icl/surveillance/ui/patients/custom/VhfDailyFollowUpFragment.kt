@@ -305,7 +305,8 @@ class VhfDailyFollowUpFragment : Fragment() {
             state.windowComplete -> VhfCards.action(
                 parent, CardTone.SUCCESS, R.drawable.ic_vhf_assignment_done,
                 "21-day follow up complete",
-                "Day $window · ${DISPLAY.format(state.lastDay)}",
+                "Day $window · ${DISPLAY.format(state.lastDay)}. Record the release on the " +
+                    "${VhfSurvivorFragment.CONTACT_TAB} tab.",
                 actionText = "Close out",
                 actionIcon = R.drawable.ic_vhf_check_circle,
                 onAction = { VhfContactActions.updateMonitoring(context, state) }

@@ -1,0 +1,437 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VHF Contact Release",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "epesm-contact-release",
+      "text": "Asymptomatic close contact (day 22)",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "epesm-monitoring-completed",
+          "text": "Has the 21-day monitoring period been completed?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-temperature-gap",
+          "text": "Were any twice-daily temperature checks missed (record gap)?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-symptom-free",
+          "text": "Has the individual remained symptom-free throughout the monitoring period?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-release-type",
+          "text": "Release type",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "21-day",
+                "display": "21-day asymptomatic release"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "early-negative-pcr",
+                "display": "Early release with two negative PCRs"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-release-type-other",
+          "text": "Release type (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "epesm-release-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-release-pcr-note",
+          "text": "PCR results (if tested)",
+          "type": "display"
+        },
+        {
+          "linkId": "epesm-release-pcr-day-0",
+          "text": "Day 0 PCR result",
+          "type": "choice",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-release-pcr-day-7",
+          "text": "Day 7 PCR result",
+          "type": "choice",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-release-pcr-day-14",
+          "text": "Day 14 PCR result",
+          "type": "choice",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-release-pcr-day-21",
+          "text": "Day 21 PCR result",
+          "type": "choice",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-official",
+      "text": "Official",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-checked-by-name",
+          "text": "Checked by (name)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-checked-by-email",
+          "text": "Checked by (email address)",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid email address"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-date-checked",
+          "text": "Date checked",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

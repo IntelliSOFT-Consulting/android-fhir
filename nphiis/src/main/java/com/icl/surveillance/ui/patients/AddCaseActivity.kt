@@ -97,7 +97,7 @@ class AddCaseActivity : AppCompatActivity() {
                     SaveCaseConfig(SaveCaseType.LAB, "AFP Final Lab Information"),
             "afp-contact-tracing.json" to
                     SaveCaseConfig(SaveCaseType.CONTACT)
-        )
+        ) + FormFields.Epesm.TITLES.mapValues { (_, title) -> SaveCaseConfig(SaveCaseType.LAB, title) }
     }
 
 
@@ -422,8 +422,9 @@ class AddCaseActivity : AppCompatActivity() {
                             setReorderingAllowed(true)
                             val questionnaireFragmentBuilder =
                                 QuestionnaireFragment.builder()
-                    // Required questions: red asterisk after the question, no "Required" line.
-                    .showAsterisk(true).showRequiredText(false).apply {
+                    // Required questions: red asterisk after the question, no "Required" line. A review page of all
+                    // answers comes before Submit.
+                    .showAsterisk(true).showRequiredText(false).showReviewPageBeforeSubmit(true).apply {
                                     setShowSubmitAnywayButton(false)
                                     setQuestionnaireResponse(questionnaireResponseJson)
                                     setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(

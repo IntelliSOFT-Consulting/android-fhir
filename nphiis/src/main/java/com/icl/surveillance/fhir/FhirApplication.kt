@@ -66,7 +66,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
                     httpLogger =
                         HttpLogger(
                             HttpLogger.Configuration(
-                                if (BuildConfig.DEBUG) HttpLogger.Level.BODY else HttpLogger.Level.NONE,
+                                if (BuildConfig.DEBUG) HttpLogger.Level.BASIC else HttpLogger.Level.NONE,
                             ),
                         ) { line ->
                             Timber.tag("App-HttpLog").e(line)

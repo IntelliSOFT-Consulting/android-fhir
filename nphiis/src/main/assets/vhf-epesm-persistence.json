@@ -1,0 +1,489 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VHF Viral Persistence Test",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "epesm-persistence",
+      "text": "Viral persistence testing",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "epesm-persistence-note",
+          "text": "Offered monthly from month 3 after symptom onset until two consecutive negative results.",
+          "type": "display"
+        },
+        {
+          "linkId": "epesm-sample-type",
+          "text": "Sample tested",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "semen",
+                "display": "Semen"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "breast-milk",
+                "display": "Breast milk"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-semen-date",
+          "text": "Date of semen sample collection",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "semen",
+                "display": "Semen"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-semen-result",
+          "text": "Semen Ebola RNA / PCR result",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "indeterminate",
+                "display": "Indeterminate"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "semen",
+                "display": "Semen"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-semen-negative-count",
+          "text": "Number of consecutive negative results before this sample (target: 2)",
+          "type": "integer",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "semen",
+                "display": "Semen"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-semen-clearance-date",
+          "text": "Date of semen clearance (after two consecutive negatives)",
+          "type": "date",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "semen",
+                "display": "Semen"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-safe-sex-counselling",
+          "text": "Has safe sex counselling been provided?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "semen",
+                "display": "Semen"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-breast-milk-date",
+          "text": "Date of breast milk sample collection",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "breast-milk",
+                "display": "Breast milk"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-breast-milk-result",
+          "text": "Breast milk Ebola RNA / PCR result",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "pending",
+                "display": "Pending"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "breast-milk",
+                "display": "Breast milk"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-breastfeeding-counselling",
+          "text": "Has breastfeeding counselling been provided?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "epesm-sample-type",
+              "operator": "=",
+              "answerCoding": {
+                "code": "breast-milk",
+                "display": "Breast milk"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-official",
+      "text": "Official",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-checked-by-name",
+          "text": "Checked by (name)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-checked-by-email",
+          "text": "Checked by (email address)",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid email address"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-date-checked",
+          "text": "Date checked",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

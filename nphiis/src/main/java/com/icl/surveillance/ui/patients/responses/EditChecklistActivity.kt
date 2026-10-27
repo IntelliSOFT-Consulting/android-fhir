@@ -181,8 +181,9 @@ class EditChecklistActivity : AppCompatActivity() {
                 add(
                     R.id.add_patient_container,
                     QuestionnaireFragment.builder()
-                    // Required questions: red asterisk after the question, no "Required" line.
-                    .showAsterisk(true).showRequiredText(false).apply {
+                    // Required questions: red asterisk after the question, no "Required" line. A review page of all
+                    // answers comes before Submit.
+                    .showAsterisk(true).showRequiredText(false).showReviewPageBeforeSubmit(true).apply {
                         // Edits must pass validation: no "Submit anyway" in the errors dialog.
                         setShowSubmitAnywayButton(false)
                         setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(

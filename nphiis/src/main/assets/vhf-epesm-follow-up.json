@@ -1,0 +1,428 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VHF Survivor Follow Up",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "epesm-follow-up",
+      "text": "Post-discharge follow up",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "epesm-follow-up-note",
+          "text": "Follow-up visits start on day 22 after discharge and run for 14 days.",
+          "type": "display"
+        },
+        {
+          "linkId": "epesm-follow-up-date",
+          "text": "Follow-up date",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-follow-up-mode",
+          "text": "Follow-up mode",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "in-person",
+                "display": "In-person"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "phone",
+                "display": "Phone"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-eye-pain",
+          "text": "Do you have eye pain or sensitivity to light? (uveitis screening)",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-vision-change",
+          "text": "Have you noticed any changes in your vision?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-hearing-loss",
+          "text": "Have you experienced any hearing loss?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-joint-pain",
+          "text": "Do you have joint pain?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-mental-health-screened",
+          "text": "Mental health screening (depression / anxiety) done?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "not-applicable",
+                "display": "Not applicable"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-symptoms-returned",
+          "text": "Have any of your previous symptoms returned or worsened?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-relapse-alert",
+          "text": "Relapse alert: record relapse testing (Survivor tab > Relapse) as soon as this is saved.",
+          "type": "display",
+          "enableWhen": [
+            {
+              "question": "epesm-symptoms-returned",
+              "operator": "=",
+              "answerCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-official",
+      "text": "Official",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-checked-by-name",
+          "text": "Checked by (name)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-checked-by-email",
+          "text": "Checked by (email address)",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid email address"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-date-checked",
+          "text": "Date checked",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

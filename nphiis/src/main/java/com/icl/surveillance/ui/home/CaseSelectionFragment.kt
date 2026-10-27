@@ -898,9 +898,11 @@ class CaseSelectionFragment : Fragment() {
                                  * */
 
                                 // Same scoping as the case list (CaseListingActivity.applyRoleScope).
+                                // VHF records are open to every user, whatever their location.
+                                val listScope = if (CaseSlugs.isOpenToAllLocations(it)) null else roleScope
                                 fun scoped(list: List<PatientListViewModel.PatientItem>) = countInScope(
                                     list.map { case -> case.county to case.subCounty },
-                                    roleScope, storedCounty, storedSubCounty
+                                    listScope, storedCounty, storedSubCounty
                                 )
                                 if (contactsIndex >= 0 && contactsIndex < caseOptions.size) {
                                     // VHF: suspected, confirmed and contacts are counted apart.

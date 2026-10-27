@@ -29,6 +29,7 @@ import com.icl.surveillance.models.OutputItem
 import com.icl.surveillance.models.QuestionnaireItem
 import com.icl.surveillance.ui.patients.custom.ContactInformationFragment
 import com.icl.surveillance.ui.patients.custom.FollowUpFormFragment
+import com.icl.surveillance.ui.patients.custom.VhfSurvivorFragment
 import com.icl.surveillance.ui.patients.custom.ITDLabFragment
 import com.icl.surveillance.ui.patients.custom.LocalLabFragment
 import com.icl.surveillance.ui.patients.custom.RegionalLabFragment
@@ -349,6 +350,13 @@ class SummarizedActivity : AppCompatActivity() {
             emptyMessage = "No outcome recorded yet"
         )
         val caseType = observations.find { it.code == FormFields.Vhf.CASE_TYPE }?.value.orEmpty()
+        // Ebola Post-Exposure & Survivor Monitoring: a contact's day-22 release, a confirmed
+        // case's survivor follow up.
+        val died = observations.find { it.code == FormFields.Vhf.OUTCOME }?.value
+            .equals(FormFields.Vhf.OUTCOME_DEAD_CODE, ignoreCase = true)
+        val survivor = if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONFIRMED, ignoreCase = true)) {
+            VhfSurvivorFragment.SURVIVOR_TAB to VhfSurvivorFragment.newInstance(contact = false, died = died)
+        } else null
         return if (caseType.equals(FormFields.Vhf.CASE_TYPE_CONTACT, ignoreCase = true)) {
             listOf(
                 "Follow up" to VhfDailyFollowUpFragment(),
@@ -358,6 +366,8 @@ class SummarizedActivity : AppCompatActivity() {
                     allowUpdates = true,
                     emptyMessage = "No monitoring status recorded yet"
                 ),
+                // Shown from registration; the release is due from day 22.
+                VhfSurvivorFragment.CONTACT_TAB to VhfSurvivorFragment.newInstance(contact = true),
                 // No Laboratory tab: contacts give no sample (it returns once converted to a case).
             )
         } else if (observations.any { it.code == FormFields.Vhf.HAS_FOLLOW_UPS }) {
@@ -373,9 +383,9 @@ class SummarizedActivity : AppCompatActivity() {
                     emptyMessage = "No monitoring status recorded"
                 ),
                 outcome,
-            )
+            ) + listOfNotNull(survivor)
         } else {
-            listOf(lab, "Contacts" to VhfContactsFragment(), outcome)
+            listOf(lab, "Contacts" to VhfContactsFragment(), outcome) + listOfNotNull(survivor)
         }
     }
 

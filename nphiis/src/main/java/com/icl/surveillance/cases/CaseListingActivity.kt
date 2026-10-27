@@ -56,6 +56,7 @@ class CaseListingActivity : AppCompatActivity() {
     private val selectedCounties = mutableSetOf<String>()
     private val selectedSubCounties = mutableSetOf<String>()
     private var currentRole: UserRole? = null
+    private var currentSlug: String? = null
     private var searchQuery: String = ""
 
     /** Rumor list state: the full loaded list and the adapter showing the filtered view. */
@@ -116,6 +117,7 @@ class CaseListingActivity : AppCompatActivity() {
 
         if (currentCase != null) {
             val slug = currentCase.toCaseSlug()
+            currentSlug = slug
             when (slug) {
                  CaseSlugs.RUMOR -> {
                     mpoxPatientsCollectorJob?.cancel()
@@ -135,7 +137,7 @@ class CaseListingActivity : AppCompatActivity() {
                 }
 
                 CaseSlugs.MPOX_REGISTER -> {
-                    showLocationFilterMenu = canShowLocationFilters(userRole)
+                    showLocationFilterMenu = canShowLocationFilters(userRole, slug)
                     if (!showLocationFilterMenu) {
                         selectedCounties.clear()
                         selectedSubCounties.clear()
@@ -159,7 +161,7 @@ class CaseListingActivity : AppCompatActivity() {
                     mpoxPatientsCollectorJob = lifecycleScope.launch {
                         patientListViewModel.patients.collect { newList ->
                             roleScopedCases =
-                                applyRoleScope(newList, userRole, storedCounty, storedSubCounty)
+                                applyRoleScope(newList, slug, userRole, storedCounty, storedSubCounty)
                             pruneSelectedFilters()
                             applyCaseFilters()
                             binding.patientListContainer.pbProgress.visibility = View.GONE
@@ -186,7 +188,7 @@ class CaseListingActivity : AppCompatActivity() {
                     activeMpoxAdapter = null
                     activeCaseAdapter = socialAdapter
                     activeRumorAdapter = null
-                    showLocationFilterMenu = canShowLocationFilters(userRole)
+                    showLocationFilterMenu = canShowLocationFilters(userRole, slug)
                     if (!showLocationFilterMenu) {
                         selectedCounties.clear()
                         selectedSubCounties.clear()
@@ -197,7 +199,7 @@ class CaseListingActivity : AppCompatActivity() {
                     recyclerView.adapter = socialAdapter
                     patientListViewModel.liveSearchedCases.observe(this) { cases ->
                         roleScopedCases =
-                            applyRoleScope(cases, userRole, storedCounty, storedSubCounty)
+                            applyRoleScope(cases, slug, userRole, storedCounty, storedSubCounty)
                         pruneSelectedFilters()
                         applyCaseFilters()
                         binding.patientListContainer.pbProgress.visibility = View.GONE
@@ -209,7 +211,7 @@ class CaseListingActivity : AppCompatActivity() {
                     activeMpoxAdapter = null
                     activeCaseAdapter = adapter
                     activeRumorAdapter = null
-                    showLocationFilterMenu = canShowLocationFilters(userRole)
+                    showLocationFilterMenu = canShowLocationFilters(userRole, slug)
                     if (!showLocationFilterMenu) {
                         selectedCounties.clear()
                         selectedSubCounties.clear()
@@ -220,7 +222,7 @@ class CaseListingActivity : AppCompatActivity() {
                     recyclerView.adapter = adapter
                     patientListViewModel.liveSearchedCases.observe(this) { cases ->
                         roleScopedCases =
-                            applyRoleScope(cases, userRole, storedCounty, storedSubCounty)
+                            applyRoleScope(cases, slug, userRole, storedCounty, storedSubCounty)
                         pruneSelectedFilters()
                         applyCaseFilters()
                         binding.patientListContainer.pbProgress.visibility = View.GONE
@@ -245,8 +247,9 @@ class CaseListingActivity : AppCompatActivity() {
         searchListenerAttached = true
     }
 
-    private fun canShowLocationFilters(role: UserRole?): Boolean {
-        return role?.isNational == true || role?.isCounty == true
+    private fun canShowLocationFilters(role: UserRole?, slug: String? = null): Boolean {
+        // Everyone sees every VHF record, so everyone may narrow the list by location.
+        return CaseSlugs.isOpenToAllLocations(slug) || role?.isNational == true || role?.isCounty == true
     }
 
     private fun normalizeLocationValue(value: String): String {
@@ -392,10 +395,12 @@ class CaseListingActivity : AppCompatActivity() {
 
     private fun applyRoleScope(
         cases: List<PatientListViewModel.PatientItem>,
+        slug: String?,
         userRole: UserRole?,
         storedCounty: String?,
         storedSubCounty: String?
     ): List<PatientListViewModel.PatientItem> {
+        if (CaseSlugs.isOpenToAllLocations(slug)) return cases
         // Ward/facility roles are already limited by the "units" (facility) filter upstream
         return when (userRole?.scope) {
             LocationLevel.COUNTY -> {
@@ -639,13 +644,14 @@ class CaseListingActivity : AppCompatActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        val canUseLocationFilters = showLocationFilterMenu && canShowLocationFilters(currentRole)
+        val canUseLocationFilters = showLocationFilterMenu && canShowLocationFilters(currentRole, currentSlug)
+        val openToAll = CaseSlugs.isOpenToAllLocations(currentSlug)
         val filterItem = menu?.findItem(R.id.action_filter)
         filterItem?.isVisible = canUseLocationFilters
         filterItem?.subMenu?.findItem(R.id.action_filter_county)?.isVisible =
-            currentRole?.isNational == true
+            openToAll || currentRole?.isNational == true
         filterItem?.subMenu?.findItem(R.id.action_filter_sub_county)?.isVisible =
-            currentRole?.isNational == true || currentRole?.isCounty == true
+            openToAll || currentRole?.isNational == true || currentRole?.isCounty == true
         filterItem?.subMenu?.findItem(R.id.action_reset_location_filters)?.isVisible =
             selectedCounties.isNotEmpty() || selectedSubCounties.isNotEmpty()
         menu?.findItem(R.id.action_add_vhf_case)?.isVisible = isVhfSuspectedList()

@@ -94,7 +94,7 @@ object Releases {
   }
   object Surveillance {
     const val applicationId = "com.icl.nphi"
-    const val versionCode = 48
+    const val versionCode = 49
     const val versionName = "1.0"
   }
 

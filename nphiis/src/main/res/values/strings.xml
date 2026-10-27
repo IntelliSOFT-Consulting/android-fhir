@@ -78,7 +78,7 @@
     <string name="rumor_tool">Rumor Tracking Tool</string>
     <string name="vl_form">Visceral Leishmaniasis Case Management Form</string>
     <string name="adam">Outbreak Response Module (ORM)</string>
-    <string name="vhf_form">Viral Hemorrhagic Fever (VHF) Case Investigation Tool</string>
+    <string name="vhf_form">Viral Hemorrhagic Fever (VHF)</string>
     <string name="trainings">VHF Training</string>
     <string name="alert_log">Alert Log</string>
     <string name="no_itd_laboratory_results_available">No ITD Lab Information available</string>

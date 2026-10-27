@@ -1,0 +1,99 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VHF Survivor Clearance",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "epesm-clearance",
+      "text": "Clearance",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "epesm-clearance-date",
+          "text": "Discharge date (from survivor monitoring)",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-cleared-by-name",
+          "text": "Cleared by (name)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "epesm-cleared-date",
+          "text": "Date cleared",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -338,6 +338,120 @@ object VhfCards {
         return card
     }
 
+    /**
+     * A saved form record that folds open: [title] and [subtitle] with a chevron; tapped, it shows
+     * the answers ([fields], label to value) and an Edit button. [onToggle] gets the new state so
+     * the caller can keep it across reloads.
+     */
+    fun record(
+        parent: ViewGroup,
+        title: String,
+        subtitle: String,
+        fields: List<Pair<String, String>>,
+        expanded: Boolean,
+        onToggle: (Boolean) -> Unit,
+        tone: CardTone = CardTone.NEUTRAL,
+        onEdit: (() -> Unit)? = null,
+    ): View {
+        val context = parent.context
+        val density = context.resources.displayMetrics.density
+        val card = MaterialCardView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt()) }
+            setRadius(12 * density)
+            cardElevation = 0f
+            strokeWidth = (1 * density).toInt()
+            setStrokeColor(ContextCompat.getColor(context, R.color.home_card_stroke))
+            setCardBackgroundColor(ContextCompat.getColor(context, R.color.home_card_background))
+        }
+        val column = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        val pad = (14 * density).toInt()
+        val header = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(pad, pad, pad, pad)
+            isClickable = true
+            isFocusable = true
+            val ripple = android.util.TypedValue()
+            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
+            setBackgroundResource(ripple.resourceId)
+        }
+        val texts = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        texts.addView(TextView(context).apply {
+            text = title
+            textSize = 15f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(
+                ContextCompat.getColor(context, if (tone == CardTone.NEUTRAL) R.color.home_card_title else tone.accent)
+            )
+        })
+        if (subtitle.isNotBlank()) {
+            texts.addView(TextView(context).apply {
+                text = subtitle
+                textSize = 13f
+                setTextColor(ContextCompat.getColor(context, R.color.home_card_subtitle))
+                setPadding(0, (2 * density).toInt(), 0, 0)
+            })
+        }
+        header.addView(texts)
+        val chevron = android.widget.ImageView(context).apply {
+            setImageResource(R.drawable.baseline_arrow_forward_ios_24)
+            imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.home_card_chevron_tint))
+            layoutParams = LinearLayout.LayoutParams((16 * density).toInt(), (16 * density).toInt())
+                .apply { marginStart = (8 * density).toInt() }
+        }
+        header.addView(chevron)
+        column.addView(header)
+
+        val body = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, 0, pad, pad)
+        }
+        if (fields.isEmpty()) {
+            body.addView(SummaryRows.note(context, "No answers recorded."))
+        } else {
+            fields.forEach { (label, value) -> body.addView(SummaryRows.field(context, label, value)) }
+        }
+        if (onEdit != null) {
+            val accent = ContextCompat.getColor(context, R.color.home_icon_tint)
+            body.addView(
+                MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+                    text = "Edit"
+                    isAllCaps = false
+                    cornerRadius = (20 * density).toInt()
+                    setTextColor(accent)
+                    setStrokeColor(ColorStateList.valueOf(accent))
+                    setIconResource(R.drawable.ic_vhf_edit_calendar)
+                    iconTint = ColorStateList.valueOf(accent)
+                    iconSize = (18 * density).toInt()
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { gravity = Gravity.END }
+                    setOnClickListener { onEdit() }
+                }
+            )
+        }
+        column.addView(body)
+        card.addView(column)
+
+        fun show(open: Boolean) {
+            body.visibility = if (open) View.VISIBLE else View.GONE
+            chevron.rotation = if (open) 270f else 90f
+            header.contentDescription = "$title, $subtitle, ${if (open) "expanded" else "collapsed"}"
+        }
+        show(expanded)
+        header.setOnClickListener {
+            val open = body.visibility != View.VISIBLE
+            show(open)
+            onToggle(open)
+        }
+        return card
+    }
+
     private fun initials(name: String): String =
         name.split(" ").filter { it.isNotBlank() }.take(2)
             .joinToString("") { it.first().uppercase() }

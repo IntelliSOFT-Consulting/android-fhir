@@ -1,0 +1,348 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "title": "VHF Survivor Discharge Assessment",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "epesm-discharge",
+      "text": "Discharge assessment (at discharge from isolation)",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "epesm-admission-date",
+          "text": "Date of admission to isolation",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-clinically-stable",
+          "text": "Is the patient clinically stable? (temperature normal, symptoms improved)",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-discharge-pcr-1-date",
+          "text": "Date of first discharge PCR sample collection",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-discharge-pcr-1-result",
+          "text": "First discharge PCR result",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-discharge-pcr-2-date",
+          "text": "Date of second discharge PCR sample collection (48–72 hours after the first)",
+          "type": "date",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-discharge-pcr-2-result",
+          "text": "Second discharge PCR result",
+          "type": "choice",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "negative",
+                "display": "Negative"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "positive",
+                "display": "Positive"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "epesm-meets-discharge-criteria",
+          "text": "Does the patient meet discharge criteria? (clinical stability + two consecutive negative PCRs)",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vhf-official",
+      "text": "Official",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "vhf-checked-by-name",
+          "text": "Checked by (name)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "vhf-checked-by-email",
+          "text": "Checked by (email address)",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid email address"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            }
+          ]
+        },
+        {
+          "linkId": "vhf-date-checked",
+          "text": "Date checked",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "yyyy-mm-dd"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

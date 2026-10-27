@@ -94,8 +94,9 @@ class AddClientFragment : Fragment(R.layout.fragment_add_client) {
             add(
                 R.id.add_patient_container,
                 QuestionnaireFragment.builder()
-                    // Required questions: red asterisk after the question, no "Required" line.
-                    .showAsterisk(true).showRequiredText(false)
+                    // Required questions: red asterisk after the question, no "Required" line. A review page of all
+                    // answers comes before Submit.
+                    .showAsterisk(true).showRequiredText(false).showReviewPageBeforeSubmit(true)
                     .setQuestionnaire(viewModel.questionnaireJson)
                     .setShowCancelButton(true)
                     .setSubmitButtonText("Submit")

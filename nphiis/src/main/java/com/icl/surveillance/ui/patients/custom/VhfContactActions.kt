@@ -271,15 +271,33 @@ object VhfContactActions {
         return null
     }
 
+    /**
+     * Opens an EPESM form (survivor monitoring, contact release) as a new record of the case,
+     * with [prefill]. The Clearance's "Cleared by" is the logged-in user, today.
+     */
+    fun openEpesmForm(context: Context, questionnaireFile: String, prefill: Map<String, String> = emptyMap()) {
+        val title = FormFields.Epesm.TITLES[questionnaireFile] ?: return
+        val values = if (questionnaireFile == FormFields.Epesm.CLEARANCE_FORM) {
+            val official = officialDetails(context)
+            buildMap {
+                official[FormFields.Vhf.CHECKED_BY_NAME]?.let { put(FormFields.Epesm.CLEARED_BY_NAME, it) }
+                put(FormFields.Epesm.CLEARED_DATE, LocalDate.now().toString())
+            } + prefill
+        } else prefill
+        openChildForm(context, questionnaireFile, title, values)
+    }
+
     private fun openChildForm(
         context: Context,
         questionnaireFile: String,
         title: String,
         prefill: Map<String, String>,
     ) {
-        // Contact monitoring and case outcome: the Official section is the logged-in user, today.
+        // Contact monitoring, case outcome and the EPESM forms: the Official section is the
+        // logged-in user, today.
         val values = if (questionnaireFile == FormFields.Vhf.CONTACT_MONITORING_FORM ||
-            questionnaireFile == FormFields.Vhf.CASE_OUTCOME_FORM
+            questionnaireFile == FormFields.Vhf.CASE_OUTCOME_FORM ||
+            (questionnaireFile in FormFields.Epesm.TITLES && questionnaireFile != FormFields.Epesm.CLEARANCE_FORM)
         ) {
             officialDetails(context) + prefill
         } else prefill

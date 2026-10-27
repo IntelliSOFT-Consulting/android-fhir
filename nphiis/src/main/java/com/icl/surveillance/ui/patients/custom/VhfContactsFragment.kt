@@ -23,6 +23,7 @@ import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.fhir.forms.FormPrefill
 import com.icl.surveillance.fhir.forms.VhfContactTracker
+import com.icl.surveillance.fhir.forms.VhfSurvivorMonitoring
 import com.icl.surveillance.fhir.forms.VhfDemoMode
 import com.icl.surveillance.fhir.forms.VhfSourceCases
 import com.icl.surveillance.fhir.forms.valueOf
@@ -49,6 +50,10 @@ class VhfContactsFragment : Fragment() {
         val name: String,
         val epid: String,
         val state: ContactFollowUpState?,
+        /** The contact's day-22 release (EPESM Part 1) is recorded. */
+        val released: Boolean = false,
+        /** The 21 days are over and the release is not recorded yet. */
+        val readyForRelease: Boolean = false,
         /** When the contact was registered (sortable text), for newest-first order. */
         val registeredAt: String,
     )
@@ -148,6 +153,8 @@ class VhfContactsFragment : Fragment() {
             val encounterId = patient.identifier.firstOrNull { it.system == CaseSlugs.VHF }?.value
                 ?: return@mapNotNull null
             val encounter = runCatching { fhirEngine.get<org.hl7.fhir.r4.model.Encounter>(encounterId) }.getOrNull()
+            val state = VhfContactTracker.load(fhirEngine, id, encounterId)
+            val epesm = runCatching { VhfSurvivorMonitoring.load(fhirEngine, id, encounterId) }.getOrNull()
             ContactRow(
                 patientId = id,
                 encounterId = encounterId,
@@ -155,7 +162,9 @@ class VhfContactsFragment : Fragment() {
                 // The HIE's contact number (CONTACT_ID), else the EPID number until it arrives.
                 epid = com.icl.surveillance.fhir.forms.VhfListMode.contactIdOf(patient)
                     ?: patient.identifier.firstOrNull { it.type.codingFirstRep.code == "EPID" }?.value.orEmpty(),
-                state = VhfContactTracker.load(fhirEngine, id, encounterId),
+                state = state,
+                released = epesm?.release != null,
+                readyForRelease = state != null && epesm != null && VhfSurvivorMonitoring.readyForRelease(state, epesm),
                 registeredAt = registeredAt(encounter, patient),
             )
         }
@@ -228,6 +237,8 @@ class VhfContactsFragment : Fragment() {
         val states = rows.mapNotNull { it.state }.filter { it.isContact }
         val symptomatic = states.count { !it.isClosed && (it.firstSymptomaticVisit != null || it.deathVisit != null) }
         val converted = rows.count { it.state != null && !it.state.isContact }
+        val readyForRelease = rows.count { it.readyForRelease }
+        val released = rows.count { it.released }
         parent.addView(
             VhfCards.stats(
                 parent,
@@ -237,6 +248,11 @@ class VhfContactsFragment : Fragment() {
                     add(Triple("Symptomatic", symptomatic.toString(), if (symptomatic > 0) CardTone.ALERT else CardTone.NEUTRAL))
                     add(Triple("Closed", states.count { it.isClosed }.toString(), CardTone.SUCCESS))
                     if (converted > 0) add(Triple("Converted", converted.toString(), CardTone.NEUTRAL))
+                    if (readyForRelease > 0 || released > 0) {
+                        add(Triple("To release", readyForRelease.toString(),
+                            if (readyForRelease > 0) CardTone.WARNING else CardTone.NEUTRAL))
+                        add(Triple("Released", released.toString(), CardTone.SUCCESS))
+                    }
                 }
             )
         )
@@ -246,6 +262,16 @@ class VhfContactsFragment : Fragment() {
                     parent, CardTone.ALERT, R.drawable.ic_vhf_warning,
                     if (symptomatic == 1) "1 contact is symptomatic" else "$symptomatic contacts are symptomatic",
                     ""
+                )
+            )
+        }
+
+        if (readyForRelease > 0) {
+            parent.addView(
+                VhfCards.action(
+                    parent, CardTone.INFO, R.drawable.ic_vhf_assignment_done,
+                    if (readyForRelease == 1) "1 contact is ready for release" else "$readyForRelease contacts are ready for release",
+                    "Their 21 days are over. Open each one to record the day-22 release.",
                 )
             )
         }
@@ -261,6 +287,8 @@ class VhfContactsFragment : Fragment() {
             val (status, tone) = when {
                 state == null -> "Suspected converted to case" to CardTone.NEUTRAL
                 !state.isContact -> "Converted · ${state.caseType.ifBlank { "case" }}" to CardTone.NEUTRAL
+                row.released -> "Released" to CardTone.SUCCESS
+                row.readyForRelease -> "Ready for release (day 22)" to CardTone.INFO
                 state.isClosed -> state.monitoringStatus to
                     if (state.monitoringStatus == FormFields.Vhf.STATUS_COMPLETED) CardTone.SUCCESS else CardTone.NEUTRAL
                 state.deathVisit != null || state.firstSymptomaticVisit != null -> state.summary to CardTone.ALERT
@@ -285,7 +313,14 @@ class VhfContactsFragment : Fragment() {
         formatter.saveSharedPref("currentCase", CaseTypes.VHF, context)
         formatter.saveSharedPref("latestEncounter", CaseSlugs.VHF, context)
         formatter.deleteSharedPref("isCase", context)
-        returnToCase.launch(Intent(context, SummarizedActivity::class.java))
+        returnToCase.launch(
+            Intent(context, SummarizedActivity::class.java).apply {
+                // Due or done: open straight on the release.
+                if (row.readyForRelease || row.released) {
+                    putExtra(SummarizedActivity.EXTRA_OPEN_TAB, VhfSurvivorFragment.CONTACT_TAB)
+                }
+            }
+        )
     }
 
     private fun openContactTree(patientId: String) {
