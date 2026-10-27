@@ -175,8 +175,11 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         val invalid = runCatching { failingRules(form, prefill) }.getOrDefault(emptySet())
         if (invalid.isNotEmpty()) Timber.tag("SCREENED_SAVE").w("Left editable (fails the form's rules): %s", invalid)
         // Date of investigation is only a suggestion: the screening date may not be the day the
-        // investigation happens, so it stays editable.
-        val editable = invalid + FormFields.Vhf.INVESTIGATION_DATE
+        // investigation happens, so it stays editable. So do the clinical answers: symptoms and
+        // care change between screening and the investigation (flagged with fever, a headache
+        // by the time of the CIF), so they are pre-filled but can be corrected.
+        val clinical = runCatching { linkIdsIn(form, CLINICAL_SECTIONS) }.getOrDefault(emptySet())
+        val editable = invalid + clinical + FormFields.Vhf.INVESTIGATION_DATE
         FormPrefill.stage(this, form, prefill, locked = prefill.keys - editable)
         Timber.tag("SCREENED_SAVE").d(
             "Investigating screened %s with %d pre-filled answers", patientId, prefill.size
@@ -198,6 +201,26 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
      * linkIds of [values] that break their question's rules in [form]: the regex (e.g. phone
      * number), minValue / maxValue (e.g. weight) or maxLength.
      */
+    /** Every linkId inside the top-level [sections] of [form]. */
+    private fun linkIdsIn(form: String, sections: Set<String>): Set<String> {
+        val root = org.json.JSONObject(assets.open(form).bufferedReader().use { it.readText() })
+        val ids = HashSet<String>()
+        fun collect(items: org.json.JSONArray?) {
+            if (items == null) return
+            for (i in 0 until items.length()) {
+                val item = items.optJSONObject(i) ?: continue
+                ids += item.optString("linkId")
+                collect(item.optJSONArray("item"))
+            }
+        }
+        val top = root.optJSONArray("item") ?: return ids
+        for (i in 0 until top.length()) {
+            val section = top.optJSONObject(i) ?: continue
+            if (section.optString("linkId") in sections) collect(section.optJSONArray("item"))
+        }
+        return ids
+    }
+
     private fun failingRules(form: String, values: Map<String, String>): Set<String> {
         val root = org.json.JSONObject(assets.open(form).bufferedReader().use { it.readText() })
         val failing = HashSet<String>()
@@ -255,6 +278,9 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         const val EXTRA_PATIENT_ID = "screenedPatientId"
         const val EXTRA_MOVED_NAME = "screenedMovedName"
         const val PREF_SCREENED_SOURCE = VhfScreened.PREF_SOURCE
+
+        /** Case form sections whose screening answers stay editable: Clinical Information, Clinical Care & Treatment. */
+        private val CLINICAL_SECTIONS = setOf("vhf-clinical", "vhf-care")
 
         /** Reporting site questions (all role levels) of the case form, by linkId prefix. */
         private val REPORTING_SITE_IDS = listOf(
