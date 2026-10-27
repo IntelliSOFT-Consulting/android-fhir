@@ -907,7 +907,7 @@ class CaseSelectionFragment : Fragment() {
                                 if (contactsIndex >= 0 && contactsIndex < caseOptions.size) {
                                     // VHF: suspected, confirmed and contacts are counted apart.
                                     fun count(mode: String) = scoped(cases.filter { case ->
-                                        VhfListMode.matches(mode, case.caseType, case.contactId)
+                                        VhfListMode.matches(mode, case.caseType, case.contactId, case.labResults)
                                     })
                                     caseOptions[viewIndex] = caseOptions[viewIndex].copy(count = count(VhfListMode.CASES))
                                     if (confirmedIndex >= 0) {

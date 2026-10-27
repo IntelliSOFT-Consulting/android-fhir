@@ -231,6 +231,21 @@ class VhfCaseWorkflowTest {
         assertFalse(VhfListMode.matches(VhfListMode.CASES, type))
     }
 
+    @Test
+    fun `a suspected case with a final lab result, positive or negative, is listed as Confirmed`() {
+        listOf("Positive", "Negative").forEach { lab ->
+            assertTrue(lab, VhfListMode.matches(VhfListMode.CONFIRMED, "Suspected", labResults = lab))
+            assertFalse(lab, VhfListMode.matches(VhfListMode.CASES, "Suspected", labResults = lab))
+        }
+        listOf("Pending", "Preliminary: Positive", "Rejected").forEach { lab ->
+            assertTrue(lab, VhfListMode.matches(VhfListMode.CASES, "Suspected", labResults = lab))
+            assertFalse(lab, VhfListMode.matches(VhfListMode.CONFIRMED, "Suspected", labResults = lab))
+        }
+        // A contact stays on the contact list until it is converted to a case.
+        assertTrue(VhfListMode.matches(VhfListMode.CONTACTS, "Contact", labResults = "Negative"))
+        assertFalse(VhfListMode.matches(VhfListMode.CONFIRMED, "Contact", labResults = "Negative"))
+    }
+
     // ---------------------------------------------------------------- 6. outcome: died
 
     @Test

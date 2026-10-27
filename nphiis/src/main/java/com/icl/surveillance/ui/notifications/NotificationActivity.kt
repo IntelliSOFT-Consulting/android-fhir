@@ -1,6 +1,7 @@
 package com.icl.surveillance.ui.notifications
 
 import android.content.res.ColorStateList
+import com.icl.surveillance.utils.SyncMenu
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -268,6 +269,7 @@ class NotificationActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_notifications, menu)
+        menuInflater.inflate(R.menu.menu_sync, menu)
 
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem.actionView as SearchView
@@ -304,6 +306,7 @@ class NotificationActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (SyncMenu.onItemSelected(this, item)) return true
         return when (item.itemId) {
             R.id.action_filter -> {
                 showSortDialog()

@@ -1,6 +1,7 @@
 package com.icl.surveillance.ui.patients
 
 import android.content.Context
+import com.icl.surveillance.utils.SyncMenu
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -454,6 +455,7 @@ class SummarizedActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_edit, menu)
+        menuInflater.inflate(R.menu.menu_sync, menu)
         return true
     }
 
@@ -464,6 +466,7 @@ class SummarizedActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (SyncMenu.onItemSelected(this, item)) return true
         return when (item.itemId) {
             R.id.action_delete -> {
 //                SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)

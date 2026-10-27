@@ -1,6 +1,7 @@
 package com.icl.surveillance.cases
 
 import android.content.Intent
+import com.icl.surveillance.utils.SyncMenu
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -484,7 +485,7 @@ class CaseListingActivity : AppCompatActivity() {
         // VHF: Suspected Cases and Contacts are separate lists (VhfListMode).
         val vhfMode = vhfListMode()
         if (vhfMode != VhfListMode.NONE) {
-            filtered = filtered.filter { VhfListMode.matches(vhfMode, it.caseType, it.contactId) }
+            filtered = filtered.filter { VhfListMode.matches(vhfMode, it.caseType, it.contactId, it.labResults) }
         }
         if (currentRole?.isNational == true && selectedCounties.isNotEmpty()) {
             filtered = filtered.filter { hasSelection(it.county, selectedCounties) }
@@ -640,6 +641,7 @@ class CaseListingActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_case_filters, menu)
+        menuInflater.inflate(R.menu.menu_sync, menu)
         return true
     }
 
@@ -659,6 +661,7 @@ class CaseListingActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (SyncMenu.onItemSelected(this, item)) return true
         return when (item.itemId) {
             R.id.action_filter_county -> {
                 showCountyFilterDialog()

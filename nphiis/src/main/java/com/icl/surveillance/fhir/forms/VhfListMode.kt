@@ -64,14 +64,27 @@ object VhfListMode {
     fun isConfirmed(caseType: String?): Boolean =
         caseType?.trim().equals(FormFields.Vhf.CASE_TYPE_CONFIRMED, ignoreCase = true)
 
+    /** The case's lab result is final, positive or negative ([VhfSpecimens.Summary.labResults]). */
+    fun hasFinalLabResult(labResults: String?): Boolean =
+        labResults == VhfSpecimens.Result.POSITIVE.label || labResults == VhfSpecimens.Result.NEGATIVE.label
+
     /**
-     * VHF lists by Type of case: Suspected (suspected, probable, or not set), Confirmed, and
-     * Contacts. Each record is in exactly one of them.
+     * VHF lists: Suspected (suspected, probable, or not set, with no final lab result), Confirmed
+     * (Type of case Confirmed, or a final lab result whether positive or negative), and Contacts.
+     * Each record is in exactly one of them.
      */
-    fun matches(mode: String, caseType: String?, contactId: String? = null): Boolean = when (mode) {
-        CASES -> !isContact(caseType, contactId) && !isConfirmed(caseType)
-        CONFIRMED -> !isContact(caseType, contactId) && isConfirmed(caseType)
-        CONTACTS -> isContact(caseType, contactId)
-        else -> true
+    fun matches(
+        mode: String,
+        caseType: String?,
+        contactId: String? = null,
+        labResults: String? = null,
+    ): Boolean {
+        val confirmed = isConfirmed(caseType) || hasFinalLabResult(labResults)
+        return when (mode) {
+            CASES -> !isContact(caseType, contactId) && !confirmed
+            CONFIRMED -> !isContact(caseType, contactId) && confirmed
+            CONTACTS -> isContact(caseType, contactId)
+            else -> true
+        }
     }
 }
