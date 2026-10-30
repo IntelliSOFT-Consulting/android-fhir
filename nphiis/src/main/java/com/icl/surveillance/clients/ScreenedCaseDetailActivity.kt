@@ -283,7 +283,7 @@ class ScreenedCaseDetailActivity : AppCompatActivity() {
         private val CLINICAL_SECTIONS = setOf("vhf-clinical", "vhf-care")
 
         /** Reporting site questions (all role levels) of the case form, by linkId prefix. */
-        private val REPORTING_SITE_IDS = listOf(
+        internal val REPORTING_SITE_IDS = listOf(
             "user_", "294367770999", "819946803642", "819943434", "819946803677", "438862163919",
         )
     }

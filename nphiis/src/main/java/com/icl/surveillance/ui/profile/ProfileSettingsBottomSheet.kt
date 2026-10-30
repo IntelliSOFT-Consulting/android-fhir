@@ -54,6 +54,14 @@ class ProfileSettingsBottomSheet : BottomSheetDialogFragment() {
             dismiss()
         }
 
+        view.findViewById<View>(R.id.actionProcessFlaggedVhf).setOnClickListener {
+            parentFragmentManager.setFragmentResult(
+                RESULT_KEY,
+                bundleOf(RESULT_ACTION to ACTION_PROCESS_FLAGGED_VHF)
+            )
+            dismiss()
+        }
+
         view.findViewById<View>(R.id.btnCancelSheet).setOnClickListener {
             dismiss()
         }
@@ -66,6 +74,7 @@ class ProfileSettingsBottomSheet : BottomSheetDialogFragment() {
         const val ACTION_BULK_UPLOAD = 2
         const val ACTION_MIGRATE_CONTACTS = 3
         const val ACTION_SIMULATE_VHF_WORKFLOW = 4
+        const val ACTION_PROCESS_FLAGGED_VHF = 5
 
         fun show(fragmentManager: FragmentManager) {
             ProfileSettingsBottomSheet().show(

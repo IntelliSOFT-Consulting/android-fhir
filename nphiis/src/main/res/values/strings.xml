@@ -222,6 +222,8 @@
     <string name="generate_synthetic_data">Generate Test Data (debug)</string>
     <string name="simulate_vhf_workflow">Simulate VHF workflow</string>
     <string name="simulate_vhf_workflow_description">Saves one example person through the whole VHF workflow, syncs each step and checks the records</string>
+    <string name="process_flagged_vhf">Process flagged VHF cases</string>
+    <string name="process_flagged_vhf_description">Takes every flagged person through investigation, contacts, follow up and conversion; after the lab, takes confirmed cases to clearance</string>
     <string name="sync_data">Sync Data</string>
     <string name="reset_sync">Reset Sync</string>
     <string name="bulk_upload_title">Bulk Upload</string>

@@ -253,6 +253,10 @@ class ProfileFragment : Fragment() {
                 ProfileSettingsBottomSheet.ACTION_SIMULATE_VHF_WORKFLOW -> {
                     com.icl.surveillance.debug.VhfWorkflowDialogs.open(this)
                 }
+
+                ProfileSettingsBottomSheet.ACTION_PROCESS_FLAGGED_VHF -> {
+                    com.icl.surveillance.debug.VhfFlaggedWorkflowDialogs.open(this)
+                }
             }
         }
     }
