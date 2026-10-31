@@ -105,8 +105,11 @@ class CaseListingActivity : AppCompatActivity() {
         val currentCase = FormatterClass().getSharedPref("currentCase", this)
         val recyclerView: RecyclerView = binding.patientListContainer.patientList
         val adapter = PatientItemRecyclerViewAdapter(this::onPatientItemClicked, "$titleName", this)
+            .followTop(recyclerView)
         val socialAdapter = SocialFormItemRecyclerViewAdapter(this::onPatientItemClicked)
+            .followTop(recyclerView)
         val adapterRumor = PatientItemRecyclerViewAdapterRumor(this::onRumorItemClicked)
+            .followTop(recyclerView)
 
         val formatter = FormatterClass()
         val storedRole = formatter.getSharedPref("practitionerRole", this)
@@ -536,6 +539,27 @@ class CaseListingActivity : AppCompatActivity() {
         }
 
         return candidates.any { it.contains(query, ignoreCase = true) }
+    }
+
+    /**
+     * The list fills in batch by batch and the newest record is sorted first, so a record saved
+     * just now usually arrives at position 0 after rows are already shown. RecyclerView keeps the
+     * row that was on top in view, leaving the new one just above the screen; while the list is
+     * at the top, scroll to it instead.
+     */
+    private fun <A : RecyclerView.Adapter<*>> A.followTop(recyclerView: RecyclerView): A = apply {
+        registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            // Called before the new layout, so this is still the old scroll position.
+            private fun atTop() = !recyclerView.canScrollVertically(-1)
+
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                if (positionStart == 0 && atTop()) recyclerView.scrollToPosition(0)
+            }
+
+            override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+                if (toPosition == 0 && atTop()) recyclerView.scrollToPosition(0)
+            }
+        })
     }
 
     override fun onResume() {
