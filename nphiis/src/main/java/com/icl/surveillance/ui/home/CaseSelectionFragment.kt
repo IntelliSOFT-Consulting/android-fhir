@@ -218,6 +218,29 @@ class CaseSelectionFragment : Fragment() {
         addParentCaseLauncher.launch(intent)
     }
 
+    /**
+     * Starting answers of a new EVD daily snapshot: today's reporting date, and the signed-in
+     * user's county, sub-county, name, phone and email when the profile has them.
+     */
+    private fun evdSnapshotPrefill(): Map<String, String> {
+        val formatter = FormatterClass()
+        fun pref(key: String) = formatter.getSharedPref(key, requireContext())
+            ?.trim()?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && it != "N/A" }
+        return buildMap {
+            put(FormFields.EvdSnapshot.REPORTING_DATE, java.time.LocalDate.now().toString())
+            pref("county")?.let {
+                put(FormFields.Residence.COUNTY, com.icl.surveillance.fhir.forms.FormPrefill.locationReference(it, pref("countyName")))
+            }
+            pref("subCounty")?.let {
+                put(FormFields.Residence.SUB_COUNTY, com.icl.surveillance.fhir.forms.FormPrefill.locationReference(it, pref("subCountyName")))
+            }
+            pref("fullNames")?.let { put(FormFields.EvdSnapshot.FOCAL_PERSON, it) }
+            pref("phone")?.filter { it.isDigit() || it == '+' }?.takeIf { it.length >= 10 }
+                ?.let { put(FormFields.EvdSnapshot.PHONE, it) }
+            pref("email")?.let { put(FormFields.EvdSnapshot.EMAIL, it) }
+        }
+    }
+
     /** Sets up the RecyclerView with the case options. */
     private fun setupRecyclerView() {
         val titleName = FormatterClass().getSharedPref("grandTitle", requireContext())
@@ -229,6 +252,7 @@ class CaseSelectionFragment : Fragment() {
                 getString(R.string.vhf_form) -> "VHF"
                 getString(R.string.trainings) -> "VHF Training"
                 getString(R.string.alert_log) -> ALERT_LOG_TITLE
+                getString(R.string.evd_snapshot) -> EVD_SNAPSHOT_TITLE
                 "Social Listening and Rumor Tracking Tool" -> "SLR"
                 "RCCE Tools" -> "RCCE"
                 else -> titleName
@@ -241,6 +265,7 @@ class CaseSelectionFragment : Fragment() {
                 "Summary Sheet" -> "Add New Team Record"
                 "Mpox Register" -> "Add New Mpox Register"
                 ALERT_LOG_TITLE -> ADD_ALERT
+                EVD_SNAPSHOT_TITLE -> ADD_EVD_SNAPSHOT
                 "VHF" -> VHF_ADD
                 else -> "Add New $title Case"
             }
@@ -250,6 +275,7 @@ class CaseSelectionFragment : Fragment() {
                 "Social Investigation Form" -> "Social Investigation Reports"
                 "Mpox Register" -> "Mpox Register List"
                 ALERT_LOG_TITLE -> ALERT_LOG_LIST
+                EVD_SNAPSHOT_TITLE -> EVD_SNAPSHOT_LIST
                 "VHF" -> VHF_LIST
                 else -> "$title Case List"
             }
@@ -614,6 +640,36 @@ class CaseSelectionFragment : Fragment() {
                         startActivity(Intent(requireContext(), CaseListingActivity::class.java))
                     }
 
+                    ADD_EVD_SNAPSHOT -> {
+                        val form = FormFields.EvdSnapshot.FORM
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.EVD_SNAPSHOT, requireContext())
+                        FormatterClass().saveSharedPref(
+                            "AddParentTitle",
+                            getString(R.string.evd_snapshot),
+                            requireContext(),
+                        )
+                        FormatterClass().saveSharedPref("questionnaire", form, requireContext())
+                        if (!checkIfUserIsAllowedToAction()) {
+                            showPermissionErrorDialog(requireContext())
+                            return@CaseOptionsAdapter
+                        }
+                        // Today's date and the signed-in user's sub-county and contact details;
+                        // all can be changed.
+                        com.icl.surveillance.fhir.forms.FormPrefill.stage(
+                            requireContext(), form, evdSnapshotPrefill(),
+                        )
+                        val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
+                        intent.putExtra("AddParentTitle", " $titleName")
+                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, form)
+                        addParentCaseLauncher.launch(intent)
+                    }
+
+                    EVD_SNAPSHOT_LIST -> {
+                        FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.EVD_SNAPSHOT, requireContext())
+                        startActivity(Intent(requireContext(), CaseListingActivity::class.java))
+                    }
+
                     SCREENED_CASES -> {
                         VhfTraining.setOn(requireContext(), false)
                         addParentCaseLauncher.launch(
@@ -807,6 +863,7 @@ class CaseSelectionFragment : Fragment() {
                 "VHF" -> CaseSlugs.VHF
                 "VHF Training" -> CaseSlugs.VHF
                 ALERT_LOG_TITLE -> CaseSlugs.ALERT_LOG
+                EVD_SNAPSHOT_TITLE -> CaseSlugs.EVD_SNAPSHOT
                 "SLR" -> CaseSlugs.RUMOR
                 "Social Investigation Form" -> CaseSlugs.RCCE
                 "MOH 505" -> CaseSlugs.MOH_505
@@ -1097,6 +1154,9 @@ class CaseSelectionFragment : Fragment() {
         private const val ALERT_LOG_TITLE = "Alert Log"
         private const val ADD_ALERT = "Add New Alert"
         private const val ALERT_LOG_LIST = "Alert Log List"
+        private const val EVD_SNAPSHOT_TITLE = "EVD Daily Snapshot"
+        private const val ADD_EVD_SNAPSHOT = "Add Daily Snapshot"
+        private const val EVD_SNAPSHOT_LIST = "Daily Snapshot List"
         private const val SCREENED_CASES = "Flagged"
         /** VHF module options (meeting 20 Oct 2026: VHF cases are listed as Suspected Cases). */
         private const val VHF_ADD = "Add New Suspected Case"

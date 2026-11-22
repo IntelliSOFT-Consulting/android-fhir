@@ -200,6 +200,7 @@ class SummarizedActivity : AppCompatActivity() {
         var customFragments = when (latestEncounter) {
             CaseSlugs.MEASLES -> {
                 listOf(
+                    "Specimens" to VhfSpecimensFragment.newInstance(showClassification = false),
                     "Laboratory Information" to LabResultsFragment(),
                 )
 
@@ -207,6 +208,7 @@ class SummarizedActivity : AppCompatActivity() {
 
             CaseSlugs.AFP -> {
                 listOf(
+                    "Specimens" to VhfSpecimensFragment.newInstance(showClassification = false),
                     "Stool Specimen Results" to LocalLabFragment(),
 //                    "ITD Lab Results" to ITDLabFragment(),
 //                    "Final Laboratory Results" to RegionalLabFragment(),
@@ -403,6 +405,13 @@ class SummarizedActivity : AppCompatActivity() {
             "Case: $caseLabel"
         } else {
             "Case summary"
+        }
+
+        // A daily snapshot is a report, not a case: no case label or EPID number.
+        if (latestEncounter == CaseSlugs.EVD_SNAPSHOT) {
+            binding.summarySubtitle.text = "Sub-County Daily Enhanced EVD Surveillance Snapshot"
+            binding.summaryChip.text = "Daily snapshot"
+            return
         }
 
         val epid = data.epidNo.trim()
@@ -671,6 +680,7 @@ class SummarizedActivity : AppCompatActivity() {
             CaseSlugs.VL -> "vl-case.json"
             CaseSlugs.VHF -> "vhf-case.json"
             CaseSlugs.ALERT_LOG -> FormFields.AlertLog.FORM
+            CaseSlugs.EVD_SNAPSHOT -> FormFields.EvdSnapshot.FORM
             CaseSlugs.MOH_505 -> "moh505.json"
             CaseSlugs.MPOX_INFORMATION -> "mpox-tally-sheet.json"
             CaseSlugs.MPOX_TALLY_SHEET -> "mpox-tally-sheet.json"

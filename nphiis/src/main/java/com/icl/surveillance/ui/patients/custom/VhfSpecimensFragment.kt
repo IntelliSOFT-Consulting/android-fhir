@@ -22,6 +22,9 @@ import kotlinx.coroutines.withContext
  * "Laboratory" tab of a VHF case: the specimens collected for the case, each with its own
  * result (from the Specimen, see [VhfSpecimens]), and the case's final classification derived
  * from them. There is no lab results form.
+ *
+ * Also the "Specimens" tab of Measles and AFP cases, without the classification: theirs comes
+ * from their lab results forms.
  */
 class VhfSpecimensFragment : Fragment() {
 
@@ -30,6 +33,7 @@ class VhfSpecimensFragment : Fragment() {
     private val fhirEngine by lazy { FhirApplication.fhirEngine(requireContext()) }
     /** e.g. "Thu, 15 Oct 2026". */
     private val dateFormat = SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault())
+    private val showClassification get() = arguments?.getBoolean(ARG_SHOW_CLASSIFICATION, true) ?: true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -80,7 +84,7 @@ class VhfSpecimensFragment : Fragment() {
             parent.addView(
                 VhfCards.action(
                     parent, CardTone.NEUTRAL, R.drawable.ic_vhf_info,
-                    "No specimens collected",
+                    "No specimens recorded",
                     "Specimens recorded on the form appear here with their results.",
                 )
             )
@@ -102,6 +106,13 @@ class VhfSpecimensFragment : Fragment() {
             )
         )
 
+        if (showClassification) addClassification(parent, rows, summary)
+
+        parent.addView(VhfCards.sectionHeader(parent, "Specimens (${rows.size})"))
+        rows.forEach { row -> parent.addView(specimenCard(parent, row)) }
+    }
+
+    private fun addClassification(parent: ViewGroup, rows: List<VhfSpecimens.Row>, summary: VhfSpecimens.Summary) {
         val (tone, icon, message) = when (summary.result) {
             VhfSpecimens.Result.POSITIVE -> Triple(
                 CardTone.ALERT, R.drawable.ic_vhf_warning,
@@ -127,44 +138,50 @@ class VhfSpecimensFragment : Fragment() {
                 message,
             )
         )
+    }
 
-        parent.addView(VhfCards.sectionHeader(parent, "Specimens (${rows.size})"))
-        rows.forEach { row ->
-            val rowTone = when (row.result) {
-                VhfSpecimens.Result.POSITIVE -> CardTone.ALERT
-                VhfSpecimens.Result.NEGATIVE -> CardTone.SUCCESS
-                VhfSpecimens.Result.REJECTED -> CardTone.WARNING
-                VhfSpecimens.Result.PENDING -> CardTone.INFO
-            }
-            parent.addView(
-                VhfCards.specimen(
-                    parent,
-                    type = row.type,
-                    lines = buildList {
-                        add("Specimen ID: ${row.specimenId ?: "Not assigned"}")
-                        add("Collected: ${row.collected?.let { dateFormat.format(it) } ?: "Not recorded"}")
-                        add("Sent to lab: ${row.sent?.let { dateFormat.format(it) } ?: "Not recorded"}")
-                        add(
-                            "Results: " + when {
-                                row.result == VhfSpecimens.Result.REJECTED -> "Rejected by the lab"
-                                row.resultDate != null -> dateFormat.format(row.resultDate)
-                                row.tests.isEmpty() -> "Awaiting results"
-                                else -> "Date not recorded"
-                            }
-                        )
-                        // Each test (Observation in a DiagnosticReport for this specimen).
-                        row.tests.forEach { test ->
-                            add("${test.name}: ${test.value}" + if (test.isFinal) "" else " (preliminary)")
-                        }
-                        if (row.result == VhfSpecimens.Result.REJECTED) {
-                            add("Reason for rejection: " + row.rejectionReasons.joinToString("; ").ifEmpty { "Not recorded" })
-                        }
-                        addAll(row.notes)
-                    },
-                    status = row.statusLabel,
-                    tone = rowTone,
+    private fun specimenCard(parent: ViewGroup, row: VhfSpecimens.Row): View {
+        val rowTone = when (row.result) {
+            VhfSpecimens.Result.POSITIVE -> CardTone.ALERT
+            VhfSpecimens.Result.NEGATIVE -> CardTone.SUCCESS
+            VhfSpecimens.Result.REJECTED -> CardTone.WARNING
+            VhfSpecimens.Result.PENDING -> CardTone.INFO
+        }
+        return VhfCards.specimen(
+            parent,
+            type = row.type,
+            lines = buildList {
+                add("Specimen ID: ${row.specimenId ?: "Not assigned"}")
+                add("Collected: ${row.collected?.let { dateFormat.format(it) } ?: "Not recorded"}")
+                add("Sent to lab: ${row.sent?.let { dateFormat.format(it) } ?: "Not recorded"}")
+                add(
+                    "Results: " + when {
+                        row.result == VhfSpecimens.Result.REJECTED -> "Rejected by the lab"
+                        row.resultDate != null -> dateFormat.format(row.resultDate)
+                        row.tests.isEmpty() -> "Awaiting results"
+                        else -> "Date not recorded"
+                    }
                 )
-            )
+                // Each test (Observation in a DiagnosticReport for this specimen).
+                row.tests.forEach { test ->
+                    add("${test.name}: ${test.value}" + if (test.isFinal) "" else " (preliminary)")
+                }
+                if (row.result == VhfSpecimens.Result.REJECTED) {
+                    add("Reason for rejection: " + row.rejectionReasons.joinToString("; ").ifEmpty { "Not recorded" })
+                }
+                addAll(row.notes)
+            },
+            status = row.statusLabel,
+            tone = rowTone,
+        )
+    }
+
+    companion object {
+        private const val ARG_SHOW_CLASSIFICATION = "showClassification"
+
+        /** @param showClassification show the case classification derived from the specimens. */
+        fun newInstance(showClassification: Boolean) = VhfSpecimensFragment().apply {
+            arguments = Bundle().apply { putBoolean(ARG_SHOW_CLASSIFICATION, showClassification) }
         }
     }
 }

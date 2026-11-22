@@ -122,6 +122,16 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                     this.labResults.text = patientItem.labResults
                 }
 
+                // A sub-county's daily counts: no person, EPID, lab results or classification.
+                "evd-daily-snapshot" -> {
+                    this.lnNameAndEpid.visibility = View.GONE
+                    this.tvDateLabel.text = "Reporting Date"
+                    this.tvLabLabel.text = "Alerts · Suspected · Positive"
+                    this.labResults.text = patientItem.labResults
+                    this.tvFinalClassificationLabel.text = "Contacts followed up"
+                    this.status.text = patientItem.status
+                }
+
                 "moh-505-reporting-form" -> {
                     this.lnFinalClassification.visibility = View.GONE
                     this.lnNameAndEpid.visibility = View.GONE
@@ -176,7 +186,8 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                 this.status.setTextColor(this.status.context.getColor(R.color.blue))
             }
 
-            else -> {
+            // Snapshot counts ("8 of 10 due") are figures, not a pending status.
+            else -> if (current?.toCaseSlug() != "evd-daily-snapshot") {
                 // A VHF contact who became symptomatic during the 21-day follow up stands out.
                 val color =
                     if (final.trim().startsWith("Symptomatic")) R.color.red else R.color.pending

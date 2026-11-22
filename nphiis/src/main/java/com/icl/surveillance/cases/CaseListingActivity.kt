@@ -640,7 +640,7 @@ class CaseListingActivity : AppCompatActivity() {
 
                 CaseSlugs.RUMOR,
                 CaseSlugs.VL, CaseSlugs.VHF, CaseSlugs.MPOX_TALLY_SHEET,
-                CaseSlugs.AFP, CaseSlugs.ALERT_LOG,
+                CaseSlugs.AFP, CaseSlugs.ALERT_LOG, CaseSlugs.EVD_SNAPSHOT,
                 CaseSlugs.RCCE -> {
                     startActivity(activityIntent)
                 }

@@ -892,19 +892,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         )
                     )
 
-                    if (answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_COLLECTED).equals("yes", ignoreCase = true)) {
-                        val otherType = answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_TYPE)
-                        val otherDate = answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_DATE)
-                        if (otherType != null && otherDate != null) {
-                            saveSpecimen(FormFields.Measles.OTHER_SPECIMEN_TYPE, otherDate, otherType)
-                        }
-                    }
-                    FormFields.Measles.SPECIMENS.forEach { specimen ->
-                        val collected = answers.answerOf(specimen.collectedLinkId)
-                        val date = answers.answerOf(specimen.dateLinkId)
-                        if (collected.equals("yes", ignoreCase = true) && date != null) {
-                            saveSpecimen(specimen.collectedLinkId, date, specimen.type)
-                        }
+                    VhfSpecimens.samplesFromMeaslesForm(answers).forEach { sample ->
+                        saveSpecimen(sample.sourceLinkId, sample.collected, sample.type, sample.notes, sent = sample.sent)
                     }
                 }
 
@@ -926,8 +915,8 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     val (county, subCounty) = applyResidence(patient, answers, context)
                     saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.AFP))
 
-                    answers.answerOf(FormFields.Afp.STOOL_SPECIMEN_DATE)?.let { date ->
-                        saveSpecimen(FormFields.Afp.STOOL_SPECIMEN_DATE, date, "Stool")
+                    VhfSpecimens.samplesFromAfpForm(answers).forEach { sample ->
+                        saveSpecimen(sample.sourceLinkId, sample.collected, sample.type, sample.notes, sent = sample.sent)
                     }
                 }
 
@@ -1045,6 +1034,18 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     VhfSpecimens.sampleFromAlertForm(answers)?.let { sample ->
                         saveSpecimen(sample.sourceLinkId, sample.collected, sample.type, sample.notes)
                     }
+                }
+
+                CaseSlugs.EVD_SNAPSHOT -> {
+                    // An aggregate report: no person. The record is named after the report.
+                    startSummaryMeasure("EVD Daily Snapshot")
+                    val (_, subCounty) = applyResidence(patient, answers, context)
+                    // Named "<sub-county> EVD Daily Snapshot" on the summary screen.
+                    patient.nameFirstRep.given = mutableListOf(org.hl7.fhir.r4.model.StringType(subCounty.ifBlank { "Sub-county" }))
+                    // The report's date is the reporting date.
+                    answers.answerOf(FormFields.EvdSnapshot.REPORTING_DATE)?.take(10)
+                        ?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+                        ?.let { measure.date = java.util.Date.from(it.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()) }
                 }
 
                 CaseSlugs.MOH_505 -> {
@@ -1177,7 +1178,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         )
                     }
                     when (case) {
-                        CaseSlugs.MOH_505 -> {
+                        CaseSlugs.MOH_505, CaseSlugs.EVD_SNAPSHOT -> {
                             fhirEngine.create(FhirConformance.ensureRequired(measure))
                         }
 

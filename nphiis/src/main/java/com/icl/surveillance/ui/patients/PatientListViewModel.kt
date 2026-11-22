@@ -1095,6 +1095,21 @@ class PatientListViewModel(
                                     )
                             }
 
+                            CaseSlugs.EVD_SNAPSHOT -> {
+                                // The row shows the day's alerts, suspected cases and positive
+                                // results, and how many of the contacts due were followed up.
+                                fun count(code: String) = obs.valueOf(code).ifBlank { "-" }
+                                data = data.copy(
+                                    labResults = listOf(
+                                        FormFields.EvdSnapshot.ALERTS,
+                                        FormFields.EvdSnapshot.SUSPECTED,
+                                        FormFields.EvdSnapshot.LAB_POSITIVE,
+                                    ).joinToString(" · ") { count(it) },
+                                    status = "${count(FormFields.EvdSnapshot.CONTACTS_FOLLOWED)} of " +
+                                        "${count(FormFields.EvdSnapshot.CONTACTS_DUE)} due",
+                                )
+                            }
+
                             CaseSlugs.ALERT_LOG -> {
                                 // The row shows whether the alert is a suspected case; no lab or classification.
                                 val meetsDefinition = obs.valueOf(FormFields.AlertLog.MEETS_CASE_DEFINITION)
@@ -1166,7 +1181,12 @@ class PatientListViewModel(
                             subCounty = " $subCounty",
                             caseOnsetDate = onset.ifBlank {
                                 // Alerts list by the date the alert was received.
-                                if (nameQuery == CaseSlugs.ALERT_LOG) obs.valueOf(FormFields.AlertLog.DATE).take(10) else onset
+                                when (nameQuery) {
+                                    CaseSlugs.ALERT_LOG -> obs.valueOf(FormFields.AlertLog.DATE).take(10)
+                                    // Snapshots list by their reporting date.
+                                    CaseSlugs.EVD_SNAPSHOT -> obs.valueOf(FormFields.EvdSnapshot.REPORTING_DATE).take(10)
+                                    else -> onset
+                                }
                             },
                             encounterQuestionnaire = encounterQuestionnaire,
                             isSummary = isSummary,
@@ -1940,7 +1960,7 @@ class PatientListViewModel(
             FormFields.AlertLog.CLASSIFICATION,
             FormFields.Vhf.CASE_TYPE, // VHF: Suspected Cases vs Contact List
             FormFields.Vhf.CONTACT_DATE, // Contact List: date of last contact
-        ) + VhfContactTracker.CASE_ANSWER_CODES).distinct()
+        ) + FormFields.EvdSnapshot.LIST_CODES + VhfContactTracker.CASE_ANSWER_CODES).distinct()
         private const val PATIENT_LOAD_CHUNK = 200
         private const val RUMOR_PAGE_SIZE = 200
 

@@ -390,8 +390,8 @@ class EditSupervisorChecklistViewModel(
                     )
                 }.onFailure { Timber.e(it, "Failed to copy the edited outcome onto the case") }
             }
-            if (questionnaire == FormFields.Vhf.CASE_FORM || questionnaire == FormFields.AlertLog.FORM) {
-                // Laboratory section (alert log: section E): create (or update) the Specimen.
+            if (questionnaire in SPECIMEN_FORMS) {
+                // The form's specimen section: create (or update) its Specimens.
                 runCatching {
                     val encounterId = original.encounter?.referenceElement?.idPart
                     val template = encounterId?.let { id ->
@@ -626,6 +626,14 @@ class EditSupervisorChecklistViewModel(
     )
 
     private companion object {
+        /** Case forms that record specimens (see [VhfSpecimens.samplesFromForm]). */
+        val SPECIMEN_FORMS = setOf(
+            FormFields.Vhf.CASE_FORM,
+            FormFields.AlertLog.FORM,
+            FormFields.Measles.CASE_FORM,
+            FormFields.Afp.CASE_FORM,
+        )
+
         /**
          * Contact-listing answers (source case, type of contact, head of household, health
          * worker) are hidden by the case form once a contact becomes a case. They stay on the

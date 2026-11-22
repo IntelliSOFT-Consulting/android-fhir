@@ -27,9 +27,13 @@ object CaseTypes {
     /** Outbreak Response: alert log (Alert Reporting Form). The stored name is unchanged. */
     const val ALERT_LOG = "Alert Rumor Log"
 
+    /** Outbreak Response: Sub-County Daily Enhanced EVD Surveillance Snapshot (aggregate). */
+    const val EVD_SNAPSHOT = "EVD Daily Snapshot"
+
     /** Modules whose submissions create a case (Patient + Encounter) and appear in case lists. */
     val CASE_LISTED = listOf(
         MEASLES, AFP, VL, VHF, MOH_505, MPOX_INFORMATION, RCCE_COMMUNITY, RCCE_COUNTY, ALERT_LOG,
+        EVD_SNAPSHOT,
     )
 }
 
@@ -63,6 +67,7 @@ object CaseSlugs {
     const val RCCE_COMMUNITY = "rcce-community-questionnaire"
     const val RCCE_COUNTY = "rcce-countysubcounty-interface"
     const val ALERT_LOG = "alert-rumor-log"
+    const val EVD_SNAPSHOT = "evd-daily-snapshot"
 
     /** List-screen key covering both RCCE forms. */
     const val RCCE = "rcce"
@@ -181,6 +186,7 @@ object FormFields {
     }
 
     object Measles {
+        const val CASE_FORM = "add-case.json"
         const val EPID_NUMBER = "992818778559"
         const val CASE_OR_LINE_LIST = "865158268604"
         const val PARENT_NAME = "parent"
@@ -198,18 +204,13 @@ object FormFields {
             PARENT_TOWN, PARENT_SUB_COUNTY, PARENT_COUNTY,
         )
 
+        /** Multi-answer: Blood, Urine, Respiratory Sample; one collection date for them all. */
+        const val SPECIMEN_TYPES = "412689284625"
+        const val SPECIMEN_DATE = "8962468583341"
+        const val SPECIMEN_SENT_DATE = "718251724172"
         const val OTHER_SPECIMEN_COLLECTED = "258912872921"
         const val OTHER_SPECIMEN_TYPE = "340507649387"
         const val OTHER_SPECIMEN_DATE = "699353598445"
-
-        /** Specimen type, "was it collected?" question and collection-date question. */
-        val SPECIMENS = listOf(
-            Specimen("Blood", "918495737998", "8962468583341"),
-            Specimen("Urine", "433195098993", "915783129731"),
-            Specimen("Respiratory Sample", "270749570400", "183705125522"),
-        )
-
-        data class Specimen(val type: String, val collectedLinkId: String, val dateLinkId: String)
     }
 
     object MeaslesLab {
@@ -218,9 +219,12 @@ object FormFields {
     }
 
     object Afp {
+        const val CASE_FORM = "afp-case.json"
         const val GUARDIAN_NAME = "856448027666"
         const val GUARDIAN_PHONE = "576318206363"
         const val STOOL_SPECIMEN_DATE = "737703942433"
+        const val SECOND_STOOL_SPECIMEN_DATE = "711388438654"
+        const val STOOL_SPECIMEN_SENT_DATE = "808177332790"
     }
 
     object Vl {
@@ -532,6 +536,23 @@ object FormFields {
         const val SUSPECTED = "alert-suspected"
         const val SUSPECTED_OTHER = "alert-suspected-other"
         const val CLASSIFICATION = "alert-classification"
+    }
+
+    /** EVD daily snapshot (evd-daily-snapshot.json): one sub-county's counts for the last 24 hours. */
+    object EvdSnapshot {
+        const val FORM = "evd-daily-snapshot.json"
+        const val REPORTING_DATE = "evd-snap-reporting-date"
+        const val FOCAL_PERSON = "evd-snap-focal-person"
+        const val PHONE = "evd-snap-phone"
+        const val EMAIL = "evd-snap-email"
+        const val ALERTS = "evd-snap-alerts"
+        const val SUSPECTED = "evd-snap-suspected"
+        const val LAB_POSITIVE = "evd-snap-lab-positive"
+        const val CONTACTS_DUE = "evd-snap-contacts-due"
+        const val CONTACTS_FOLLOWED = "evd-snap-contacts-followed"
+
+        /** The answers the snapshot list row shows. */
+        val LIST_CODES = listOf(REPORTING_DATE, ALERTS, SUSPECTED, LAB_POSITIVE, CONTACTS_DUE, CONTACTS_FOLLOWED)
     }
 
     object Geo {

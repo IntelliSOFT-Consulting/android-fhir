@@ -1,0 +1,851 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "extension": [
+    {
+      "extension": [
+        {
+          "url": "name",
+          "valueCoding": {
+            "system": "http://hl7.org/fhir/uv/sdc/CodeSystem/launchContext",
+            "code": "patient"
+          }
+        },
+        {
+          "url": "type",
+          "valueCode": "Patient"
+        }
+      ],
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext"
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode",
+      "valueCode": "prior-edit"
+    }
+  ],
+  "title": "Sub-County Daily Enhanced EVD Surveillance Snapshot",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "evd-snap-identity",
+      "text": "A. Reporting identity – Reporting Unit (Sub County)",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "evd-snap-period",
+          "type": "display",
+          "text": "Reporting period: last 24 hours (00:00–23:59 EAT, previous day). Submit by 09:00 EAT each day."
+        },
+        {
+          "linkId": "a4-county",
+          "text": "County",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "a3-sub-county",
+          "text": "Sub-county",
+          "type": "reference",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-reporting-date",
+          "text": "Reporting date",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-focal-person",
+          "text": "Sub-county surveillance focal person",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "evd-snap-phone",
+          "text": "Phone",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g., 0700000000"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-email",
+          "text": "Email",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid email address"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g., name@example.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "evd-snap-detection",
+      "text": "B. Detection and verification — What came in in the last 24 hours?",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "evd-snap-alerts",
+          "text": "1. New EVD alerts received (hotline, facility, community, PoE, other)",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-suspected",
+          "text": "2. New suspected cases meeting the national case definition",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-alerts-verified",
+          "text": "3. Alerts verified / risk-assessed",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-alerts-verified-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-alerts-verified <= evd-snap-alerts"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-alerts').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-alerts').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Alerts verified cannot be more than the alerts received (question 1)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-investigated",
+          "text": "4. Suspected cases investigated (case investigation form completed)",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-investigated-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-investigated <= evd-snap-suspected"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-suspected').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-suspected').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Cases investigated cannot be more than the suspected cases (question 2)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-isolated",
+          "text": "5. Suspected cases isolated or referred to treatment/isolation facility",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-isolated-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-isolated <= evd-snap-suspected"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-suspected').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-suspected').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Cases isolated or referred cannot be more than the suspected cases (question 2)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-specimens",
+          "text": "6. Specimens collected and shipped",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-lab-positive",
+          "text": "7. Lab results received — positive",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-lab-negative",
+          "text": "8. Lab results received — negative",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-lab-pending",
+          "text": "9. Lab results still pending",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "evd-snap-follow-up",
+      "text": "C. Follow-up — What is being tracked in the last 24 hours?",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "evd-snap-contacts-listed",
+          "text": "1. New contacts listed",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-contacts-due",
+          "text": "2. Contacts due for follow-up today",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-contacts-followed",
+          "text": "3. Contacts successfully followed up today",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-contacts-followed-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-contacts-followed <= evd-snap-contacts-due"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-contacts-due').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-contacts-due').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Contacts followed up cannot be more than the contacts due today (question 2)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-contacts-not-reached",
+          "text": "4. Contacts not reached / lost to follow-up today",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-contacts-not-reached-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-contacts-not-reached <= evd-snap-contacts-due"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-contacts-due').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-contacts-due').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Contacts not reached cannot be more than the contacts due today (question 2)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-contacts-symptomatic",
+          "text": "5. Contacts who developed symptoms today",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-contacts-symptomatic-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-contacts-symptomatic <= evd-snap-contacts-followed"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-contacts-followed').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-contacts-followed').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Contacts with symptoms cannot be more than the contacts followed up (question 3)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-contacts-completed",
+          "text": "6. Contacts who completed 21-day follow-up today",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-travellers-screened",
+          "text": "7. Travellers screened at designated points of entry",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            }
+          ]
+        },
+        {
+          "linkId": "evd-snap-travellers-referred",
+          "text": "8. Travellers referred for EVD assessment",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 99999
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a number from 0 (enter 0 if none)"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-constraint",
+              "extension": [
+                {
+                  "url": "key",
+                  "valueId": "evd-snap-travellers-referred-max"
+                },
+                {
+                  "url": "requirements",
+                  "valueString": "evd-snap-travellers-referred <= evd-snap-travellers-screened"
+                },
+                {
+                  "url": "severity",
+                  "valueCode": "error"
+                },
+                {
+                  "url": "expression",
+                  "valueString": "%context.answer.value.empty() or %resource.descendants().where(linkId='evd-snap-travellers-screened').answer.value.empty() or %context.answer.value <= %resource.descendants().where(linkId='evd-snap-travellers-screened').answer.value"
+                },
+                {
+                  "url": "human",
+                  "valueString": "Travellers referred cannot be more than the travellers screened (question 7)"
+                },
+                {
+                  "url": "location",
+                  "valueString": "1"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "evd-snap-closing",
+      "text": "D. Challenges and E. Certification",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "evd-snap-challenges",
+          "text": "D. Challenges",
+          "type": "text"
+        },
+        {
+          "linkId": "evd-snap-certified",
+          "type": "choice",
+          "repeats": true,
+          "required": true,
+          "text": "E. Certification: I confirm this snapshot covers the stated 24-hour period and has been verified against available sub-county reports.",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

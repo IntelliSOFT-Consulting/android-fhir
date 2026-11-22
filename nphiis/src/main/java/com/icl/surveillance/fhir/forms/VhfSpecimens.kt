@@ -42,7 +42,7 @@ import timber.log.Timber
  */
 object VhfSpecimens {
 
-    /** The sample recorded in the case form's Laboratory section (or the alert form's section E). */
+    /** A sample recorded on a case form (VHF Laboratory section, alert log section E, ...). */
     data class CaseFormSample(
         val type: String,
         val collected: String?,
@@ -52,13 +52,58 @@ object VhfSpecimens {
         val sourceLinkId: String = FormFields.Vhf.SAMPLE_TYPE,
     )
 
-    /** The sample recorded on [questionnaire] (VHF case form or alert log), or null. */
-    fun sampleFromForm(questionnaire: String, answers: List<QuestionnaireAnswer>): CaseFormSample? =
+    /** The samples recorded on [questionnaire]; none for a form that records no specimens. */
+    fun samplesFromForm(questionnaire: String, answers: List<QuestionnaireAnswer>): List<CaseFormSample> =
         when (questionnaire) {
-            FormFields.Vhf.CASE_FORM -> sampleFromCaseForm(answers)
-            FormFields.AlertLog.FORM -> sampleFromAlertForm(answers)
-            else -> null
+            FormFields.Vhf.CASE_FORM -> listOfNotNull(sampleFromCaseForm(answers))
+            FormFields.AlertLog.FORM -> listOfNotNull(sampleFromAlertForm(answers))
+            FormFields.Measles.CASE_FORM -> samplesFromMeaslesForm(answers)
+            FormFields.Afp.CASE_FORM -> samplesFromAfpForm(answers)
+            else -> emptyList()
         }
+
+    /** The Measles form's samples: one per specimen type selected, plus the other type if any. */
+    fun samplesFromMeaslesForm(answers: List<QuestionnaireAnswer>): List<CaseFormSample> {
+        val sent = answers.answerOf(FormFields.Measles.SPECIMEN_SENT_DATE)
+        val selected = answers.answerOf(FormFields.Measles.SPECIMEN_TYPES).orEmpty()
+            .split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            .map { type ->
+                CaseFormSample(
+                    type = type,
+                    collected = answers.answerOf(FormFields.Measles.SPECIMEN_DATE),
+                    sent = sent,
+                    notes = emptyList(),
+                    sourceLinkId = FormFields.Measles.SPECIMEN_TYPES,
+                )
+            }
+        val other = answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_TYPE)
+            ?.takeIf { answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_COLLECTED).equals("yes", ignoreCase = true) }
+            ?.let { type ->
+                CaseFormSample(
+                    type = type,
+                    collected = answers.answerOf(FormFields.Measles.OTHER_SPECIMEN_DATE),
+                    sent = sent,
+                    notes = emptyList(),
+                    sourceLinkId = FormFields.Measles.OTHER_SPECIMEN_TYPE,
+                )
+            }
+        return selected + listOfNotNull(other)
+    }
+
+    /** The AFP form's samples: a stool specimen for each collection date answered. */
+    fun samplesFromAfpForm(answers: List<QuestionnaireAnswer>): List<CaseFormSample> =
+        listOf(FormFields.Afp.STOOL_SPECIMEN_DATE, FormFields.Afp.SECOND_STOOL_SPECIMEN_DATE)
+            .mapNotNull { linkId ->
+                answers.answerOf(linkId)?.let { date ->
+                    CaseFormSample(
+                        type = "Stool",
+                        collected = date,
+                        sent = answers.answerOf(FormFields.Afp.STOOL_SPECIMEN_SENT_DATE),
+                        notes = emptyList(),
+                        sourceLinkId = linkId,
+                    )
+                }
+            }
 
     /** The alert log's specimen (section E), or null when "Was a sample collected?" is not Yes. */
     fun sampleFromAlertForm(answers: List<QuestionnaireAnswer>): CaseFormSample? {
@@ -111,13 +156,13 @@ object VhfSpecimens {
     }
 
     /**
-     * After the VHF case form is edited, for the sample now in its Laboratory section:
+     * After a case form is edited, for each sample now on it:
      *  - a specimen of that type was already recorded for the case -> it is updated (dates,
      *    transport...), keeping its specimen ID;
      *  - no specimen of that type yet (none at all, or the type was changed, e.g. Urine -> Blood)
      *    -> a new Specimen is added. Earlier specimens stay: each has its own lab result.
      * Nothing is removed when samples are changed to No. [template] supplies facility tags.
-     * The alert log's specimen (section E) is kept in step the same way.
+     * Applies to every form in [samplesFromForm].
      */
     suspend fun syncFromCaseForm(
         context: Context,
@@ -128,9 +173,28 @@ object VhfSpecimens {
         template: DomainResource?,
         questionnaire: String = FormFields.Vhf.CASE_FORM,
     ) {
-        val sample = sampleFromForm(questionnaire, answers)
-        Timber.tag("SPECIMEN").d("Edit of Patient/%s: case-form sample = %s", patientId, sample)
-        if (sample == null) return
+        val samples = samplesFromForm(questionnaire, answers)
+        Timber.tag("SPECIMEN").d("Edit of Patient/%s: case-form samples = %s", patientId, samples)
+        if (samples.isEmpty()) return
+        val caseSpecimens = fhirEngine.search<Specimen> {
+            filter(Specimen.SUBJECT, { value = "Patient/$patientId" })
+        }.map { it.resource }
+            .filter { it.status != Specimen.SpecimenStatus.ENTEREDINERROR }
+            .filter { belongsTo(it, caseEncounterId) }
+        samples.forEach { sample ->
+            syncSample(context, fhirEngine, patientId, caseEncounterId, sample, caseSpecimens, template)
+        }
+    }
+
+    private suspend fun syncSample(
+        context: Context,
+        fhirEngine: FhirEngine,
+        patientId: String,
+        caseEncounterId: String?,
+        sample: CaseFormSample,
+        caseSpecimens: List<Specimen>,
+        template: DomainResource?,
+    ) {
         val subject = Reference("Patient/$patientId")
         val encounter = caseEncounterId?.let { Reference("Encounter/$it") }
         val built = StandardSpecimen.build(
@@ -142,11 +206,6 @@ object VhfSpecimens {
             notes = sample.notes,
             sent = sample.sent,
         )
-        val caseSpecimens = fhirEngine.search<Specimen> {
-            filter(Specimen.SUBJECT, { value = "Patient/$patientId" })
-        }.map { it.resource }
-            .filter { it.status != Specimen.SpecimenStatus.ENTEREDINERROR }
-            .filter { belongsTo(it, caseEncounterId) }
         // The specimen of this sample type recorded from the case form, if any.
         val existing = caseSpecimens.firstOrNull { specimen ->
             specimen.type.coding.any {

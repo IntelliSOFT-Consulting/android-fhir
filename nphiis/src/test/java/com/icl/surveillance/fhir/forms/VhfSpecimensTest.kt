@@ -1,5 +1,6 @@
 package com.icl.surveillance.fhir.forms
 
+import java.io.File
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Quantity
@@ -7,6 +8,7 @@ import org.hl7.fhir.r4.model.Specimen
 import org.hl7.fhir.r4.model.StringType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.icl.surveillance.models.QuestionnaireAnswer
 
@@ -119,5 +121,84 @@ class VhfSpecimensTest {
         assertEquals("Saliva", sample.type)
         assertEquals("2026-10-16T12:00:00+03:00", sample.sent)
         assertEquals(listOf("Transport: Road (Public)"), sample.notes)
+    }
+
+    @Test
+    fun `measles gives one sample per specimen selected plus the other type`() {
+        val samples = VhfSpecimens.samplesFromForm(
+            FormFields.Measles.CASE_FORM,
+            listOf(
+                answer(FormFields.Measles.SPECIMEN_TYPES, "Blood, Respiratory Sample"),
+                answer(FormFields.Measles.SPECIMEN_DATE, "2026-10-16"),
+                answer(FormFields.Measles.SPECIMEN_SENT_DATE, "2026-10-17"),
+                answer(FormFields.Measles.OTHER_SPECIMEN_COLLECTED, "Yes"),
+                answer(FormFields.Measles.OTHER_SPECIMEN_TYPE, "Saliva"),
+                answer(FormFields.Measles.OTHER_SPECIMEN_DATE, "2026-10-15"),
+            ),
+        )
+        assertEquals(listOf("Blood", "Respiratory Sample", "Saliva"), samples.map { it.type })
+        assertEquals(listOf("2026-10-16", "2026-10-16", "2026-10-15"), samples.map { it.collected })
+        assertEquals(listOf("2026-10-17"), samples.map { it.sent }.distinct())
+        assertEquals(FormFields.Measles.OTHER_SPECIMEN_TYPE, samples.last().sourceLinkId)
+    }
+
+    @Test
+    fun `measles other type needs the other specimens question answered yes`() {
+        val samples = VhfSpecimens.samplesFromMeaslesForm(
+            listOf(
+                answer(FormFields.Measles.OTHER_SPECIMEN_COLLECTED, "No"),
+                answer(FormFields.Measles.OTHER_SPECIMEN_TYPE, "Saliva"),
+            )
+        )
+        assertTrue(samples.isEmpty())
+    }
+
+    @Test
+    fun `afp gives a stool sample per collection date`() {
+        val sent = answer(FormFields.Afp.STOOL_SPECIMEN_SENT_DATE, "2026-10-20")
+        val first = answer(FormFields.Afp.STOOL_SPECIMEN_DATE, "2026-10-16")
+        val second = answer(FormFields.Afp.SECOND_STOOL_SPECIMEN_DATE, "2026-10-18")
+
+        val samples = VhfSpecimens.samplesFromForm(FormFields.Afp.CASE_FORM, listOf(first, second, sent))
+        assertEquals(listOf("Stool", "Stool"), samples.map { it.type })
+        assertEquals(listOf("2026-10-16", "2026-10-18"), samples.map { it.collected })
+        assertEquals(listOf("2026-10-20", "2026-10-20"), samples.map { it.sent })
+        // Their own source questions keep them apart when the case is edited.
+        assertEquals(
+            listOf(FormFields.Afp.STOOL_SPECIMEN_DATE, FormFields.Afp.SECOND_STOOL_SPECIMEN_DATE),
+            samples.map { it.sourceLinkId },
+        )
+
+        assertEquals(1, VhfSpecimens.samplesFromAfpForm(listOf(first)).size)
+    }
+
+    @Test
+    fun `a form without specimens gives no samples`() {
+        assertTrue(VhfSpecimens.samplesFromForm("vl-case.json", listOf(answer("x", "y"))).isEmpty())
+    }
+
+    @Test
+    fun `specimen questions are on the forms`() {
+        fun assertOnForm(form: String, vararg linkIds: String) {
+            val json = File("src/main/assets/$form").readText()
+            linkIds.forEach { linkId ->
+                assertTrue("$linkId not on $form", Regex("\"linkId\"\\s*:\\s*\"$linkId\"").containsMatchIn(json))
+            }
+        }
+        assertOnForm(
+            FormFields.Measles.CASE_FORM,
+            FormFields.Measles.SPECIMEN_TYPES,
+            FormFields.Measles.SPECIMEN_DATE,
+            FormFields.Measles.SPECIMEN_SENT_DATE,
+            FormFields.Measles.OTHER_SPECIMEN_COLLECTED,
+            FormFields.Measles.OTHER_SPECIMEN_TYPE,
+            FormFields.Measles.OTHER_SPECIMEN_DATE,
+        )
+        assertOnForm(
+            FormFields.Afp.CASE_FORM,
+            FormFields.Afp.STOOL_SPECIMEN_DATE,
+            FormFields.Afp.SECOND_STOOL_SPECIMEN_DATE,
+            FormFields.Afp.STOOL_SPECIMEN_SENT_DATE,
+        )
     }
 }

@@ -42,7 +42,7 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
 
     /** Tools of the ADaM module (home tile [Layout.ADAM]). */
     fun getAdamList(): List<Diseases> {
-        return Diseases.values().filter { it.count == ADAM_STAGE }.toList()
+        return Diseases.values().filter { it.count == ADAM_STAGE && it !in HIDDEN }.toList()
     }
 
     fun getAssessmentList(): List<Diseases> {
@@ -86,6 +86,12 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         ALERT_LOG(
             R.drawable.searching,
             R.string.alert_log, HomeViewModel.ADAM_STAGE, 52
+        ),
+
+        // Sub-County Daily Enhanced EVD Surveillance Snapshot (aggregate daily counts).
+        EVD_SNAPSHOT(
+            R.drawable.searching,
+            R.string.evd_snapshot, HomeViewModel.ADAM_STAGE, 53
         ),
 
         // Mass
@@ -196,5 +202,8 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
     companion object {
         /** Stage/count shared by the ADaM home tile and its tools. */
         const val ADAM_STAGE = 5
+
+        /** Tools kept in the code but not shown on the home screens (VHF Training is hidden). */
+        private val HIDDEN = setOf(Diseases.TRAININGS)
     }
 }
