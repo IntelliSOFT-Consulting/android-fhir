@@ -145,6 +145,8 @@ class FormatterClass {
                                     ""
                                 )
 
+                                answerObj.has("valueTime") -> answerObj.optString("valueTime", "").take(5)
+
                                 answerObj.has("valueBoolean") -> answerObj.optString(
                                     "valueBoolean",
                                     ""

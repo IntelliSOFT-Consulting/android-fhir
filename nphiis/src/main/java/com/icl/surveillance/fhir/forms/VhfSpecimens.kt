@@ -56,7 +56,7 @@ object VhfSpecimens {
     fun samplesFromForm(questionnaire: String, answers: List<QuestionnaireAnswer>): List<CaseFormSample> =
         when (questionnaire) {
             FormFields.Vhf.CASE_FORM -> listOfNotNull(sampleFromCaseForm(answers))
-            FormFields.AlertLog.FORM -> listOfNotNull(sampleFromAlertForm(answers))
+            FormFields.AlertLog.BACKUP_FORM -> listOfNotNull(sampleFromAlertForm(answers))
             FormFields.Measles.CASE_FORM -> samplesFromMeaslesForm(answers)
             FormFields.Afp.CASE_FORM -> samplesFromAfpForm(answers)
             else -> emptyList()

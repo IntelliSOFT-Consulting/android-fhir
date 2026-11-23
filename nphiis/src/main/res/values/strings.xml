@@ -80,7 +80,7 @@
     <string name="adam">Outbreak Response Module (ORM)</string>
     <string name="vhf_form">Viral Hemorrhagic Fever (VHF)</string>
     <string name="trainings">VHF Training</string>
-    <string name="alert_log">Alert Log</string>
+    <string name="alert_log">Alert Triage</string>
     <string name="evd_snapshot">EVD Daily Snapshot</string>
     <string name="no_itd_laboratory_results_available">No ITD Lab Information available</string>
     <string name="title_activity_landing">LandingActivity</string>

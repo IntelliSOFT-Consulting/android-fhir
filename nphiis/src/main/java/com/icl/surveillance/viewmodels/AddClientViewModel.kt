@@ -1022,7 +1022,9 @@ class AddClientViewModel(application: Application, private val state: SavedState
                         order = PatientMapper.NameOrder.SURNAME_AS_FAMILY
                     )
                     if (!patient.nameFirstRep.hasFamily() && !patient.nameFirstRep.hasGiven()) {
-                        patient.nameFirstRep.family = "Alert"
+                        patient.nameFirstRep.family = FormFields.AlertLog.NO_PATIENT_NAME
+                        // Triage form (no patient): named after the facility / community.
+                        answers.answerOf(FormFields.AlertLog.FACILITY)?.let { patient.nameFirstRep.addGiven(it) }
                     }
                     PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
                     answers.answerOf(FormFields.AlertLog.MOBILE)
@@ -1565,7 +1567,7 @@ class AddClientViewModel(application: Application, private val state: SavedState
             is IntegerType -> value.value?.toString()
             is DateType -> value.valueAsString
             is DateTimeType -> value.valueAsString
-            is org.hl7.fhir.r4.model.TimeType -> value.value
+            is org.hl7.fhir.r4.model.TimeType -> value.value?.take(5)
             is BooleanType -> value.booleanValue()?.toString()
             is DecimalType -> value.value?.toString()
             is Coding -> value.display ?: value.code

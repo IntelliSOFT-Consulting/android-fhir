@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.icl.surveillance.fhir.forms.FormFields
 import com.icl.surveillance.R
 import com.icl.surveillance.databinding.PatientListItemViewBinding
 import com.icl.surveillance.fhir.forms.toCaseSlug
@@ -118,13 +119,23 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                     this.lnFinalClassification.visibility = View.GONE
                     this.tvEpidLabel.text = "Alert No"
                     this.tvDateLabel.text = "Date of Alert"
-                    this.tvLabLabel.text = "Suspected case"
+                    this.tvPatientNameLabel.text = "Alert"
+                    // Alerts saved with the earlier Alert Log show whether it is a suspected case.
+                    this.tvLabLabel.text =
+                        if (patientItem.labResults.isBlank() || patientItem.labResults in FormFields.AlertLog.RISK_LEVELS) {
+                            "Risk Level"
+                        } else {
+                            "Suspected case"
+                        }
                     this.labResults.text = patientItem.labResults
                 }
 
-                // A sub-county's daily counts: no person, EPID, lab results or classification.
+                // A sub-county's daily counts: no person, lab results or classification. The EPID
+                // number is assigned by the HIE and arrives with the next sync.
                 "evd-daily-snapshot" -> {
-                    this.lnNameAndEpid.visibility = View.GONE
+                    this.tvPatientNameLabel.text = "Report"
+                    this.nameView.text = "EVD Daily Snapshot"
+                    this.epid.text = patientItem.epid.ifBlank { "Pending sync" }
                     this.tvDateLabel.text = "Reporting Date"
                     this.tvLabLabel.text = "Alerts · Suspected · Positive"
                     this.labResults.text = patientItem.labResults

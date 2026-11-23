@@ -39,6 +39,21 @@ class CaseNumberTest {
     }
 
     @Test
+    fun `an EVD snapshot shows the EPID the HIE assigned on sync`() {
+        // As synced: the system is on the type coding, not on the identifier itself.
+        val patient = Patient()
+        patient.addIdentifier(Identifier().setSystem(CaseSlugs.EVD_SNAPSHOT).setValue("47600573-a7e6-4fb8-9b2a-de3b59e155d9"))
+        patient.addIdentifier(Identifier().apply {
+            use = Identifier.IdentifierUse.OFFICIAL
+            type = CodeableConcept().addCoding(
+                Coding("http://hie.org/identifiers/EPID", "EPID", "Epidemiological ID")
+            )
+            value = "KEN-BUS-TES-2026-EVD-001"
+        })
+        assertEquals("KEN-BUS-TES-2026-EVD-001", FhirSystems.caseNumberOf(patient)?.value)
+    }
+
+    @Test
     fun `no number before the server assigns one`() {
         assertNull(FhirSystems.caseNumberOf(Patient()))
     }

@@ -1151,9 +1151,9 @@ class CaseSelectionFragment : Fragment() {
     companion object {
         private const val VHF_QUESTIONNAIRE = "vhf-case.json"
         private const val MENU_ADD_VHF_CASE = 9101
-        private const val ALERT_LOG_TITLE = "Alert Log"
+        private const val ALERT_LOG_TITLE = "Alert Triage"
         private const val ADD_ALERT = "Add New Alert"
-        private const val ALERT_LOG_LIST = "Alert Log List"
+        private const val ALERT_LOG_LIST = "Alert Triage List"
         private const val EVD_SNAPSHOT_TITLE = "EVD Daily Snapshot"
         private const val ADD_EVD_SNAPSHOT = "Add Daily Snapshot"
         private const val EVD_SNAPSHOT_LIST = "Daily Snapshot List"

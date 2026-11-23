@@ -163,7 +163,7 @@ class SummarizedActivity : AppCompatActivity() {
             checkIfResourceHasQuestionnaireResponse(this, patientId)
             lifecycleScope.launch {
                 val parsedGroups = withContext(Dispatchers.IO) {
-                    parseFromAssets(this@SummarizedActivity, latestEncounter, vhfFormFor(patientId))
+                    parseFromAssets(this@SummarizedActivity, latestEncounter, recordFormFor(patientId))
                 }.toMutableList()
                 configureTabs(parsedGroups, currentCase, latestEncounter, isCase)
             }
@@ -407,11 +407,16 @@ class SummarizedActivity : AppCompatActivity() {
             "Case summary"
         }
 
-        // A daily snapshot is a report, not a case: no case label or EPID number.
+        // A daily snapshot is a report, not a case; the HIE assigns its EPID number on sync.
         if (latestEncounter == CaseSlugs.EVD_SNAPSHOT) {
             binding.summarySubtitle.text = "Sub-County Daily Enhanced EVD Surveillance Snapshot"
-            binding.summaryChip.text = "Daily snapshot"
+            binding.summaryChip.text =
+                data.epidNo.trim().takeIf { it.isNotBlank() }?.let { "EPID: $it" } ?: "EPID: Pending sync"
             return
+        }
+
+        if (latestEncounter == CaseSlugs.ALERT_LOG) {
+            binding.summarySubtitle.text = FormFields.AlertLog.TITLE
         }
 
         val epid = data.epidNo.trim()
@@ -561,6 +566,16 @@ class SummarizedActivity : AppCompatActivity() {
                         CaseSlugs.VHF -> com.icl.surveillance.ui.patients.custom.VhfContactActions
                             .editRecord(this@SummarizedActivity)
 
+                        // An alert is edited in the form it was saved with.
+                        CaseSlugs.ALERT_LOG -> lifecycleScope.launch {
+                            val form = withContext(Dispatchers.IO) { recordFormFor(casePatientId) }
+                                ?: FormFields.AlertLog.FORM
+                            FormatterClass().saveSharedPref("questionnaire", form, this@SummarizedActivity)
+                            startActivity(
+                                Intent(this@SummarizedActivity, EditChecklistActivity::class.java)
+                            )
+                        }
+
                         else -> {
                             // Every questionnaire-based module edits its saved response in place.
                             val questionnaireFile = questionnaireFileFor(slug)
@@ -706,17 +721,19 @@ class SummarizedActivity : AppCompatActivity() {
     }
 
     /**
-     * VHF: the form the record was made with. A contact registered with the contact form is
+     * VHF and alerts: the form the record was made with. An alert saved with the earlier Alert
+     * Log is shown with that form's sections. A VHF contact registered with the contact form is
      * shown with that form's sections and questions, not the case form's. Null for other modules.
      */
-    private suspend fun vhfFormFor(patientId: String?): String? {
-        if (FormatterClass().getSharedPref("latestEncounter", this) != CaseSlugs.VHF) return null
+    private suspend fun recordFormFor(patientId: String?): String? {
+        val slug = FormatterClass().getSharedPref("latestEncounter", this)
+        if (slug != CaseSlugs.VHF && slug != CaseSlugs.ALERT_LOG) return null
         if (patientId.isNullOrBlank()) return null
         val encounterId = FormatterClass().getSharedPref("encounterId", this)
         return runCatching {
-            com.icl.surveillance.fhir.forms.VhfForms.formFor(
-                com.icl.surveillance.fhir.forms.CaseResponse.find(fhirEngine, patientId, encounterId)
-            )
+            val response = com.icl.surveillance.fhir.forms.CaseResponse.find(fhirEngine, patientId, encounterId)
+            if (slug == CaseSlugs.ALERT_LOG) com.icl.surveillance.fhir.forms.AlertForms.formFor(response)
+            else com.icl.surveillance.fhir.forms.VhfForms.formFor(response)
         }.getOrNull()
     }
 

@@ -1111,13 +1111,16 @@ class PatientListViewModel(
                             }
 
                             CaseSlugs.ALERT_LOG -> {
-                                // The row shows whether the alert is a suspected case; no lab or classification.
+                                // The row shows the overall risk level (earlier alerts: whether a suspected
+                                // case); no lab or classification.
+                                val riskLevel = obs.valueOf(FormFields.AlertLog.RISK_LEVEL)
                                 val meetsDefinition = obs.valueOf(FormFields.AlertLog.MEETS_CASE_DEFINITION)
                                 val suspected = obs.valueOf(FormFields.AlertLog.SUSPECTED)
                                 val other = obs.valueOf(FormFields.AlertLog.SUSPECTED_OTHER)
                                 val classification = obs.valueOf(FormFields.AlertLog.CLASSIFICATION)
                                 data = data.copy(
                                     labResults = when {
+                                        riskLevel.isNotBlank() -> riskLevel
                                         meetsDefinition.isNotBlank() -> meetsDefinition
                                         // Alerts saved with earlier versions of the form.
                                         classification.isNotBlank() -> classification
@@ -1954,6 +1957,7 @@ class PatientListViewModel(
             FormFields.Rcce.OCCUPATION_OTHER,
             FormFields.MpoxRegister.VACCINATION_CENTER,
             FormFields.AlertLog.DATE,
+            FormFields.AlertLog.RISK_LEVEL,
             FormFields.AlertLog.MEETS_CASE_DEFINITION,
             FormFields.AlertLog.SUSPECTED,
             FormFields.AlertLog.SUSPECTED_OTHER,

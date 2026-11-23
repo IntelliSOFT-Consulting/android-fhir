@@ -507,11 +507,25 @@ object FormFields {
     }
 
     /**
-     * Alert log (alert-rumor-log.json): the Alert Reporting Form. The file and the stored
-     * case type keep their earlier "rumor" names so saved alerts still open.
+     * Alert triage (alert-rumor-log.json): the Public Health Alert Intake and Triage Form
+     * (Annex 1, 23 Nov 2026). The file and the stored case type keep their earlier "rumor"
+     * names so saved alerts still open.
      */
     object AlertLog {
         const val FORM = "alert-rumor-log.json"
+
+        /** The Alert Log form used before: alerts saved with it are still viewed and edited in it. */
+        const val BACKUP_FORM = "alert-rumor-log-backup.json"
+        const val TITLE = "Alert Triage"
+
+        /** Sections and answers only the triage form has. */
+        const val TRIAGE_SECTION = "alert-info"
+        const val RISK_LEVEL = "alert-risk-level"
+        val RISK_LEVELS = setOf("Low", "Moderate", "High", "Critical")
+
+        /** Family name of the record of an alert that names no patient. */
+        const val NO_PATIENT_NAME = "Alert"
+
         const val DATE = "alert-date"
         const val SOURCE_TYPE = "alert-source-type"
         const val FACILITY = "alert-facility"

@@ -126,7 +126,7 @@ class EditSupervisorChecklistViewModel(
         // Questions changed from a date to a date and time keep their saved date.
         // Alert log reorganised as the Alert Reporting Form: answers saved before sit in other
         // groups; put them where the form now has them (else the form refuses the record).
-        if (this.questionnaire == FormFields.AlertLog.FORM) {
+        if (this.questionnaire == FormFields.AlertLog.BACKUP_FORM) {
             regroupToForm(questionnaire, questionnaireResponse)
         }
         // VHF: the source case is picked from a list; a typed EPID number saved before stays linked.
@@ -475,6 +475,14 @@ class EditSupervisorChecklistViewModel(
         answers: List<QuestionnaireAnswer>,
         questionnaire: String,
     ) {
+        if (questionnaire == FormFields.AlertLog.FORM) {
+            // An alert names no patient: its record is named after the facility / community.
+            val place = answers.answerOf(FormFields.AlertLog.FACILITY) ?: return
+            val patient = fhirEngine.get<Patient>(patientId)
+            patient.name = mutableListOf(HumanName().setFamily(FormFields.AlertLog.NO_PATIENT_NAME).addGiven(place))
+            LocalWins.update(fhirEngine, patient)
+            return
+        }
         val fields = PATIENT_FIELDS[questionnaire] ?: return
         val patient = fhirEngine.get<Patient>(patientId)
         val first = answers.answerOf(fields.firstName)
@@ -629,7 +637,7 @@ class EditSupervisorChecklistViewModel(
         /** Case forms that record specimens (see [VhfSpecimens.samplesFromForm]). */
         val SPECIMEN_FORMS = setOf(
             FormFields.Vhf.CASE_FORM,
-            FormFields.AlertLog.FORM,
+            FormFields.AlertLog.BACKUP_FORM,
             FormFields.Measles.CASE_FORM,
             FormFields.Afp.CASE_FORM,
         )
@@ -657,7 +665,7 @@ class EditSupervisorChecklistViewModel(
             "mpox-register.json" to PERSON,
             "vhf-case.json" to PERSON.copy(middleName = null),
             "vhf-contact.json" to PERSON.copy(middleName = null),
-            FormFields.AlertLog.FORM to PERSON.copy(middleName = null),
+            FormFields.AlertLog.BACKUP_FORM to PERSON.copy(middleName = null),
             "afp-case.json" to PERSON.copy(nameOrder = PatientMapper.NameOrder.FIRST_AS_FAMILY),
             "vl-case.json" to PatientFields(
                 FormFields.Vl.FIRST_NAME, FormFields.Vl.MIDDLE_NAME, FormFields.Vl.SURNAME,
@@ -727,7 +735,7 @@ class EditSupervisorChecklistViewModel(
             is IntegerType -> value.value?.toString()
             is DateType -> value.valueAsString
             is DateTimeType -> value.valueAsString
-            is org.hl7.fhir.r4.model.TimeType -> value.value
+            is org.hl7.fhir.r4.model.TimeType -> value.value?.take(5)
             is BooleanType -> value.booleanValue()?.toString()
             is DecimalType -> value.value?.toString()
             is Coding -> value.display ?: value.code
