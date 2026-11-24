@@ -55,6 +55,7 @@ class LayoutViewHolder(
             HomeViewModel.Layout.SOCIAL -> R.string.home_subtitle_social
             HomeViewModel.Layout.SURVEY -> R.string.home_subtitle_surveys
             HomeViewModel.Layout.ADAM -> R.string.home_subtitle_adam
+            HomeViewModel.Layout.EOC -> R.string.home_subtitle_eoc
         }
     }
 

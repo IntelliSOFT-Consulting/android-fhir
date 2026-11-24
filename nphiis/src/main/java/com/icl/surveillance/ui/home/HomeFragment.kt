@@ -160,6 +160,10 @@ class HomeFragment : Fragment() {
                showComingSoon()
             }
 
+            HomeViewModel.EOC_STAGE -> {
+                handleClick(HomeViewModel.EOC_STAGE.toString(), title)
+            }
+
             HomeViewModel.ADAM_STAGE -> {
                 handleClick(HomeViewModel.ADAM_STAGE.toString(), title)
             }

@@ -241,6 +241,31 @@ class CaseSelectionFragment : Fragment() {
         }
     }
 
+    /**
+     * Starting answers of a new FVD alert: today's dates, and the signed-in user's name, county
+     * and sub-county as where it was received (the alert's own location is left to fill in).
+     */
+    private fun fvdAlertPrefill(): Map<String, String> {
+        val formatter = FormatterClass()
+        fun pref(key: String) = formatter.getSharedPref(key, requireContext())
+            ?.trim()?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && it != "N/A" }
+        val today = java.time.LocalDate.now().toString()
+        return buildMap {
+            put(FormFields.FvdAlert.NOTIFICATION_DATE, today)
+            put(FormFields.FvdAlert.OFFICER_DATE, today)
+            pref("fullNames")?.let {
+                put(FormFields.FvdAlert.RECEIVED_BY, it)
+                put(FormFields.FvdAlert.OFFICER_NAME, it)
+            }
+            pref("county")?.let {
+                put(FormFields.FvdAlert.NOTIFY_COUNTY, com.icl.surveillance.fhir.forms.FormPrefill.locationReference(it, pref("countyName")))
+            }
+            pref("subCounty")?.let {
+                put(FormFields.FvdAlert.NOTIFY_SUB_COUNTY, com.icl.surveillance.fhir.forms.FormPrefill.locationReference(it, pref("subCountyName")))
+            }
+        }
+    }
+
     /** Sets up the RecyclerView with the case options. */
     private fun setupRecyclerView() {
         val titleName = FormatterClass().getSharedPref("grandTitle", requireContext())
@@ -252,6 +277,7 @@ class CaseSelectionFragment : Fragment() {
                 getString(R.string.vhf_form) -> "VHF"
                 getString(R.string.trainings) -> "VHF Training"
                 getString(R.string.alert_log) -> ALERT_LOG_TITLE
+                getString(R.string.fvd_alert) -> FVD_ALERT_TITLE
                 getString(R.string.evd_snapshot) -> EVD_SNAPSHOT_TITLE
                 "Social Listening and Rumor Tracking Tool" -> "SLR"
                 "RCCE Tools" -> "RCCE"
@@ -265,6 +291,7 @@ class CaseSelectionFragment : Fragment() {
                 "Summary Sheet" -> "Add New Team Record"
                 "Mpox Register" -> "Add New Mpox Register"
                 ALERT_LOG_TITLE -> ADD_ALERT
+                FVD_ALERT_TITLE -> ADD_FVD_ALERT
                 EVD_SNAPSHOT_TITLE -> ADD_EVD_SNAPSHOT
                 "VHF" -> VHF_ADD
                 else -> "Add New $title Case"
@@ -275,6 +302,7 @@ class CaseSelectionFragment : Fragment() {
                 "Social Investigation Form" -> "Social Investigation Reports"
                 "Mpox Register" -> "Mpox Register List"
                 ALERT_LOG_TITLE -> ALERT_LOG_LIST
+                FVD_ALERT_TITLE -> FVD_ALERT_LIST
                 EVD_SNAPSHOT_TITLE -> EVD_SNAPSHOT_LIST
                 "VHF" -> VHF_LIST
                 else -> "$title Case List"
@@ -640,6 +668,28 @@ class CaseSelectionFragment : Fragment() {
                         startActivity(Intent(requireContext(), CaseListingActivity::class.java))
                     }
 
+                    ADD_FVD_ALERT -> {
+                        val form = FormFields.FvdAlert.FORM
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.FVD_ALERT, requireContext())
+                        FormatterClass().saveSharedPref("AddParentTitle", getString(R.string.fvd_alert), requireContext())
+                        FormatterClass().saveSharedPref("questionnaire", form, requireContext())
+                        if (!checkIfUserIsAllowedToAction()) {
+                            showPermissionErrorDialog(requireContext())
+                            return@CaseOptionsAdapter
+                        }
+                        com.icl.surveillance.fhir.forms.FormPrefill.stage(requireContext(), form, fvdAlertPrefill())
+                        val intent = Intent(requireContext(), AddParentCaseActivity::class.java)
+                        intent.putExtra("AddParentTitle", " $titleName")
+                        intent.putExtra(QUESTIONNAIRE_FILE_PATH_KEY, form)
+                        addParentCaseLauncher.launch(intent)
+                    }
+
+                    FVD_ALERT_LIST -> {
+                        FormatterClass().saveSharedPref("listingTitle", " ${option.title}", requireContext())
+                        FormatterClass().saveSharedPref("currentCase", CaseTypes.FVD_ALERT, requireContext())
+                        startActivity(Intent(requireContext(), CaseListingActivity::class.java))
+                    }
+
                     ADD_EVD_SNAPSHOT -> {
                         val form = FormFields.EvdSnapshot.FORM
                         FormatterClass().saveSharedPref("currentCase", CaseTypes.EVD_SNAPSHOT, requireContext())
@@ -863,6 +913,7 @@ class CaseSelectionFragment : Fragment() {
                 "VHF" -> CaseSlugs.VHF
                 "VHF Training" -> CaseSlugs.VHF
                 ALERT_LOG_TITLE -> CaseSlugs.ALERT_LOG
+                FVD_ALERT_TITLE -> CaseSlugs.FVD_ALERT
                 EVD_SNAPSHOT_TITLE -> CaseSlugs.EVD_SNAPSHOT
                 "SLR" -> CaseSlugs.RUMOR
                 "Social Investigation Form" -> CaseSlugs.RCCE
@@ -1154,6 +1205,9 @@ class CaseSelectionFragment : Fragment() {
         private const val ALERT_LOG_TITLE = "Alert Triage"
         private const val ADD_ALERT = "Add New Alert"
         private const val ALERT_LOG_LIST = "Alert Triage List"
+        private const val FVD_ALERT_TITLE = "FVD Alert Notification"
+        private const val ADD_FVD_ALERT = "Add New FVD Alert"
+        private const val FVD_ALERT_LIST = "FVD Alert List"
         private const val EVD_SNAPSHOT_TITLE = "EVD Daily Snapshot"
         private const val ADD_EVD_SNAPSHOT = "Add Daily Snapshot"
         private const val EVD_SNAPSHOT_LIST = "Daily Snapshot List"

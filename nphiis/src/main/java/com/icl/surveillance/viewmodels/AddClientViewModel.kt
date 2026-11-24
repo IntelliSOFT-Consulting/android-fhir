@@ -26,6 +26,7 @@ import com.icl.surveillance.fhir.forms.CaseTypes
 import com.icl.surveillance.fhir.forms.EpidNumber
 import com.icl.surveillance.fhir.forms.FhirSystems
 import com.icl.surveillance.fhir.forms.FormFields
+import com.icl.surveillance.fhir.forms.FvdAlerts
 import com.icl.surveillance.fhir.forms.LocalWins
 import com.icl.surveillance.fhir.forms.VhfListMode
 import com.icl.surveillance.fhir.forms.PatientMapper
@@ -1036,6 +1037,14 @@ class AddClientViewModel(application: Application, private val state: SavedState
                     VhfSpecimens.sampleFromAlertForm(answers)?.let { sample ->
                         saveSpecimen(sample.sourceLinkId, sample.collected, sample.type, sample.notes)
                     }
+                }
+
+                CaseSlugs.FVD_ALERT -> {
+                    patient.name = mutableListOf(FvdAlerts.nameOf(answers))
+                    PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+                    // Section D: where the alert is, not where it was received.
+                    val (county, subCounty) = applyResidence(patient, answers, context)
+                    saveEpid(EpidNumber.kenyan(county, subCounty, EpidNumber.FVD_ALERT))
                 }
 
                 CaseSlugs.EVD_SNAPSHOT -> {

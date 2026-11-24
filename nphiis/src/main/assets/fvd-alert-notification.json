@@ -1,0 +1,1321 @@
+{
+  "resourceType": "Questionnaire",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/4.0/StructureDefinition/Questionnaire"
+    ]
+  },
+  "extension": [
+    {
+      "extension": [
+        {
+          "url": "name",
+          "valueCoding": {
+            "system": "http://hl7.org/fhir/uv/sdc/CodeSystem/launchContext",
+            "code": "patient"
+          }
+        },
+        {
+          "url": "type",
+          "valueCode": "Patient"
+        }
+      ],
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext"
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "notifyCounty",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='fvd-notify-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a4-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/variable",
+      "valueExpression": {
+        "name": "patientSubCountyName",
+        "language": "text/fhirpath",
+        "expression": "%resource.descendants().where(linkId='a3-sub-county').answer.value.reference"
+      }
+    },
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode",
+      "valueCode": "prior-edit"
+    }
+  ],
+  "title": "FVD Alert Notification Form",
+  "status": "draft",
+  "item": [
+    {
+      "linkId": "fvd-info",
+      "text": "A. Alert Information",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-reference",
+          "text": "Alert Reference #",
+          "type": "string"
+        },
+        {
+          "linkId": "fvd-notification-date",
+          "text": "Notification date",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "required": true
+        },
+        {
+          "linkId": "fvd-time",
+          "text": "Time alert received (hh:mm)",
+          "type": "time",
+          "required": true
+        },
+        {
+          "linkId": "fvd-received-by",
+          "text": "Received By",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "fvd-notify-county",
+          "text": "County",
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "required": true
+        },
+        {
+          "linkId": "fvd-notify-sub-county",
+          "text": "Sub County",
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%notifyCounty}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "required": true
+        },
+        {
+          "linkId": "fvd-notify-facility",
+          "text": "Nearest health facility",
+          "type": "string"
+        },
+        {
+          "linkId": "fvd-notify-village",
+          "text": "Village/Neighborhood",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-source-section",
+      "text": "B. Source of Alert",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-source",
+          "text": "Source of alert (choose one)",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "toll-free-number-alert",
+                "display": "Toll-free number/Alert"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "walk-in",
+                "display": "Walk in"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "community",
+                "display": "Community"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "health-facility",
+                "display": "Health facility"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "email",
+                "display": "Email"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "active-case-finding",
+                "display": "Active case finding"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "treatment-center",
+                "display": "Treatment Center"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "chp",
+                "display": "CHP"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "morgue",
+                "display": "Morgue"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "poe",
+                "display": "POE"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-source-other",
+          "text": "Other source (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "fvd-source",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-reporter",
+      "text": "C. Reporter / Notifier Details",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-anonymous",
+          "text": "Anonymous reporter?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-reporter-name",
+          "text": "Name of reporter",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "fvd-anonymous",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-reporter-phone",
+          "text": "Phone no.",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g., +254700000000"
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-anonymous",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-reporter-role",
+          "text": "Relationship or role (e.g. relative, CHP, clinician, village leader)",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "fvd-anonymous",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-reporter-facility",
+          "text": "Facility or organisation (if applicable)",
+          "type": "string",
+          "enableWhen": [
+            {
+              "question": "fvd-anonymous",
+              "operator": "=",
+              "answerCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-location",
+      "text": "D. Information on the Alert: Location",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "a4-county",
+          "text": "County",
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof=Location/0&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "required": true
+        },
+        {
+          "linkId": "a3-sub-county",
+          "text": "Sub county",
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ],
+          "required": true
+        },
+        {
+          "linkId": "a2-ward",
+          "text": "Ward",
+          "type": "reference",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Location?partof={{%patientSubCountyName}}&_sort=name"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn",
+              "extension": [
+                {
+                  "url": "path",
+                  "valueString": "name"
+                },
+                {
+                  "url": "forDisplay",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-village",
+          "text": "Village",
+          "type": "string"
+        },
+        {
+          "linkId": "fvd-facility",
+          "text": "HF (if applicable)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-reported",
+      "text": "E. What Was Reported",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-alert-nature",
+          "text": "Nature of alert",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "non-case-(public-health-event)",
+                "display": "Non case (public health event)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-case-name",
+          "text": "Name of case",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "492731638700",
+          "text": "Age (years)",
+          "type": "integer",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 120
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "0 if under 1 year"
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "929966324957",
+          "text": "Sex",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "female",
+                "display": "Female"
+              }
+            }
+          ],
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-onset-date",
+          "text": "Date of symptom onset",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-symptoms",
+          "text": "Symptoms",
+          "type": "choice",
+          "repeats": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "fever",
+                "display": "Fever"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "hemorrhagic-signs",
+                "display": "Hemorrhagic signs"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "diarrhea",
+                "display": "Diarrhea"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "vomiting",
+                "display": "Vomiting"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-symptoms-other",
+          "text": "Other symptoms (specify)",
+          "type": "string",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "fvd-symptoms",
+              "operator": "=",
+              "answerCoding": {
+                "code": "other",
+                "display": "Other (specify)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-epi-link",
+          "text": "Epidemiological link (relationship with a suspected, confirmed, or probable case)",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dont-know",
+                "display": "Don't know"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-health-status",
+          "text": "Current health status",
+          "type": "choice",
+          "repeats": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Check-box"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "conscious",
+                "display": "Conscious"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "unconscious",
+                "display": "Unconscious"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "able-to-walk",
+                "display": "Able to walk"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "death",
+                "display": "Death"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "case",
+                "display": "Case"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-death-date",
+          "text": "Date of death",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "fvd-health-status",
+              "operator": "=",
+              "answerCoding": {
+                "code": "death",
+                "display": "Death"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-event-description",
+          "text": "Public health event: description",
+          "type": "text",
+          "required": true,
+          "enableWhen": [
+            {
+              "question": "fvd-alert-nature",
+              "operator": "=",
+              "answerCoding": {
+                "code": "non-case-(public-health-event)",
+                "display": "Non case (public health event)"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-household-head",
+          "text": "Information on the area: name of head of household",
+          "type": "string"
+        },
+        {
+          "linkId": "fvd-area-chief",
+          "text": "Information on the area: name of the area Chief",
+          "type": "string"
+        },
+        {
+          "linkId": "fvd-secure-area",
+          "text": "Secure area",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dont-know",
+                "display": "Don't know"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-resistance",
+          "text": "Resistance/reluctance",
+          "type": "choice",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+              "valueCode": "horizontal"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "no",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "dont-know",
+                "display": "Don't know"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-verification",
+      "text": "F. Alert Verification",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-verification-date",
+          "text": "Date of verification",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-verifier",
+          "text": "Name of the person who verified the alert",
+          "type": "string"
+        },
+        {
+          "linkId": "fvd-verifier-phone",
+          "text": "Phone no.",
+          "type": "string",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "phone-number",
+                    "display": "Phone Number"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Enter a valid phone number, 10 to 13 characters: 07xxxxxxxx, or with the country code, e.g. +254 or +256"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/regex",
+              "valueString": "^(0\\d{9}|\\+[1-9]\\d{8,11}|[1-9]\\d{9,11})$"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "e.g., +254700000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-conclusion-section",
+      "text": "G. Verification Conclusion and Action Taken",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-conclusion",
+          "text": "Alert",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "in-progress",
+                "display": "In progress"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "validated",
+                "display": "Validated"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "discarded",
+                "display": "Discarded"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fvd-notify",
+          "text": "Alert validated: notify the PHEOC Manager, the CDSC and the National Disease Surveillance Head.",
+          "type": "display",
+          "enableWhen": [
+            {
+              "question": "fvd-conclusion",
+              "operator": "=",
+              "answerCoding": {
+                "code": "validated",
+                "display": "Validated"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "fvd-officer",
+      "text": "H. Person Filling Form",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "fvd-officer-name",
+          "text": "Officer Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "linkId": "fvd-officer-date",
+          "text": "Date",
+          "type": "date",
+          "extension": [
+            {
+              "url": "http://ehelse.no/fhir/StructureDefinition/validationtext",
+              "valueString": "Cannot be a date in the future"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/entryFormat",
+              "valueString": "dd/mm/yyyy"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueDate": {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-calculatedValue",
+                    "valueExpression": {
+                      "language": "text/fhirpath",
+                      "expression": "today()"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "required": true
+        }
+      ]
+    }
+  ]
+}

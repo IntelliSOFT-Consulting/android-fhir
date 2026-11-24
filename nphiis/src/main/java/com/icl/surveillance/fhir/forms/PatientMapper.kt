@@ -119,6 +119,7 @@ object EpidNumber {
     const val MPOX = "Mpox-"
     const val MPOX_VACCINATION = "MPOVAC-"
     const val ALERT_LOG = "ALR-"
+    const val FVD_ALERT = "FVD-"
 
     fun kenyan(county: String, subCounty: String, tag: String): String {
         val formatter = FormatterClass()

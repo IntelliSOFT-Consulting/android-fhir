@@ -105,6 +105,7 @@ object SyntheticDataGenerator {
             diseases = listOf("Ebola", "Marburg"),
         ),
         Module(CaseTypes.ALERT_LOG, "Alert triage", FormFields.AlertLog.FORM),
+        Module(CaseTypes.FVD_ALERT, "FVD alert", FormFields.FvdAlert.FORM),
         Module(CaseTypes.MOH_505, "MOH 505 report", "moh505.json"),
         Module(CaseTypes.MPOX_REGISTER, "Mpox register", "mpox-register.json", diseases = listOf("mpox")),
         Module(CaseTypes.MPOX_TALLY_SHEET, "Mpox tally sheet", "mpox-tally-sheet.json", diseases = listOf("mpox")),

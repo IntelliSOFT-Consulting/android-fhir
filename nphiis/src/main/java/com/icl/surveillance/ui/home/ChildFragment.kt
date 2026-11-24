@@ -99,6 +99,7 @@ class ChildFragment : Fragment() {
                     "3" -> viewModel.getSocialList()
                     "100" -> viewModel.getMOHList()
                     HomeViewModel.ADAM_STAGE.toString() -> viewModel.getAdamList()
+                    HomeViewModel.EOC_STAGE.toString() -> viewModel.getEocList()
                     else -> emptyList()
                 }
             } else {
@@ -196,7 +197,7 @@ class ChildFragment : Fragment() {
                 )
             }
 
-            20, 50, 51, 52, 53 -> { // VL, VHF, Trainings (VHF), Alert log, EVD snapshot: "Add new" + "List"
+            20, 50, 51, 52, 53, 80 -> { // VL, VHF, Trainings (VHF), Alert triage, EVD snapshot, FVD alert: "Add new" + "List"
                 val bundle =
                     Bundle().apply { putString(QUESTIONNAIRE_FILE_PATH_KEY, "add-case.json") }
 

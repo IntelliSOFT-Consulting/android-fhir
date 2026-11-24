@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Emergency siren: home tile of the EOC module. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path
+        android:pathData="M128,392 V272 A128,128 0 0 1 384,272 V392"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M104,392 H408 A24,24 0 0 1 432,416 V464 A24,24 0 0 1 408,488 H104 A24,24 0 0 1 80,464 V416 A24,24 0 0 1 104,392 Z"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M256,208 V296"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M256,346 V348"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="28"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M256,24 V80"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M92,92 L132,132"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M420,92 L380,132"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M20,256 H72"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M492,256 H440"
+        android:strokeColor="@android:color/black"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

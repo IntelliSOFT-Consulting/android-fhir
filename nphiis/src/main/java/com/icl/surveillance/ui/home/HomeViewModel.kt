@@ -45,6 +45,11 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         return Diseases.values().filter { it.count == ADAM_STAGE && it !in HIDDEN }.toList()
     }
 
+    /** Tools of the EOC module (home tile [Layout.EOC]). */
+    fun getEocList(): List<Diseases> {
+        return Diseases.values().filter { it.count == EOC_STAGE }.toList()
+    }
+
     fun getAssessmentList(): List<Diseases> {
         return Diseases.values().filter { it.count == 4 }.toList()
     }
@@ -92,6 +97,12 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         EVD_SNAPSHOT(
             R.drawable.searching,
             R.string.evd_snapshot, HomeViewModel.ADAM_STAGE, 53
+        ),
+
+        // Emergency Operations Centre: FVD Alert Notification Form.
+        FVD_ALERT(
+            R.drawable.searching,
+            R.string.fvd_alert, HomeViewModel.EOC_STAGE, 80
         ),
 
         // Mass
@@ -196,6 +207,10 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         ADAM(
             R.drawable.virus,
             R.string.adam, HomeViewModel.ADAM_STAGE
+        ),
+        EOC(
+            R.drawable.ic_emergency,
+            R.string.eoc, HomeViewModel.EOC_STAGE
         )
     }
 
@@ -203,7 +218,10 @@ class HomeViewModel(application: Application, private val state: SavedStateHandl
         /** Stage/count shared by the ADaM home tile and its tools. */
         const val ADAM_STAGE = 5
 
-        /** Tools kept in the code but not shown on the home screens (VHF Training is hidden). */
-        private val HIDDEN = setOf(Diseases.TRAININGS)
+        /** Stage/count shared by the EOC home tile and its tools. */
+        const val EOC_STAGE = 8
+
+        /** Tools kept in the code but not shown on the home screens (VHF Training, Alert Triage). */
+        private val HIDDEN = setOf(Diseases.TRAININGS, Diseases.ALERT_LOG)
     }
 }

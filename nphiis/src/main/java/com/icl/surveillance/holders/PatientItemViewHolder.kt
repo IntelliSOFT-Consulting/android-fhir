@@ -130,6 +130,17 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
                     this.labResults.text = patientItem.labResults
                 }
 
+                // FVD alerts: when notified, what was reported and the verification conclusion.
+                "fvd-alert-notification" -> {
+                    this.tvPatientNameLabel.text = "Alert"
+                    this.tvEpidLabel.text = "Alert No"
+                    this.epid.text = patientItem.epid.ifBlank { "Pending sync" }
+                    this.tvDateLabel.text = "Notification Date"
+                    this.tvLabLabel.text = "Nature of Alert"
+                    this.labResults.text = patientItem.labResults
+                    this.tvFinalClassificationLabel.text = "Verification"
+                }
+
                 // A sub-county's daily counts: no person, lab results or classification. The EPID
                 // number is assigned by the HIE and arrives with the next sync.
                 "evd-daily-snapshot" -> {

@@ -1110,6 +1110,14 @@ class PatientListViewModel(
                                 )
                             }
 
+                            CaseSlugs.FVD_ALERT -> {
+                                // The row shows the nature of the alert and the verification conclusion.
+                                data = data.copy(
+                                    labResults = obs.valueOf(FormFields.FvdAlert.NATURE).substringBefore(" ("),
+                                    status = obs.valueOf(FormFields.FvdAlert.CONCLUSION),
+                                )
+                            }
+
                             CaseSlugs.ALERT_LOG -> {
                                 // The row shows the overall risk level (earlier alerts: whether a suspected
                                 // case); no lab or classification.
@@ -1186,6 +1194,7 @@ class PatientListViewModel(
                                 // Alerts list by the date the alert was received.
                                 when (nameQuery) {
                                     CaseSlugs.ALERT_LOG -> obs.valueOf(FormFields.AlertLog.DATE).take(10)
+                                    CaseSlugs.FVD_ALERT -> obs.valueOf(FormFields.FvdAlert.NOTIFICATION_DATE).take(10)
                                     // Snapshots list by their reporting date.
                                     CaseSlugs.EVD_SNAPSHOT -> obs.valueOf(FormFields.EvdSnapshot.REPORTING_DATE).take(10)
                                     else -> onset
@@ -1964,7 +1973,7 @@ class PatientListViewModel(
             FormFields.AlertLog.CLASSIFICATION,
             FormFields.Vhf.CASE_TYPE, // VHF: Suspected Cases vs Contact List
             FormFields.Vhf.CONTACT_DATE, // Contact List: date of last contact
-        ) + FormFields.EvdSnapshot.LIST_CODES + VhfContactTracker.CASE_ANSWER_CODES).distinct()
+        ) + FormFields.EvdSnapshot.LIST_CODES + FormFields.FvdAlert.LIST_CODES + VhfContactTracker.CASE_ANSWER_CODES).distinct()
         private const val PATIENT_LOAD_CHUNK = 200
         private const val RUMOR_PAGE_SIZE = 200
 

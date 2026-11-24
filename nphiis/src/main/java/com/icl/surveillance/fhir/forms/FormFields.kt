@@ -30,10 +30,13 @@ object CaseTypes {
     /** Outbreak Response: Sub-County Daily Enhanced EVD Surveillance Snapshot (aggregate). */
     const val EVD_SNAPSHOT = "EVD Daily Snapshot"
 
+    /** EOC: FVD Alert Notification Form. */
+    const val FVD_ALERT = "FVD Alert Notification"
+
     /** Modules whose submissions create a case (Patient + Encounter) and appear in case lists. */
     val CASE_LISTED = listOf(
         MEASLES, AFP, VL, VHF, MOH_505, MPOX_INFORMATION, RCCE_COMMUNITY, RCCE_COUNTY, ALERT_LOG,
-        EVD_SNAPSHOT,
+        EVD_SNAPSHOT, FVD_ALERT,
     )
 }
 
@@ -68,6 +71,7 @@ object CaseSlugs {
     const val RCCE_COUNTY = "rcce-countysubcounty-interface"
     const val ALERT_LOG = "alert-rumor-log"
     const val EVD_SNAPSHOT = "evd-daily-snapshot"
+    const val FVD_ALERT = "fvd-alert-notification"
 
     /** List-screen key covering both RCCE forms. */
     const val RCCE = "rcce"
@@ -550,6 +554,25 @@ object FormFields {
         const val SUSPECTED = "alert-suspected"
         const val SUSPECTED_OTHER = "alert-suspected-other"
         const val CLASSIFICATION = "alert-classification"
+    }
+
+    /** FVD Alert Notification Form (fvd-alert-notification.json, version 1), EOC module. */
+    object FvdAlert {
+        const val FORM = "fvd-alert-notification.json"
+        const val NOTIFICATION_DATE = "fvd-notification-date"
+        const val RECEIVED_BY = "fvd-received-by"
+        const val NOTIFY_COUNTY = "fvd-notify-county"
+        const val NOTIFY_SUB_COUNTY = "fvd-notify-sub-county"
+        const val VILLAGE = "fvd-village"
+        const val FACILITY = "fvd-facility"
+        const val NATURE = "fvd-alert-nature"
+        const val CASE_NAME = "fvd-case-name"
+        const val CONCLUSION = "fvd-conclusion"
+        const val OFFICER_NAME = "fvd-officer-name"
+        const val OFFICER_DATE = "fvd-officer-date"
+
+        /** The answers the alert list row shows. */
+        val LIST_CODES = listOf(NOTIFICATION_DATE, NATURE, CONCLUSION)
     }
 
     /** EVD daily snapshot (evd-daily-snapshot.json): one sub-county's counts for the last 24 hours. */

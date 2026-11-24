@@ -483,6 +483,13 @@ class EditSupervisorChecklistViewModel(
             LocalWins.update(fhirEngine, patient)
             return
         }
+        if (questionnaire == FormFields.FvdAlert.FORM) {
+            val patient = fhirEngine.get<Patient>(patientId)
+            patient.name = mutableListOf(com.icl.surveillance.fhir.forms.FvdAlerts.nameOf(answers))
+            PatientMapper.applySex(patient, answers.answerOf(FormFields.Person.SEX))
+            LocalWins.update(fhirEngine, patient)
+            return
+        }
         val fields = PATIENT_FIELDS[questionnaire] ?: return
         val patient = fhirEngine.get<Patient>(patientId)
         val first = answers.answerOf(fields.firstName)

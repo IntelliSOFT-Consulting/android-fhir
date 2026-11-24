@@ -63,6 +63,7 @@
     <string name="home_subtitle_case_management">Manage follow-up and case outcomes.</string>
     <string name="home_subtitle_social">Record rumors and social investigation data.</string>
     <string name="home_subtitle_surveys">Run assessments and supervision checklists.</string>
+    <string name="home_subtitle_eoc">Receive, verify and act on alerts.</string>
     <string name="home_subtitle_adam">Investigate priority outbreak cases and lab results.</string>
     <string name="flow_header_prompt">Select a form to proceed.</string>
     <string name="flow_section_title">Available Forms</string>
@@ -81,6 +82,8 @@
     <string name="vhf_form">Viral Hemorrhagic Fever (VHF)</string>
     <string name="trainings">VHF Training</string>
     <string name="alert_log">Alert Triage</string>
+    <string name="eoc">Emergency Operations Centre (EOC)</string>
+    <string name="fvd_alert">FVD Alert Notification</string>
     <string name="evd_snapshot">EVD Daily Snapshot</string>
     <string name="no_itd_laboratory_results_available">No ITD Lab Information available</string>
     <string name="title_activity_landing">LandingActivity</string>
