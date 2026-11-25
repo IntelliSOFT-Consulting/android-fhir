@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.AnnotatedString
+import com.google.android.fhir.datacapture.MINIMUM_NUMBER_OF_ANSWER_OPTIONS_FOR_DIALOG
 import com.google.android.fhir.datacapture.R
 import com.google.android.fhir.datacapture.extensions.ChoiceOrientationTypes
 import com.google.android.fhir.datacapture.extensions.choiceOrientation
@@ -41,8 +42,10 @@ import com.google.android.fhir.datacapture.extensions.itemMedia
 import com.google.android.fhir.datacapture.extensions.optionExclusive
 import com.google.android.fhir.datacapture.views.QuestionnaireViewItem
 import com.google.android.fhir.datacapture.views.compose.ChoiceCheckbox
+import com.google.android.fhir.datacapture.views.compose.ChoiceSearchField
 import com.google.android.fhir.datacapture.views.compose.Header
 import com.google.android.fhir.datacapture.views.compose.MediaItem
+import com.google.android.fhir.datacapture.views.compose.enhancedChoiceControls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Questionnaire
@@ -65,6 +68,19 @@ internal object CheckBoxGroupViewHolderFactory : QuestionnaireItemComposeViewHol
           }
         val enabledAnswerOptions =
           remember(questionnaireViewItem) { questionnaireViewItem.enabledAnswerOptions }
+        val searchable =
+          enhancedChoiceControls() &&
+            enabledAnswerOptions.size >= MINIMUM_NUMBER_OF_ANSWER_OPTIONS_FOR_DIALOG
+        var searchQuery by
+          remember(questionnaireViewItem.questionnaireItem.linkId) { mutableStateOf("") }
+        val visibleOptions =
+          if (searchable && searchQuery.isNotBlank()) {
+            enabledAnswerOptions.filter {
+              it.value.displayString(context).contains(searchQuery, ignoreCase = true)
+            }
+          } else {
+            enabledAnswerOptions
+          }
         var selectedAnswerOptions by
           remember(questionnaireViewItem) {
             mutableStateOf(
@@ -131,6 +147,7 @@ internal object CheckBoxGroupViewHolderFactory : QuestionnaireItemComposeViewHol
             displayValidationResult = true,
           )
           questionnaireViewItem.questionnaireItem.itemMedia?.let { MediaItem(it) }
+          if (searchable) ChoiceSearchField(searchQuery, onQueryChange = { searchQuery = it })
 
           when (choiceOrientationType) {
             ChoiceOrientationTypes.HORIZONTAL -> {
@@ -141,7 +158,7 @@ internal object CheckBoxGroupViewHolderFactory : QuestionnaireItemComposeViewHol
                 verticalArrangement =
                   Arrangement.spacedBy(dimensionResource(R.dimen.option_item_margin_vertical)),
               ) {
-                enabledAnswerOptions.forEach { answerOption ->
+                visibleOptions.forEach { answerOption ->
                   ChoiceCheckbox(
                     label =
                       remember(answerOption) {
@@ -163,7 +180,7 @@ internal object CheckBoxGroupViewHolderFactory : QuestionnaireItemComposeViewHol
                 verticalArrangement =
                   Arrangement.spacedBy(dimensionResource(R.dimen.option_item_margin_vertical)),
               ) {
-                enabledAnswerOptions.forEach { answerOption ->
+                visibleOptions.forEach { answerOption ->
                   ChoiceCheckbox(
                     label =
                       remember(answerOption) {

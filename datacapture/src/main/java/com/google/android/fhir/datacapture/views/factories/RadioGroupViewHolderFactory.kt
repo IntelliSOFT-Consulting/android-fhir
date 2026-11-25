@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.AnnotatedString
+import com.google.android.fhir.datacapture.MINIMUM_NUMBER_OF_ANSWER_OPTIONS_FOR_DIALOG
 import com.google.android.fhir.datacapture.R
 import com.google.android.fhir.datacapture.extensions.ChoiceOrientationTypes
 import com.google.android.fhir.datacapture.extensions.choiceOrientation
@@ -41,8 +42,10 @@ import com.google.android.fhir.datacapture.extensions.itemAnswerOptionImage
 import com.google.android.fhir.datacapture.extensions.itemMedia
 import com.google.android.fhir.datacapture.views.QuestionnaireViewItem
 import com.google.android.fhir.datacapture.views.compose.ChoiceRadioButton
+import com.google.android.fhir.datacapture.views.compose.ChoiceSearchField
 import com.google.android.fhir.datacapture.views.compose.Header
 import com.google.android.fhir.datacapture.views.compose.MediaItem
+import com.google.android.fhir.datacapture.views.compose.enhancedChoiceControls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Questionnaire
@@ -65,6 +68,19 @@ internal object RadioGroupViewHolderFactory : QuestionnaireItemComposeViewHolder
           }
         val enabledAnswerOptions =
           remember(questionnaireViewItem) { questionnaireViewItem.enabledAnswerOptions }
+        val searchable =
+          enhancedChoiceControls() &&
+            enabledAnswerOptions.size >= MINIMUM_NUMBER_OF_ANSWER_OPTIONS_FOR_DIALOG
+        var searchQuery by
+          remember(questionnaireViewItem.questionnaireItem.linkId) { mutableStateOf("") }
+        val visibleOptions =
+          if (searchable && searchQuery.isNotBlank()) {
+            enabledAnswerOptions.filter {
+              it.value.displayString(context).contains(searchQuery, ignoreCase = true)
+            }
+          } else {
+            enabledAnswerOptions
+          }
         var selectedAnswerOption by
           remember(questionnaireViewItem) {
             mutableStateOf(
@@ -104,6 +120,7 @@ internal object RadioGroupViewHolderFactory : QuestionnaireItemComposeViewHolder
             displayValidationResult = true,
           )
           questionnaireViewItem.questionnaireItem.itemMedia?.let { MediaItem(it) }
+          if (searchable) ChoiceSearchField(searchQuery, onQueryChange = { searchQuery = it })
 
           when (choiceOrientationType) {
             ChoiceOrientationTypes.HORIZONTAL -> {
@@ -114,7 +131,7 @@ internal object RadioGroupViewHolderFactory : QuestionnaireItemComposeViewHolder
                 verticalArrangement =
                   Arrangement.spacedBy(dimensionResource(R.dimen.option_item_margin_vertical)),
               ) {
-                enabledAnswerOptions.forEach {
+                visibleOptions.forEach {
                   ChoiceRadioButton(
                     label = remember(it) { AnnotatedString(it.value.displayString(context)) },
                     selected = it == selectedAnswerOption,
@@ -133,7 +150,7 @@ internal object RadioGroupViewHolderFactory : QuestionnaireItemComposeViewHolder
                 verticalArrangement =
                   Arrangement.spacedBy(dimensionResource(R.dimen.option_item_margin_vertical)),
               ) {
-                enabledAnswerOptions.forEach {
+                visibleOptions.forEach {
                   ChoiceRadioButton(
                     label = remember(it) { AnnotatedString(it.value.displayString(context)) },
                     selected = it == selectedAnswerOption,

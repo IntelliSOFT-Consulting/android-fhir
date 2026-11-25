@@ -13,8 +13,22 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
         <item name="android:fontFamily">@font/montserratregular</item>
+        <item name="questionnaire_theme">@style/Theme.Surveillance.Questionnaire</item>
     </style>
 
+
+    <style name="Theme.Surveillance.Questionnaire" parent="Theme.Questionnaire">
+        <item name="questionnaireQuestionTextStyle">@style/Questionnaire.Surveillance.QuestionLabel</item>
+        <item name="questionnaireEnhancedChoiceControls">true</item>
+    </style>
+
+    <style name="Questionnaire.Surveillance.QuestionLabel" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.Surveillance.QuestionLabel</item>
+    </style>
+
+    <style name="TextAppearance.Surveillance.QuestionLabel" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textStyle">bold</item>
+    </style>
 
     <style name="Theme.Surveillance.NoActionBar">
         <item name="windowNoTitle">true</item>
@@ -52,6 +66,7 @@
     </style>
     <!-- Base application theme. -->
     <style name="Base.Theme.Surveillance" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="questionnaire_theme">@style/Theme.Surveillance.Questionnaire</item>
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
